@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace LogiConnect.Repository.Models;
+
+public partial class Feedback
+{
+    public int FeedbackId { get; set; }
+
+    public int? MealPlanId { get; set; }
+
+    public int? UserId { get; set; }
+
+    public string? Message { get; set; }
+
+    public int? Rating { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public virtual MealPlan? MealPlan { get; set; }
+
+    public virtual User? User { get; set; }
+}
