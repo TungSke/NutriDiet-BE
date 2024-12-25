@@ -12,9 +12,10 @@ namespace NutriDiet.Service.Utilities
     public class EmailService
     {
         private readonly IMemoryCache _cache;
-        public EmailService()
+
+        public EmailService(IMemoryCache cache)
         {
-            _cache = new MemoryCache(new MemoryCacheOptions());
+            _cache = cache;
         }
         public async Task SendEmail(string email, string subject, string body)
         {
@@ -81,6 +82,22 @@ namespace NutriDiet.Service.Utilities
             {
                 throw new Exception("Error when sending email: " + ex.Message);
             }
+        }
+
+        public async Task<bool> VerifyOtp(string email, string otp)
+        {
+            var cachedOtp = _cache.Get(email) as string;
+
+            Console.WriteLine($"Cached OTP: {cachedOtp} for email: {email}");
+            Console.WriteLine($"Provided OTP: {otp}");
+
+            if (!string.IsNullOrEmpty(cachedOtp) && cachedOtp.Equals(otp))
+            {
+                _cache.Remove(email);
+                return true;
+            }
+
+            return false;
         }
 
 

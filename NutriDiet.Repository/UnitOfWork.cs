@@ -11,9 +11,9 @@ namespace NutriDiet.Repository
         protected readonly NutriDietContext _context;
         private IUserRepository _userRepository;
 
-        public UnitOfWork(NutriDietContext context)
+        public UnitOfWork()
         {
-            _context = context;
+            _context ??= new NutriDietContext();
         }
 
         public IUserRepository UserRepository => _userRepository ??= new UserRepository(_context);

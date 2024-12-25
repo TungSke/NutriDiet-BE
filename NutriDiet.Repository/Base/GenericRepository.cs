@@ -8,18 +8,15 @@ namespace NutriDiet.Repository.Repositories
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
         protected readonly NutriDietContext _context = null;
-        private DbSet<TEntity> table = null;
 
         public GenericRepository()
         {
             this._context = new NutriDietContext();
-            table = _context.Set<TEntity>();
         }
 
         public GenericRepository(NutriDietContext context)
         {
             this._context = context;
-            table = _context.Set<TEntity>();
         }
 
         public async Task Detach(TEntity entity)
@@ -31,22 +28,6 @@ namespace NutriDiet.Repository.Repositories
             }
 
             entry.State = EntityState.Detached;
-        }
-
-        public async Task CreateAsync(TEntity entity)
-        {
-            await _context.Set<TEntity>().AddAsync(entity);
-        }
-
-        public async Task DeleteAsync(TEntity entity)
-        {
-            var local = _context.Set<TEntity>().Local.FirstOrDefault(e => e == entity);
-            if (local != null)
-            {
-                _context.Entry(local).State = EntityState.Detached;
-            }
-            _context.Set<TEntity>().Attach(entity);
-            _context.Entry(entity).State = EntityState.Deleted;
         }
 
         public IQueryable<TEntity> GetAll()
@@ -64,6 +45,11 @@ namespace NutriDiet.Repository.Repositories
             return _context.Set<TEntity>().Where(predicate).AsNoTracking();
         }
 
+        public async Task CreateAsync(TEntity entity)
+        {
+            await _context.Set<TEntity>().AddAsync(entity);
+        }
+
         public async Task UpdateAsync(TEntity entity)
         {
             var local = _context.Set<TEntity>().Local.FirstOrDefault(e => e == entity);
@@ -76,6 +62,17 @@ namespace NutriDiet.Repository.Repositories
             _context.Set<TEntity>().Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
         }
+
+        public async Task DeleteAsync(TEntity entity)
+        {
+            var local = _context.Set<TEntity>().Local.FirstOrDefault(e => e == entity);
+            if (local != null)
+            {
+                _context.Entry(local).State = EntityState.Detached;
+            }
+            _context.Set<TEntity>().Attach(entity);
+            _context.Entry(entity).State = EntityState.Deleted;
+        }        
 
         public async Task<int> CountAsync()
         {

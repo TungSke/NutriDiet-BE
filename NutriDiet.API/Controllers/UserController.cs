@@ -18,8 +18,15 @@ namespace NutriDiet.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
-            await _userService.Register(request);
-            return Ok("Success");
+            var result = await _userService.Register(request);
+            return Ok(result);
+        }
+
+        [HttpPost("verify-account")]
+        public async Task<IActionResult> VerifyAccount(VerifyAccountRequest request)
+        {
+            var result = await _userService.VerifyAccount(request);
+            return Ok(result);
         }
 
         [HttpPost("login")]

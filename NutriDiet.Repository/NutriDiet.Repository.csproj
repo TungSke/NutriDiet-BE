@@ -24,4 +24,8 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NutriDiet.Common\NutriDiet.Common.csproj" />
+  </ItemGroup>
+
 </Project>

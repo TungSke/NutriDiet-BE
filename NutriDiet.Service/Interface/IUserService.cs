@@ -1,16 +1,15 @@
-﻿using NutriDiet.Service.ModelDTOs.Request;
+﻿using NutriDiet.Common.BusinessResult;
+using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Interface
 {
     public interface IUserService
     {
-        Task Register(RegisterRequest request);
-        Task<LoginResponse> Login(LoginRequest accountrequest);
+        Task<IBusinessResult> Register(RegisterRequest request);
+
+        Task<IBusinessResult> VerifyAccount(VerifyAccountRequest request);
+
+        Task<IBusinessResult> Login(LoginRequest accountrequest);
     }
 }

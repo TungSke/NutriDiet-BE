@@ -138,7 +138,7 @@ namespace NutriDiet.API
 
                     .AddJsonOptions(options =>
                     {
-                        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower;
                     });
         }
 
