@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NutriDiet.Repository\LogiConnect.Repository.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Enums\" />
+    <ProjectReference Include="..\NutriDiet.Repository\NutriDiet.Repository.csproj" />
   </ItemGroup>
 
   <ItemGroup>

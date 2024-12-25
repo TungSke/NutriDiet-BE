@@ -1,4 +1,4 @@
-﻿namespace LogiConnect.API.Middleware
+﻿namespace NutriDiet.API.Middleware
 {
     public class GlobalExceptionMiddleware
     {

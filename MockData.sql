@@ -1,4 +1,8 @@
 ﻿USE NutriDiet;
+INSERT INTO Role (RoleID, RoleName)
+VALUES 
+    (1, 'Admin'),
+    (2, 'Customer');
 
 INSERT INTO Food (FoodName, FoodType, Description, ServingSize)
 VALUES

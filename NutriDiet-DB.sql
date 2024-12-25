@@ -21,6 +21,7 @@ CREATE TABLE Users (
     Age INT CHECK (Age > 0),
     Gender NVARCHAR(10),
     Avatar NVARCHAR(255),
+    Status NVARCHAR(50) NOT NULL DEFAULT 'Active', -- e.g., 'Active', 'Inactive', 'Suspended'
     RoleID INT,
     FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
 );

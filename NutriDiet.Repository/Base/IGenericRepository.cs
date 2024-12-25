@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace LogiConnect.Repository.Base
+namespace NutriDiet.Repository.Base
 {
     public interface IGenericRepository<TEntity> where TEntity : class
     {

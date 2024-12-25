@@ -1,4 +1,5 @@
-﻿using LogiConnect.API.Middleware;
+﻿using NutriDiet.API;
+using NutriDiet.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+ServiceRegister.RegisterServices(builder.Services, builder.Configuration);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
@@ -20,8 +23,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
+
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.MapControllers();

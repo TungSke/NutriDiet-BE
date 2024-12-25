@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace LogiConnect.Repository.Interface
+namespace NutriDiet.Repository.Interface
 {
     public interface IUnitOfWork
     {

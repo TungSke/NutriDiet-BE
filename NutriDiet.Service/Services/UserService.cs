@@ -1,30 +1,37 @@
-﻿using LogiConnect.Repository.Interface;
-using LogiConnect.Repository.Models;
-using LogiConnect.Service.Interface;
-using LogiConnect.Service.ModelDTOs.Request;
-using LogiConnect.Service.ModelDTOs.Response;
+﻿using NutriDiet.Repository.Interface;
+using NutriDiet.Repository.Models;
+using NutriDiet.Service.Enums;
+using NutriDiet.Service.Helpers;
+using NutriDiet.Service.Interface;
+using NutriDiet.Service.ModelDTOs.Request;
+using NutriDiet.Service.ModelDTOs.Response;
+using NutriDiet.Service.Utilities;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
-namespace LogiConnect.Service.Services
+namespace NutriDiet.Service.Services
 {
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly PasswordHasher<string> _passwordHasher;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly string _accountIdClaim;
+        private readonly PasswordHasher<string> _passwordHasher;
+        private readonly TokenHandlerHelper _tokenHandler;
+        private readonly EmailService _emailService;
+        private readonly string _UserIdClaim;
 
         public UserService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+            _passwordHasher = new PasswordHasher<string>();
+            _tokenHandler = new TokenHandlerHelper();
+            _emailService = new EmailService();
         }
 
-        private string GetAccountIdClaim()
+        private string GetUserIdClaim()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -35,56 +42,62 @@ namespace LogiConnect.Service.Services
             return _passwordHasher.HashPassword(null, password);
         }
 
-        public async Task<User> findAccountByEmail(string email)
+        public async Task<User> findUserByEmail(string email)
         {
             return await _unitOfWork.UserRepository.GetByWhere(x => x.Email == email).Include(x => x.Role).FirstOrDefaultAsync();
         }
 
-        public async Task<User> findAccountById(int id)
+        public async Task<User> findUserById(int id)
         {
             return await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == id).Include(x => x.Role).FirstOrDefaultAsync();
         }
 
         public async Task Register(RegisterRequest request)
         {
-            var checkAccount = await findAccountByEmail(request.Email);
-            if (checkAccount != null)
+            
+            var checkUser = await findUserByEmail(request.Email);
+            if (checkUser != null)
             {
                 throw new Exception("Email already exists");
             }
             request.Password = HashPassword(request.Password);
-            //var acc = request.Adapt<User>();
-            //acc.RoleId = await _unitOfWork.RoleRepository.GetByWhere(x => x.RoleName.ToLower() == "user").Select(x => x.RoleId).FirstOrDefaultAsync();
-            //acc.Status = "INACTIVE";
-            //acc.Avatar = "/images/avatar.png";
-            //acc.CreateAt = DateTime.UtcNow;
-            //await _unitOfWork.AccountRepository.CreateAsync(acc);
-            //await _unitOfWork.SaveChangesAsync();
+            var acc = request.Adapt<User>();
+            acc.FullName = "New User";
+            acc.RoleId = (int)RoleEnum.Customer;
+            acc.Status = "INACTIVE";
+            acc.Avatar = "";
+            await _unitOfWork.UserRepository.CreateAsync(acc);
+            await _unitOfWork.SaveChangesAsync();
 
-
-            //var token = await _tokenHandler.GenerateJwtTokenResetOrCreateAcc(acc);
-            //string verifiedUrl = account.verifiedUrl.Replace("{token}", Uri.EscapeDataString(token));
-            //var verifyLink = $"<a href='{verifiedUrl}?email={account.Email}'>Verify create your account</a>";
-
-            //var plainTextMessage = "We received a request to create account in our service. If you didn't make the request, just ignore this email" +
-            //                       "<br />" +
-            //                       "Otherwise, you can verify your account using the link below:" +
-            //                       "<br />" +
-            //                       $"Verify create account link: {verifyLink}";
-            //await _googleService.SendEmail(account.Email, "Verify Create Your Account", plainTextMessage);
+            await _emailService.SendEmailWithOTP(request.Email, "Verify your account");
         }
 
-        public async Task<LoginResponse> Login(LoginRequest accountrequest)
+        public async Task VerifyAccount(VerifyAccountRequest request)
         {
-            var account = await findAccountByEmail(accountrequest.Email);
+            
+        }
+
+        public async Task<LoginResponse> Login(LoginRequest request)
+        {
+            var account = await findUserByEmail(request.Email);
             if (account == null)
             {
                 return null;
             }
 
-            var result = _passwordHasher.VerifyHashedPassword(accountrequest.Email, account.Password, accountrequest.Password);
-
-            return null;
+            var result = _passwordHasher.VerifyHashedPassword(null, request.Password, request.Password);
+            if(result == PasswordVerificationResult.Success)
+            {
+                return new LoginResponse
+                {
+                    Role = account.Role.RoleName,
+                    Token = _tokenHandler.GenerateJwtToken(account).Result
+                };
+            }
+            else
+            {
+                throw new Exception("Password is incorrect");
+            }
         }
 
 

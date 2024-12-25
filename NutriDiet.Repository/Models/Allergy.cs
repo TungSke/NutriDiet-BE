@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LogiConnect.Repository.Models;
+namespace NutriDiet.Repository.Models;
 
 public partial class Allergy
 {

@@ -1,9 +1,9 @@
-﻿using LogiConnect.Repository.Base;
-using LogiConnect.Repository.Interface;
-using LogiConnect.Repository.Models;
+﻿using NutriDiet.Repository.Base;
+using NutriDiet.Repository.Interface;
+using NutriDiet.Repository.Models;
 using System;
 
-namespace LogiConnect.Repository.Repositories
+namespace NutriDiet.Repository.Repositories
 {
     public class UserRepository : GenericRepository<User>, IUserRepository
     {

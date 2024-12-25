@@ -1,10 +1,10 @@
-﻿using LogiConnect.Repository.Interface;
-using LogiConnect.Repository.Models;
-using LogiConnect.Repository.Repositories;
+﻿using NutriDiet.Repository.Interface;
+using NutriDiet.Repository.Models;
+using NutriDiet.Repository.Repositories;
 using System;
 using System.Threading.Tasks;
 
-namespace LogiConnect.Repository
+namespace NutriDiet.Repository
 {
     public class UnitOfWork : IUnitOfWork
     {

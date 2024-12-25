@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Service.ModelDTOs.Request
 {
-    public class RegisterRequest
+    public class VerifyAccountRequest
     {
-        public string Email { get; set; } = null!;
-
-        public string Password { get; set; } = null!;
+        public string Email { get; set; }
+        public string OTP { get; set; }
     }
 }

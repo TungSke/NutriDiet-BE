@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogiConnect.API", "NutriDiet.API\LogiConnect.API.csproj", "{BFF651A6-C121-4DB5-B3B2-24457C6AB11F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NutriDiet.API", "NutriDiet.API\NutriDiet.API.csproj", "{BFF651A6-C121-4DB5-B3B2-24457C6AB11F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogiConnect.Service", "NutriDiet.Service\LogiConnect.Service.csproj", "{3E2EB0AC-2CFD-4E52-9E18-5BB40C5155F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NutriDiet.Service", "NutriDiet.Service\NutriDiet.Service.csproj", "{3E2EB0AC-2CFD-4E52-9E18-5BB40C5155F1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogiConnect.Repository", "NutriDiet.Repository\LogiConnect.Repository.csproj", "{EBD6730B-FCD9-4314-A2E0-EC7975C91250}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NutriDiet.Repository", "NutriDiet.Repository\NutriDiet.Repository.csproj", "{EBD6730B-FCD9-4314-A2E0-EC7975C91250}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,4 @@
-﻿using LogiConnect.Repository.Models;
+﻿using NutriDiet.Repository.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -9,11 +9,13 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogiConnect.Service.Helpers
+namespace NutriDiet.Service.Helpers
 {
-    internal class TokenHandlerHelper
+    public class TokenHandlerHelper
     {
         private readonly IConfiguration _configuration;
+
+        public TokenHandlerHelper() { }
 
         public TokenHandlerHelper(IConfiguration configuration)
         {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LogiConnect.Repository.Models;
+namespace NutriDiet.Repository.Models;
 
 public partial class User
 {
@@ -18,6 +18,8 @@ public partial class User
     public string? Gender { get; set; }
 
     public string? Avatar { get; set; }
+
+    public string Status { get; set; } = null!;
 
     public int? RoleId { get; set; }
 

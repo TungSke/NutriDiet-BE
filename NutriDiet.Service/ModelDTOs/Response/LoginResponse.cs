@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogiConnect.Service.ModelDTOs.Response
+namespace NutriDiet.Service.ModelDTOs.Response
 {
     public class LoginResponse
     {

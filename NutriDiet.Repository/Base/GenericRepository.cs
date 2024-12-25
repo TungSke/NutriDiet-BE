@@ -1,9 +1,9 @@
-﻿using LogiConnect.Repository.Base;
-using LogiConnect.Repository.Models;
+﻿using NutriDiet.Repository.Base;
+using NutriDiet.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace LogiConnect.Repository.Repositories
+namespace NutriDiet.Repository.Repositories
 {
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
