@@ -26,11 +26,11 @@ namespace NutriDiet.Service.Services
         private readonly EmailService _emailService;
         private readonly string _UserIdClaim;
 
-        public UserService(IUnitOfWork unitOfWork, EmailService emailService)
+        public UserService(IUnitOfWork unitOfWork, EmailService emailService, TokenHandlerHelper tokenHandlerHelper)
         {
             _unitOfWork ??= unitOfWork;
             _passwordHasher = new PasswordHasher<string>();
-            _tokenHandler = new TokenHandlerHelper();
+            _tokenHandler = tokenHandlerHelper;
             _emailService = emailService;
         }
 
@@ -95,7 +95,6 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
-            // 4. Trả về kết quả thành công
             return new BusinessResult(Const.SUCCESS, "Verify success");
         }
 
@@ -116,7 +115,8 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.FAILURE, "Account is Deleted");
             }
 
-            var result = _passwordHasher.VerifyHashedPassword(null, request.Password, request.Password);
+            var result = _passwordHasher.VerifyHashedPassword(null, account.Password, request.Password);
+
             if (result == PasswordVerificationResult.Success)
             {
                 var res = new LoginResponse
@@ -124,7 +124,7 @@ namespace NutriDiet.Service.Services
                     Role = account.Role.RoleName,
                     Token = _tokenHandler.GenerateJwtToken(account).Result
                 };
-                return new BusinessResult(Const.SUCCESS, Const.SUCCESS_CREATE_MSG, res);
+                return new BusinessResult(Const.SUCCESS, Const.SUCCESS_READ_MSG, res);
             }
             else
             {

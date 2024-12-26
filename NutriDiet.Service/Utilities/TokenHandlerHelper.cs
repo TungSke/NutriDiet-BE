@@ -15,8 +15,6 @@ namespace NutriDiet.Service.Helpers
     {
         private readonly IConfiguration _configuration;
 
-        public TokenHandlerHelper() { }
-
         public TokenHandlerHelper(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -26,7 +24,6 @@ namespace NutriDiet.Service.Helpers
         {
             var claims = new[]
             {
-                //new Claim(ClaimTypes.Email, user.Email ?? "noemail@example.com"),
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Role, user.Role.RoleName),
             };
