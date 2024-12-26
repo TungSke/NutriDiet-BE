@@ -11,6 +11,8 @@ public partial class Food
 
     public string? FoodType { get; set; }
 
+    public string? FoodImageUrl { get; set; }
+
     public string? Description { get; set; }
 
     public string? ServingSize { get; set; }

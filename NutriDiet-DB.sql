@@ -56,7 +56,8 @@ CREATE TABLE Allergy (
 CREATE TABLE Food (
     FoodID INT IDENTITY(1,1) PRIMARY KEY,
     FoodName NVARCHAR(100) NOT NULL,
-    FoodType NVARCHAR(100), -- e.g., 'Vegetable', 'Meat', 'Dairy'
+    FoodType NVARCHAR(100), -- e.g., 'Vegetable', 'Meat', 'Dairy',
+	FoodImageUrl nvarchar(max),
     Description NVARCHAR(255),
     ServingSize NVARCHAR(50) -- e.g., '100g', '1 cup'
 );
