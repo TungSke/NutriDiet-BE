@@ -35,5 +35,11 @@ namespace NutriDiet.API.Controllers
             var response = await _userService.Login(request);
             return Ok(response);
         }
+
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok("Test");
+        }
     }
 }
