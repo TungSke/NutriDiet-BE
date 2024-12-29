@@ -36,7 +36,7 @@ namespace NutriDiet.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("test")]
+        [HttpGet("test2")]
         public IActionResult Test()
         {
             return Ok("Test");
