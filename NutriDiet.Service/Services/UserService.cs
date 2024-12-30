@@ -98,6 +98,17 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.SUCCESS, "Verify success");
         }
 
+        public async Task<IBusinessResult> ResendOTP(ResendOtpRequest request)
+        {
+            var checkUser = await findUserByEmail(request.Email);
+            if (checkUser == null)
+            {
+                return new BusinessResult(Const.FAILURE, "Email not existed, please register first!");
+            }
+            await _emailService.SendEmailWithOTP(request.Email,"Resend Otp");
+            return new BusinessResult(Const.SUCCESS, Const.SUCCESS_READ_MSG);
+        }
+
 
         public async Task<IBusinessResult> Login(LoginRequest request)
         {

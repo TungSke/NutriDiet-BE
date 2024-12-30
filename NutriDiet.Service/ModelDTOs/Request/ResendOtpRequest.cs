@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Service.ModelDTOs.Request
 {
-    public class RegisterRequest
+    public class ResendOtpRequest
     {
+        [Required]
         [EmailAddress]
         public string Email { get; set; } = null!;
-
-        public string Password { get; set; } = null!;
     }
 }

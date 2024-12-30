@@ -29,6 +29,13 @@ namespace NutriDiet.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("resend-otp")]
+        public async Task<IActionResult> ResendOTP(ResendOtpRequest request)
+        {
+            var result = await _userService.ResendOTP(request);
+            return Ok(result);
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {

@@ -10,6 +10,8 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> VerifyAccount(VerifyAccountRequest request);
 
+        Task<IBusinessResult> ResendOTP(ResendOtpRequest request);
+
         Task<IBusinessResult> Login(LoginRequest accountrequest);
     }
 }
