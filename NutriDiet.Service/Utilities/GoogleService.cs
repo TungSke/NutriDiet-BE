@@ -6,16 +6,22 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Http;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
+using Google.Apis.Upload;
 
 namespace NutriDiet.Service.Utilities
 {
-    public class EmailService
+    public class GoogleService
     {
         private readonly IMemoryCache _cache;
 
-        public EmailService(IMemoryCache cache)
+        public GoogleService(IMemoryCache cache)
         {
             _cache = cache;
+
         }
         public async Task SendEmail(string email, string subject, string body)
         {
@@ -107,5 +113,60 @@ namespace NutriDiet.Service.Utilities
             return random.Next(100000, 999999).ToString();
         }
 
+        public async Task<string> UploadFileAsync(IFormFile file)
+        {
+            // Lấy dữ liệu JSON từ biến môi trường
+            var credentialsJson = Environment.GetEnvironmentVariable("GOOGLE_CREDENTIALS_JSON");
+
+            if (string.IsNullOrEmpty(credentialsJson))
+            {
+                throw new Exception("Google credentials JSON not found in environment variables.");
+            }
+
+            GoogleCredential credential;
+
+            try
+            {
+                credential = GoogleCredential.FromJson(credentialsJson)
+                    .CreateScoped(new[] { DriveService.ScopeConstants.DriveFile });
+
+                // Khởi tạo dịch vụ Drive API
+                var service = new DriveService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "NutriDiet Upload App"
+                });
+
+                var fileMetaData = new Google.Apis.Drive.v3.Data.File()
+                {
+                    Name = file.FileName,
+                    Parents = new List<string> { "1ut6fCcK_V8x9G81AXov98ob37_1dtv-U" }
+                };
+
+                FilesResource.CreateMediaUpload request;
+
+                // Upload file
+                using (var streamFile = file.OpenReadStream())
+                {
+                    request = service.Files.Create(fileMetaData, streamFile, file.ContentType);
+                    request.Fields = "id";
+                    var progress = await request.UploadAsync();
+
+                    if (progress.Status == UploadStatus.Failed)
+                    {
+                        throw new Exception($"File upload failed: {progress.Exception.Message}");
+                    }
+
+                    var uploadedFile = request.ResponseBody;
+                    Console.WriteLine($"File '{fileMetaData.Name}' uploaded with ID: {uploadedFile.Id}");
+                    return uploadedFile.Id;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during file upload: {ex.Message}");
+                return null;
+            }
+        }
     }
 }

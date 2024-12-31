@@ -23,10 +23,10 @@ namespace NutriDiet.Service.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PasswordHasher<string> _passwordHasher;
         private readonly TokenHandlerHelper _tokenHandler;
-        private readonly EmailService _emailService;
+        private readonly GoogleService _emailService;
         private readonly string _UserIdClaim;
 
-        public UserService(IUnitOfWork unitOfWork, EmailService emailService, TokenHandlerHelper tokenHandlerHelper)
+        public UserService(IUnitOfWork unitOfWork, GoogleService emailService, TokenHandlerHelper tokenHandlerHelper)
         {
             _unitOfWork ??= unitOfWork;
             _passwordHasher = new PasswordHasher<string>();

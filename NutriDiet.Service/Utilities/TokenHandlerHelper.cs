@@ -15,6 +15,8 @@ namespace NutriDiet.Service.Helpers
     {
         private readonly IConfiguration _configuration;
 
+        public TokenHandlerHelper() { }
+
         public TokenHandlerHelper(IConfiguration configuration)
         {
             _configuration = configuration;

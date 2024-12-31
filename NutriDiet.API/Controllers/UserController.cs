@@ -2,6 +2,7 @@
 using NutriDiet.Service.ModelDTOs.Request;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Service.Utilities;
 
 namespace NutriDiet.API.Controllers
 {
@@ -10,9 +11,11 @@ namespace NutriDiet.API.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly GoogleService _googleService;
+        public UserController(IUserService userService, GoogleService googleService)
         {
             _userService = userService;
+            _googleService = googleService;
         }
 
         [HttpPost("register")]
@@ -43,10 +46,16 @@ namespace NutriDiet.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("test2")]
-        public IActionResult Test()
+        [HttpPost("uploadimagetest")]
+        public async Task<IActionResult> Test(IFormFile file)
         {
-            return Ok("Test");
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("File is not selected or empty.");
+            }
+
+            var res = await _googleService.UploadFileAsync(file);
+            return Ok(res);
         }
     }
 }
