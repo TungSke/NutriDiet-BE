@@ -46,7 +46,7 @@ namespace NutriDiet.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("uploadimagetest")]
+        [HttpPost("uploadimage")]
         public async Task<IActionResult> Test(IFormFile file)
         {
             if (file == null || file.Length == 0)

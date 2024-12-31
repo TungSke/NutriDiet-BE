@@ -158,8 +158,8 @@ namespace NutriDiet.Service.Utilities
                     }
 
                     var uploadedFile = request.ResponseBody;
-                    Console.WriteLine($"File '{fileMetaData.Name}' uploaded with ID: {uploadedFile.Id}");
-                    return uploadedFile.Id;
+                    var fileUrl = $"https://drive.google.com/thumbnail?id={uploadedFile.Id}";
+                    return fileUrl;
                 }
             }
             catch (Exception ex)
