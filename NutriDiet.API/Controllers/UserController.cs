@@ -54,7 +54,7 @@ namespace NutriDiet.API.Controllers
                 return BadRequest("File is not selected or empty.");
             }
 
-            var res = await _googleService.UploadFileAsync(file);
+            var res = await _googleService.UploadImageWithCloudDinary(file);
             return Ok(res);
         }
     }
