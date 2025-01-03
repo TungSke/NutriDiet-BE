@@ -10,5 +10,6 @@ namespace NutriDiet.Repository.Interface
         Task SaveChangesAsync();
 
         IUserRepository UserRepository { get; }
+        IFoodRepository FoodRepository { get; }
     }
 }

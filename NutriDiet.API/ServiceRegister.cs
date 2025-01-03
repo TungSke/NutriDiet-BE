@@ -38,9 +38,13 @@ namespace NutriDiet.API
 
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             services.AddScoped<GoogleService>();
             services.AddScoped<TokenHandlerHelper>();
+
             services.AddScoped<IUserService, UserService>();
+
+            services.AddScoped<IFoodService, FoodService>();
 
         }
 

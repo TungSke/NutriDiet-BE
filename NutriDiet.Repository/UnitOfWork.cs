@@ -10,6 +10,7 @@ namespace NutriDiet.Repository
     {
         protected readonly NutriDietContext _context;
         private IUserRepository _userRepository;
+        private IFoodRepository _foodRepository;
 
         public UnitOfWork()
         {
@@ -17,6 +18,8 @@ namespace NutriDiet.Repository
         }
 
         public IUserRepository UserRepository => _userRepository ??= new UserRepository(_context);
+
+        public IFoodRepository FoodRepository => _foodRepository ??= new FoodRepository(_context);
 
         public async Task BeginTransaction()
         {
