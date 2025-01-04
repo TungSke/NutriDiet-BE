@@ -45,17 +45,5 @@ namespace NutriDiet.API.Controllers
             var response = await _userService.Login(request);
             return Ok(response);
         }
-
-        [HttpPost("uploadimage")]
-        public async Task<IActionResult> Test(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("File is not selected or empty.");
-            }
-
-            var res = await _googleService.UploadImageWithCloudDinary(file);
-            return Ok(res);
-        }
     }
 }

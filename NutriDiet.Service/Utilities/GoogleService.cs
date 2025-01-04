@@ -170,32 +170,5 @@ namespace NutriDiet.Service.Utilities
             }
         }
 
-        public async Task<string> UploadImageWithCloudDinary(IFormFile file)
-        {
-            Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
-            cloudinary.Api.Secure = true;
-            using (var stream = file.OpenReadStream())
-            {
-                var uploadParams = new ImageUploadParams()
-                {
-                    File = new FileDescription(file.FileName, stream), // Đặt tên tệp và nội dung
-                    Folder = "images",                      // Thay bằng tên folder bạn muốn lưu trên Cloudinary
-                    PublicId = Path.GetFileNameWithoutExtension(file.FileName), // Đặt PublicId dựa trên tên file
-                    Overwrite = true                                 // Ghi đè nếu đã có file trùng PublicId
-                };
-
-                // Upload file và nhận kết quả
-                var uploadResult = await cloudinary.UploadAsync(uploadParams);
-
-                if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    return uploadResult.SecureUrl.ToString(); // Trả về URL ảnh đã upload
-                }
-                else
-                {
-                    throw new Exception($"Cloudinary upload failed: {uploadResult.Error.Message}");
-                }
-            }
-        }
     }
 }

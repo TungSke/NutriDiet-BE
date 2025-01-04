@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Service.Interface;
+using NutriDiet.Service.ModelDTOs.Request;
 
 namespace NutriDiet.API.Controllers
 {
@@ -15,10 +16,24 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllFood(int pageindex=1, int pagesize=10, string search="")
+        public async Task<IActionResult> GetAllFood(int pageindex = 1, int pagesize = 10, string foodType = "", string search = "")
         {
-            var result = await _foodService.GetAllFood(pageindex, pagesize, search);
+            var result = await _foodService.GetAllFood(pageindex, pagesize, foodType, search);
             return Ok(result);
+        }
+
+        [HttpGet("{foodId}")]
+        public async Task<IActionResult> GetFoodById(int foodId)
+        {
+            var result = await _foodService.GetFoodById(foodId);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateFood([FromForm] FoodRequest request)
+        {
+            await _foodService.CreateFood(request);
+            return Ok();
         }
     }
 }
