@@ -11,7 +11,7 @@ namespace NutriDiet.Repository.Base
 
         Task Detach(TEntity entity);
 
-        Task CreateAsync(TEntity entity);
+        Task AddAsync(TEntity entity);
 
         Task UpdateAsync(TEntity entity);
 

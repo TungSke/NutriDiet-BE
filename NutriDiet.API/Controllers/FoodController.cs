@@ -35,5 +35,12 @@ namespace NutriDiet.API.Controllers
             await _foodService.CreateFood(request);
             return Ok();
         }
+
+        [HttpPut("{foodId}")]
+        public async Task<IActionResult> UpdateFood(int foodId, [FromForm] FoodRequest request)
+        {
+            await _foodService.UpdateFood(foodId, request);
+            return Ok();
+        }
     }
 }

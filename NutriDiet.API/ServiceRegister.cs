@@ -14,6 +14,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.Services;
+using Mapster;
+using NutriDiet.Service.ModelDTOs.Response;
 
 namespace NutriDiet.API
 {
@@ -35,12 +37,13 @@ namespace NutriDiet.API
             AddCorsToThisWeb(services);
             AddEnum(services);
             AddKebab(services);
-
+            AddMapster();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddScoped<GoogleService>();
             services.AddScoped<TokenHandlerHelper>();
+            services.AddScoped<CloudinaryHelper>();
 
             services.AddScoped<IUserService, UserService>();
 
@@ -144,6 +147,12 @@ namespace NutriDiet.API
                     {
                         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower;
                     });
+        }
+
+        private static void AddMapster()
+        {
+            TypeAdapterConfig<Food, FoodResponse>.NewConfig()
+                .Map(dest => dest.FoodDetails, src => src.FoodDetails.Adapt<List<FoodDetailResponse>>());
         }
 
 

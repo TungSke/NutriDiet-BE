@@ -45,7 +45,7 @@ namespace NutriDiet.Repository.Repositories
             return _context.Set<TEntity>().Where(predicate).AsNoTracking();
         }
 
-        public async Task CreateAsync(TEntity entity)
+        public async Task AddAsync(TEntity entity)
         {
             await _context.Set<TEntity>().AddAsync(entity);
         }

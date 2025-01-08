@@ -19,5 +19,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public string? Description { get; set; }
 
         public string? ServingSize { get; set; }
+
+        public ICollection<FoodDetailResponse> FoodDetails { get; set; } = new List<FoodDetailResponse>();
     }
 }

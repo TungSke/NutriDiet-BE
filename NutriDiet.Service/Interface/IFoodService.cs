@@ -15,5 +15,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetFoodById(int foodId);
 
         Task CreateFood(FoodRequest request);
+
+        Task UpdateFood(int foodId, FoodRequest request);
     }
 }

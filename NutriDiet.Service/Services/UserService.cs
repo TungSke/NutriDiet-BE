@@ -69,7 +69,7 @@ namespace NutriDiet.Service.Services
             acc.RoleId = (int)RoleEnum.Customer;
             acc.Status = UserStatus.Inactive.ToString();
             acc.Avatar = "";
-            await _unitOfWork.UserRepository.CreateAsync(acc);
+            await _unitOfWork.UserRepository.AddAsync(acc);
             await _unitOfWork.SaveChangesAsync();
 
             await _emailService.SendEmailWithOTP(request.Email, "Verify your account");
