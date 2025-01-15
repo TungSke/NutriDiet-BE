@@ -61,43 +61,9 @@ namespace NutriDiet.API.Controllers
         [HttpPost("login-with-facebook")]
         public async Task<IActionResult> FacebookLogin([FromBody] string accessToken)
         {
-            try
-            {
-                // Kiểm tra token với Facebook
-                var urlConnect = $"https://graph.facebook.com/v21.0/me?fields=id,name,email,phone&access_token={accessToken}";
-                var userAvatar = $"https://graph.facebook.com/v21.0/me/picture?type=large&access_token={accessToken}"; // Dùng link này là xem luôn dc avatar 
-                var response = await _httpClient.GetAsync(urlConnect);
-                var response2 = await _httpClient.GetAsync(userAvatar);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    return BadRequest($"Invalid Facebook access token. Details: {errorContent}");
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var userData = JsonConvert.DeserializeObject<JObject>(content);
-
-                // Kiểm tra sự tồn tại của các trường trước khi truy cập
-                var name = userData?["name"]?.ToString();
-                var email = userData?["email"]?.ToString();
-
-                if (name == null || email == null)
-                {
-                    return BadRequest("Name or email not found in Facebook response.");
-                }
-
-                // Trả về kết quả
-                return Ok(new
-                {
-                    name,
-                    email
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
-            }
+            //var result = await _userService.LoginWithFacebook(accessToken);
+            //return StatusCode(result.StatusCode, result);
+            return Ok("fix this please");
         }
 
     }
