@@ -2,7 +2,7 @@
 {
     public interface IBusinessResult
     {
-        int Status { get; set; }
+        int StatusCode { get; set; }
         string? Message { get; set; }
         object? Data { get; set; }
     }

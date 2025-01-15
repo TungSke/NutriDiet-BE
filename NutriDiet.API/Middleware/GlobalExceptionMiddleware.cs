@@ -1,4 +1,6 @@
-﻿namespace NutriDiet.API.Middleware
+﻿using System.Net;
+
+namespace NutriDiet.API.Middleware
 {
     public class GlobalExceptionMiddleware
     {
@@ -22,11 +24,10 @@
                 _logger.LogError(ex, "An unhandled exception occurred");
 
                 context.Response.ContentType = "application/json";
-                context.Response.StatusCode = 500;
 
                 var response = new
                 {
-                    Code = 500,
+                    Code = context.Response.StatusCode,
                     Message = ex.Message,
                     Detailed = ex.StackTrace
                 };

@@ -35,12 +35,12 @@ namespace NutriDiet.Service.Services
 
             if (foods == null || !foods.Any())
             {
-                return new BusinessResult(Const.FAILURE, Const.FAIL_READ_MSG);
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }
 
             var response = foods.Adapt<List<FoodResponse>>();
 
-            return new BusinessResult(Const.SUCCESS, Const.SUCCESS_READ_MSG, response);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
 
@@ -49,10 +49,10 @@ namespace NutriDiet.Service.Services
             var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.FoodDetails).FirstOrDefaultAsync();
             if (food == null)
             {
-                return new BusinessResult(Const.FAILURE, Const.FAIL_READ_MSG);
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, Const.FAIL_READ_MSG);
             }
             var resposne = food.Adapt<FoodResponse>();
-            return new BusinessResult(Const.SUCCESS, Const.SUCCESS_READ_MSG, resposne);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, resposne);
         }
 
         public async Task CreateFood(FoodRequest request)

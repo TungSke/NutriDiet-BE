@@ -13,5 +13,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> ResendOTP(ResendOtpRequest request);
 
         Task<IBusinessResult> Login(LoginRequest accountrequest);
+
+        Task<IBusinessResult> LoginWithGoogle(string idToken);
     }
 }

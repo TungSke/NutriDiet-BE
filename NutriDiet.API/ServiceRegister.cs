@@ -57,6 +57,7 @@ namespace NutriDiet.API
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options =>
             {
@@ -71,21 +72,17 @@ namespace NutriDiet.API
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                 };
             });
+            
             //.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             //{
             //    options.LoginPath = "/Account/Login";
             //    options.AccessDeniedPath = "/Account/AccessDenied";
-            //})
-            //.AddGoogle(options =>
-            //{
-            //    options.ClientId = configuration["GoogleAuthSettings:ClientId"];
-            //    options.ClientSecret = configuration["GoogleAuthSettings:ClientSecret"];
-            //    options.CallbackPath = "/signin-google"; // Đường dẫn callback Google
             //});
+
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "NutriDiet_API"});
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "NutriDiet_API" });
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

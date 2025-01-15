@@ -14,6 +14,12 @@ using NutriDiet.Repository;
 using NutriDiet.Service.Enums;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Common;
+using CloudinaryDotNet;
+using Google.Apis.Auth;
+using Azure.Core;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace NutriDiet.Service.Services
 {
@@ -25,6 +31,7 @@ namespace NutriDiet.Service.Services
         private readonly TokenHandlerHelper _tokenHandler;
         private readonly GoogleService _emailService;
         private readonly string _UserIdClaim;
+        private readonly HttpClient _httpClient = new HttpClient();
 
         public UserService(IUnitOfWork unitOfWork, GoogleService emailService, TokenHandlerHelper tokenHandlerHelper)
         {
@@ -61,7 +68,7 @@ namespace NutriDiet.Service.Services
             var checkUser = await findUserByEmail(request.Email);
             if (checkUser != null)
             {
-                return new BusinessResult(Const.FAILURE, "Email Existed");
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Email Existed");
             }
             request.Password = HashPassword(request.Password);
             var acc = request.Adapt<User>();
@@ -73,7 +80,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
 
             await _emailService.SendEmailWithOTP(request.Email, "Verify your account");
-            return new BusinessResult(Const.SUCCESS, "Check email to active account");
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to active account");
         }
 
         public async Task<IBusinessResult> VerifyAccount(VerifyAccountRequest request)
@@ -82,20 +89,20 @@ namespace NutriDiet.Service.Services
 
             if (!isOtpValid)
             {
-                return new BusinessResult(Const.FAILURE, "OTP is incorrect");
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "OTP is incorrect");
             }
 
             var user = await findUserByEmail(request.Email);
             if (user == null)
             {
-                return new BusinessResult(Const.SUCCESS, "User not found");
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
             }
 
             user.Status = UserStatus.Active.ToString();
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
-            return new BusinessResult(Const.SUCCESS, "Verify success");
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Verify success");
         }
 
         public async Task<IBusinessResult> ResendOTP(ResendOtpRequest request)
@@ -103,10 +110,10 @@ namespace NutriDiet.Service.Services
             var checkUser = await findUserByEmail(request.Email);
             if (checkUser == null)
             {
-                return new BusinessResult(Const.FAILURE, "Email not existed, please register first!");
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed, please register first!");
             }
             await _emailService.SendEmailWithOTP(request.Email,"Resend Otp");
-            return new BusinessResult(Const.SUCCESS, Const.SUCCESS_READ_MSG);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
 
@@ -115,15 +122,15 @@ namespace NutriDiet.Service.Services
             var account = await findUserByEmail(request.Email);
             if (account == null)
             {
-                return new BusinessResult(Const.FAILURE, "Email not Existed");
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not Existed");
             }
             else if (account.Status == UserStatus.Inactive.ToString())
             {
-                return new BusinessResult(Const.FAILURE, "Account is not verified");
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Account is not verified");
             }
             else if (account.Status == UserStatus.Deleted.ToString())
             {
-                return new BusinessResult(Const.FAILURE, "Account is Deleted");
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Account is Deleted");
             }
 
             var result = _passwordHasher.VerifyHashedPassword(null, account.Password, request.Password);
@@ -135,15 +142,96 @@ namespace NutriDiet.Service.Services
                     Role = account.Role.RoleName,
                     Token = _tokenHandler.GenerateJwtToken(account).Result
                 };
-                return new BusinessResult(Const.SUCCESS, Const.SUCCESS_READ_MSG, res);
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
             }
             else
             {
-                return new BusinessResult(Const.FAILURE, "Password is incorrect");
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Password is incorrect");
+            }
+        }
+
+        public async Task<IBusinessResult> LoginWithGoogle(string idToken)
+        {
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
+            }
+            catch (Exception)
+            {
+                throw new Exception("Invalid Google token.");
+            }
+
+            var account = await findUserByEmail(payload.Email);
+            var res = new LoginResponse
+            {
+                Role = account.Role.RoleName,
+                Token = _tokenHandler.GenerateJwtToken(account).Result
+            };
+            //if (account == null)
+            //{
+            //    account = new Account
+            //    {
+            //        Name = payload.Name ?? "User",
+            //        Email = payload.Email,
+            //        Password = HashPassword("12345"),
+            //        Avatar = payload.Picture,
+            //        Status = "ACTIVE",
+            //        RoleId = (int)RoleEnum.user
+            //    };
+            //    await _unitOfWork.AccountRepository.CreateAsync(account);
+            //    await _unitOfWork.SaveChangesAsync();
+
+            //    //get again
+            //    account = await findAccountByEmail(payload.Email);
+            //}
+            //else if (account.Status == "INACTIVE")
+            //{
+            //    throw new Exception("Account is deleted, please contact admin to restore");
+            //}
+
+            return null;
+        }
+
+        public async Task<IBusinessResult> LoginWithFacebook(string accessToken)
+        {
+            try
+            {
+                // Kiểm tra token với Facebook
+                var urlConnect = $"https://graph.facebook.com/v21.0/me?fields=id,name,email,phone&access_token={accessToken}";
+                var userAvatar = $"https://graph.facebook.com/v21.0/me/picture?type=large&access_token={accessToken}"; // Dùng link này là xem luôn dc avatar 
+                var response = await _httpClient.GetAsync(urlConnect);
+                var response2 = await _httpClient.GetAsync(userAvatar);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Invalid Facebook access token. Details: {errorContent}");
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                var userData = JsonConvert.DeserializeObject<JObject>(content);
+
+                // Kiểm tra sự tồn tại của các trường trước khi truy cập
+                var name = userData?["name"]?.ToString();
+                var email = userData?["email"]?.ToString();
+
+                if (name == null || email == null)
+                {
+                    return null;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
 
 
 
-    }
+
+
+        }
 }

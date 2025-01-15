@@ -7,6 +7,15 @@
         public static string ERROR_EXCEPTION_MSG = "An unexpected error occurred.";
         public static int SUCCESS = 1;
         public static int FAILURE = 0;
+
+        // Mapping HTTP Status Codes
+        public static int HTTP_STATUS_OK = 200; // Success
+        public static int HTTP_STATUS_BAD_REQUEST = 400; // Failure
+        public static int HTTP_STATUS_INTERNAL_ERROR = 500; // Exception
+        public static int HTTP_STATUS_UNAUTHORIZED = 401; // Unauthorized
+        public static int HTTP_STATUS_FORBIDDEN = 403; // Forbidden
+        public static int HTTP_STATUS_NOT_FOUND = 404; // Not Found
+        public static int HTTP_STATUS_CONFLICT = 409; // Conflict
         #endregion
 
         #region Success Messages
