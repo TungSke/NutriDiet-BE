@@ -12,7 +12,7 @@ namespace NutriDiet.Service.Interface
     {
         Task<IBusinessResult> GetAllFood(int pageindex, int pagesize, string foodtype, string search);
 
-        Task<IBusinessResult> GetFoodById(int foodId);
+        //Task<IBusinessResult> GetFoodById(int foodId);
 
         Task CreateFood(FoodRequest request);
 

@@ -25,8 +25,8 @@ namespace NutriDiet.API.Controllers
         [HttpGet("{foodId}")]
         public async Task<IActionResult> GetFoodById(int foodId)
         {
-            var result = await _foodService.GetFoodById(foodId);
-            return Ok(result);
+            //var result = await _foodService.GetFoodById(foodId);
+            return Ok();
         }
 
         [HttpPost]

@@ -44,16 +44,16 @@ namespace NutriDiet.Service.Services
         }
 
 
-        public async Task<IBusinessResult> GetFoodById(int foodId)
-        {
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.FoodDetails).FirstOrDefaultAsync();
-            if (food == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, Const.FAIL_READ_MSG);
-            }
-            var resposne = food.Adapt<FoodResponse>();
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, resposne);
-        }
+        //public async Task<IBusinessResult> GetFoodById(int foodId)
+        //{
+        //    var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.FoodDetails).FirstOrDefaultAsync();
+        //    if (food == null)
+        //    {
+        //        return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, Const.FAIL_READ_MSG);
+        //    }
+        //    var resposne = food.Adapt<FoodResponse>();
+        //    return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, resposne);
+        //}
 
         public async Task CreateFood(FoodRequest request)
         {
@@ -63,7 +63,7 @@ namespace NutriDiet.Service.Services
                 imageUrl = await _cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
             }
             var food = request.Adapt<Food>();
-            food.FoodImageUrl = imageUrl;
+            food.ImageUrl = imageUrl;
             await _unitOfWork.FoodRepository.AddAsync(food);
 
             var foodDetails = request.foodDetailRequests

@@ -3,19 +3,17 @@ using System.Collections.Generic;
 
 namespace NutriDiet.Repository.Models;
 
-public partial class Allergy
+public partial class UserEatingHabit
 {
-    public int AllergyId { get; set; }
+    public int HabitId { get; set; }
 
     public int UserId { get; set; }
 
-    public string AllergyName { get; set; } = null!;
+    public string HabitType { get; set; } = null!;
 
-    public string? Notes { get; set; }
+    public string? Description { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
-    public DateTime? UpdatedAt { get; set; }
 
     public virtual User User { get; set; } = null!;
 }

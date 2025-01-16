@@ -148,8 +148,7 @@ namespace NutriDiet.API
 
         private static void AddMapster()
         {
-            TypeAdapterConfig<Food, FoodResponse>.NewConfig()
-                .Map(dest => dest.FoodDetails, src => src.FoodDetails.Adapt<List<FoodDetailResponse>>());
+            
         }
 
 

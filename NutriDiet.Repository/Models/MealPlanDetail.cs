@@ -7,15 +7,21 @@ public partial class MealPlanDetail
 {
     public int DetailId { get; set; }
 
-    public int? MealPlanId { get; set; }
+    public int MealPlanId { get; set; }
 
     public int? FoodId { get; set; }
+
+    public string? FoodName { get; set; }
 
     public double? Quantity { get; set; }
 
     public string? MealType { get; set; }
 
+    public int DayNumber { get; set; }
+
+    public double? TotalCalories { get; set; }
+
     public virtual Food? Food { get; set; }
 
-    public virtual MealPlan? MealPlan { get; set; }
+    public virtual MealPlan MealPlan { get; set; } = null!;
 }

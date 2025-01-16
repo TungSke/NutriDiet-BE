@@ -7,19 +7,21 @@ public partial class Feedback
 {
     public int FeedbackId { get; set; }
 
-    public int? MealPlanId { get; set; }
+    public int MealPlanId { get; set; }
 
-    public int? UserId { get; set; }
-
-    public string? Message { get; set; }
+    public int UserId { get; set; }
 
     public int? Rating { get; set; }
+
+    public string? Message { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual MealPlan? MealPlan { get; set; }
+    public virtual ICollection<FeedbackReply> FeedbackReplies { get; set; } = new List<FeedbackReply>();
 
-    public virtual User? User { get; set; }
+    public virtual MealPlan MealPlan { get; set; } = null!;
+
+    public virtual User User { get; set; } = null!;
 }

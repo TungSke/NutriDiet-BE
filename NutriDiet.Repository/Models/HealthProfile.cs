@@ -7,9 +7,9 @@ public partial class HealthProfile
 {
     public int ProfileId { get; set; }
 
-    public int? UserId { get; set; }
+    public int UserId { get; set; }
 
-    public string? MedicalConditions { get; set; }
+    public string? MedicalCondition { get; set; }
 
     public double? HeightCm { get; set; }
 
@@ -17,13 +17,15 @@ public partial class HealthProfile
 
     public string? ActivityLevel { get; set; }
 
-    public string? Goal { get; set; }
+    public string? HealthGoal { get; set; }
 
     public double? TargetWeight { get; set; }
+
+    public DateTime? DurationTarget { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual User User { get; set; } = null!;
 }
