@@ -163,34 +163,36 @@ namespace NutriDiet.Service.Services
             }
 
             var account = await findUserByEmail(payload.Email);
-            var res = new LoginResponse
+            
+            if (account == null)
             {
-                Role = account.Role.RoleName,
-                Token = _tokenHandler.GenerateJwtToken(account).Result
-            };
-            //if (account == null)
-            //{
-            //    account = new Account
-            //    {
-            //        Name = payload.Name ?? "User",
-            //        Email = payload.Email,
-            //        Password = HashPassword("12345"),
-            //        Avatar = payload.Picture,
-            //        Status = "ACTIVE",
-            //        RoleId = (int)RoleEnum.user
-            //    };
-            //    await _unitOfWork.AccountRepository.CreateAsync(account);
-            //    await _unitOfWork.SaveChangesAsync();
+                account = new User
+                {
+                    FullName = payload.Name ?? "User",
+                    Email = payload.Email,
+                    Password = HashPassword("12345"),
+                    Avatar = payload.Picture,
+                    Status = "ACTIVE",
+                    RoleId = (int)RoleEnum.Customer
+                };
+                await _unitOfWork.UserRepository.AddAsync(account);
+                await _unitOfWork.SaveChangesAsync();
 
-            //    //get again
-            //    account = await findAccountByEmail(payload.Email);
-            //}
-            //else if (account.Status == "INACTIVE")
-            //{
-            //    throw new Exception("Account is deleted, please contact admin to restore");
-            //}
+                //get again
+                account = await findUserByEmail(payload.Email);
+                var res = new LoginResponse
+                {
+                    Role = account.Role.RoleName,
+                    Token = _tokenHandler.GenerateJwtToken(account).Result
+                };
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
+            }
+            else if (account.Status == "INACTIVE")
+            {
+                throw new Exception("Account is deleted, please contact admin to restore");
+            }
 
-            return null;
+            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, Const.FAIL_READ_MSG);
         }
 
         public async Task<IBusinessResult> LoginWithFacebook(string accessToken)
@@ -216,16 +218,40 @@ namespace NutriDiet.Service.Services
                 var name = userData?["name"]?.ToString();
                 var email = userData?["email"]?.ToString();
 
-                if (name == null || email == null)
+                var account = await findUserByEmail(email);
+                if (account == null)
                 {
-                    return null;
+                    account = new User
+                    {
+                        FullName = name ?? "User",
+                        Email = email,
+                        Password = HashPassword("12345"),
+                        Avatar = userAvatar,
+                        Status = "ACTIVE",
+                        RoleId = (int)RoleEnum.Customer
+                    };
+                    await _unitOfWork.UserRepository.AddAsync(account);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    //get again
+                    account = await findUserByEmail(email);
+                    var res = new LoginResponse
+                    {
+                        Role = account.Role.RoleName,
+                        Token = _tokenHandler.GenerateJwtToken(account).Result
+                    };
+                    return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
+                }
+                else if (account.Status == "INACTIVE")
+                {
+                    throw new Exception("Account is deleted, please contact admin to restore");
                 }
 
                 return null;
             }
             catch (Exception ex)
             {
-                return null;
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST,ex.Message);
             }
         }
 
@@ -233,5 +259,5 @@ namespace NutriDiet.Service.Services
 
 
 
-        }
+    }
 }
