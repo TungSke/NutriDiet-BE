@@ -14,7 +14,6 @@ using NutriDiet.Repository;
 using NutriDiet.Service.Enums;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Common;
-using CloudinaryDotNet;
 using Google.Apis.Auth;
 using Azure.Core;
 using Newtonsoft.Json.Linq;

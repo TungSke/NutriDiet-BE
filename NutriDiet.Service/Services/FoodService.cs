@@ -66,15 +66,7 @@ namespace NutriDiet.Service.Services
             food.ImageUrl = imageUrl;
             await _unitOfWork.FoodRepository.AddAsync(food);
 
-            var foodDetails = request.foodDetailRequests
-        .Adapt<List<FoodDetail>>()
-        .Select(fd =>
-        {
-            fd.FoodId = food.FoodId;
-            return fd;
-        })
-        .ToList();
-            await _unitOfWork.FoodDetailRepository.AddRangeAsync(foodDetails);
+            
             await _unitOfWork.SaveChangesAsync();
         }
 
