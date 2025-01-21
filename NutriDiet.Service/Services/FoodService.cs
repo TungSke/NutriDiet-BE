@@ -14,11 +14,10 @@ namespace NutriDiet.Service.Services
     public class FoodService : IFoodService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly CloudinaryHelper _cloudinaryHelper;
-        public FoodService(IUnitOfWork unitOfWork, CloudinaryHelper cloudinaryHelper)
+
+        public FoodService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _cloudinaryHelper = cloudinaryHelper;
         }
 
         public async Task<IBusinessResult> GetAllFood(int pageIndex, int pageSize, string foodType, string search)
@@ -43,30 +42,20 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-
-        //public async Task<IBusinessResult> GetFoodById(int foodId)
-        //{
-        //    var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.FoodDetails).FirstOrDefaultAsync();
-        //    if (food == null)
-        //    {
-        //        return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, Const.FAIL_READ_MSG);
-        //    }
-        //    var resposne = food.Adapt<FoodResponse>();
-        //    return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, resposne);
-        //}
-
         public async Task CreateFood(FoodRequest request)
         {
+            var cloudinaryHelper = new CloudinaryHelper(); // Chỉ khởi tạo ở đây
             var imageUrl = "";
+
             if (request.FoodImageUrl != null)
             {
-                imageUrl = await _cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
+                imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
             }
+
             var food = request.Adapt<Food>();
             food.ImageUrl = imageUrl;
             await _unitOfWork.FoodRepository.AddAsync(food);
 
-            
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -78,11 +67,16 @@ namespace NutriDiet.Service.Services
                 throw new Exception("Food not found");
             }
 
+            var cloudinaryHelper = new CloudinaryHelper(); // Khởi tạo ở đây nếu cần
             var imageUrl = "";
+
             if (request.FoodImageUrl != null)
             {
-                imageUrl = await _cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
+                imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
             }
+
+            food = request.Adapt(food); // Cập nhật thông tin từ request
+            food.ImageUrl = imageUrl;
 
             await _unitOfWork.FoodRepository.UpdateAsync(food);
             await _unitOfWork.SaveChangesAsync();

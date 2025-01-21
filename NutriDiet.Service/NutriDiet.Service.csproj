@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NutriDiet.Common\NutriDiet.Common.csproj" />
     <ProjectReference Include="..\NutriDiet.Repository\NutriDiet.Repository.csproj" />
   </ItemGroup>
 

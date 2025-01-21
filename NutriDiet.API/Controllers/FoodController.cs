@@ -19,7 +19,7 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> GetAllFood(int pageindex = 1, int pagesize = 10, string foodType = "", string search = "")
         {
             var result = await _foodService.GetAllFood(pageindex, pagesize, foodType, search);
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpGet("{foodId}")]

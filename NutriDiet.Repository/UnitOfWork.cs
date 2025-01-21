@@ -12,9 +12,9 @@ namespace NutriDiet.Repository
         private IUserRepository _userRepository;
         private IFoodRepository _foodRepository;
 
-        public UnitOfWork()
+        public UnitOfWork(NutriDietContext context)
         {
-            _context ??= new NutriDietContext();
+            _context = context;
         }
 
         public IUserRepository UserRepository => _userRepository ??= new UserRepository(_context);
