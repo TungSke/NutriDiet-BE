@@ -34,14 +34,33 @@ CREATE TABLE [User] (
     RoleID INT NOT NULL,
     FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
 );
-
+-- Bảng Package
+CREATE TABLE Package (
+    PackageID INT IDENTITY(1,1) PRIMARY KEY,
+    PackageName NVARCHAR(100) UNIQUE NOT NULL,
+    Price FLOAT CHECK (Price >= 0),
+    Duration INT CHECK (Duration > 0),
+    Description NVARCHAR(255),
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE()
+);
+CREATE TABLE UserPackage (
+    UserPackageID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT NOT NULL,
+    PackageID INT NOT NULL,
+    StartDate DATETIME DEFAULT GETDATE(),
+    ExpiryDate DATETIME NOT NULL,
+    Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')),
+    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
+    FOREIGN KEY (PackageID) REFERENCES Package(PackageID) ON DELETE CASCADE
+);
 -- Bảng HealthProfile
 CREATE TABLE HealthProfile (
     ProfileID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
     MedicalCondition NVARCHAR(255) NULL,
-    HeightCm FLOAT CHECK (HeightCm > 0),
-    WeightKg FLOAT CHECK (WeightKg > 0),
+    Height FLOAT CHECK (Height > 0),
+    Weight FLOAT CHECK (Weight > 0),
     ActivityLevel NVARCHAR(50),
     HealthGoal NVARCHAR(50),
     TargetWeight FLOAT CHECK (TargetWeight > 0),
@@ -78,32 +97,26 @@ CREATE TABLE Food (
 	Fiber FLOAT CHECK (Fiber >= 0),
 	Others NVARCHAR(255) NULL
 );
-
 -- Bảng nguyên liệu
 CREATE TABLE Ingredient (
     IngredientID INT IDENTITY(1,1) PRIMARY KEY,
     IngredientName NVARCHAR(100) UNIQUE NOT NULL,
     Category NVARCHAR(50), -- Loại nguyên liệu (ví dụ: Rau củ, Thịt, Gia vị...)
-    Unit NVARCHAR(20) NOT NULL -- Đơn vị tính (gram, ml, piece...)
+    Unit NVARCHAR(20) NOT NULL, -- Đơn vị tính (gram, ml, piece...)
+	Calories FLOAT NULL,
+	FoodID INT NOT NULL,
+	FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
 );
 
--- Bảng trung gian FoodIngredients để liên kết Food với Ingredients
-CREATE TABLE FoodIngredient (
-    FoodIngredientID INT IDENTITY(1,1) PRIMARY KEY,
-    FoodID INT NOT NULL,
-    IngredientID INT NOT NULL,
-    Amount FLOAT CHECK (Amount > 0), -- Số lượng nguyên liệu cần dùng
-    Notes NVARCHAR(255) NULL, -- Ghi chú về cách sử dụng nguyên liệu
-    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
-    FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID) ON DELETE NO ACTION
-);
 
 -- Bảng RecipeSuggestion
 CREATE TABLE RecipeSuggestion (
     RecipeID INT IDENTITY(1,1) PRIMARY KEY, -- ID của công thức
-	 UserID INT NOT NULL,
+	UserID INT NOT NULL,
     FoodID INT NOT NULL,                    -- Món ăn được gợi ý công thức
     Description NVARCHAR(MAX) NOT NULL, -- Mô tả từng bước thực hiện
+	CreatedBy NVARCHAR(255) NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,-- Ràng buộc khóa ngoại
 	FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
@@ -128,13 +141,14 @@ CREATE TABLE MealPlan (
     Status NVARCHAR(20) Default 'Active',
     CreatedBy NVARCHAR(50),
     CreatedAt DATETIME DEFAULT GETDATE(),
+	UpdatedBy NVARCHAR(50),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
 -- Bảng MealPlanDetail
 CREATE TABLE MealPlanDetail (
-    DetailID INT IDENTITY(1,1) PRIMARY KEY,
+    MealPlanDetailID INT IDENTITY(1,1) PRIMARY KEY,
     MealPlanID INT NOT NULL,
     FoodID INT NULL,
 	FoodName NVARCHAR(255) NULL,
@@ -195,11 +209,13 @@ CREATE TABLE Notification (
 CREATE TABLE UserParameter (
     UserParameterID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
-	BMI FLOAT NOT NULL,
-	TDEE FLOAT NOT NULL,
-	CaloriesRequirement FLOAT NOT NULL, -- calo nạp vào hàng ngày
-	WaterRequirement FLOAT NOT NULL, -- lượng nước hàng ngày
-	Suggestion NVARCHAR(255), -- gợi ý của AI
+    Code NVARCHAR(50),
+    Name NVARCHAR(255),
+    Type NVARCHAR(50),
+    MinValue FLOAT NULL,
+    MaxValue FLOAT NULL,
+    Active BIT DEFAULT 1,
+    AISuggestion NVARCHAR(255) NULL,
     Date DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
