@@ -55,5 +55,7 @@ public partial class User
 
     public virtual ICollection<UserFoodPreference> UserFoodPreferences { get; set; } = new List<UserFoodPreference>();
 
+    public virtual ICollection<UserPackage> UserPackages { get; set; } = new List<UserPackage>();
+
     public virtual ICollection<UserParameter> UserParameters { get; set; } = new List<UserParameter>();
 }

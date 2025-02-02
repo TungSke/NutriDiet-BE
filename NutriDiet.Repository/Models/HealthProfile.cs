@@ -11,9 +11,9 @@ public partial class HealthProfile
 
     public string? MedicalCondition { get; set; }
 
-    public double? HeightCm { get; set; }
+    public double? Height { get; set; }
 
-    public double? WeightKg { get; set; }
+    public double? Weight { get; set; }
 
     public string? ActivityLevel { get; set; }
 

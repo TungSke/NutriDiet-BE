@@ -24,10 +24,11 @@ namespace NutriDiet.API.Middleware
                 _logger.LogError(ex, "An unhandled exception occurred");
 
                 context.Response.ContentType = "application/json";
+                context.Response.StatusCode = 500;
 
                 var response = new
                 {
-                    Code = context.Response.StatusCode,
+                    Code = 500,
                     Message = ex.Message,
                     Detailed = ex.StackTrace
                 };

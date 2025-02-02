@@ -13,6 +13,10 @@ public partial class RecipeSuggestion
 
     public string Description { get; set; } = null!;
 
+    public string CreatedBy { get; set; } = null!;
+
+    public DateTime? CreatedAt { get; set; }
+
     public virtual Food Food { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

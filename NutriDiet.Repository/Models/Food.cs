@@ -33,11 +33,11 @@ public partial class Food
 
     public string? Others { get; set; }
 
-    public virtual ICollection<FoodIngredient> FoodIngredients { get; set; } = new List<FoodIngredient>();
-
     public virtual ICollection<FoodSubstitution> FoodSubstitutionOriginalFoods { get; set; } = new List<FoodSubstitution>();
 
     public virtual ICollection<FoodSubstitution> FoodSubstitutionSubstituteFoods { get; set; } = new List<FoodSubstitution>();
+
+    public virtual ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
 
     public virtual ICollection<MealLogDetail> MealLogDetails { get; set; } = new List<MealLogDetail>();
 

@@ -1,4 +1,4 @@
-﻿using NutriDiet.API;
+﻿using NutriDiet.API.Extensions;
 using NutriDiet.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);

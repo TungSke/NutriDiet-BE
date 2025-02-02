@@ -5,7 +5,7 @@ namespace NutriDiet.Repository.Models;
 
 public partial class MealPlanDetail
 {
-    public int DetailId { get; set; }
+    public int MealPlanDetailId { get; set; }
 
     public int MealPlanId { get; set; }
 

@@ -13,5 +13,9 @@ public partial class Ingredient
 
     public string Unit { get; set; } = null!;
 
-    public virtual ICollection<FoodIngredient> FoodIngredients { get; set; } = new List<FoodIngredient>();
+    public double? Calories { get; set; }
+
+    public int FoodId { get; set; }
+
+    public virtual Food Food { get; set; } = null!;
 }

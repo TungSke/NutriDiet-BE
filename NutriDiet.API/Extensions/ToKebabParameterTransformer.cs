@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace NutriDiet.API
+namespace NutriDiet.API.Extensions
 {
     public class ToKebabParameterTransformer : IOutboundParameterTransformer
     {

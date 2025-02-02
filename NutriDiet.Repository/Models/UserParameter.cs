@@ -9,15 +9,19 @@ public partial class UserParameter
 
     public int UserId { get; set; }
 
-    public double Bmi { get; set; }
+    public string? Code { get; set; }
 
-    public double Tdee { get; set; }
+    public string? Name { get; set; }
 
-    public double CaloriesRequirement { get; set; }
+    public string? Type { get; set; }
 
-    public double WaterRequirement { get; set; }
+    public double? MinValue { get; set; }
 
-    public string? Suggestion { get; set; }
+    public double? MaxValue { get; set; }
+
+    public bool? Active { get; set; }
+
+    public string? Aisuggestion { get; set; }
 
     public DateTime? Date { get; set; }
 

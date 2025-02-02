@@ -17,7 +17,7 @@ using NutriDiet.Service.Services;
 using Mapster;
 using NutriDiet.Service.ModelDTOs.Response;
 
-namespace NutriDiet.API
+namespace NutriDiet.API.Extensions
 {
     public static class ServiceRegister
     {
@@ -33,7 +33,7 @@ namespace NutriDiet.API
                 options.EnableSensitiveDataLogging();
             });
 
-            AddAuthorizeService(services, configuration);
+            services.AddAuthorizeService(configuration);
             AddCorsToThisWeb(services);
             AddEnum(services);
             AddKebab(services);
@@ -72,7 +72,7 @@ namespace NutriDiet.API
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                 };
             });
-            
+
             //.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             //{
             //    options.LoginPath = "/Account/Login";
@@ -148,7 +148,7 @@ namespace NutriDiet.API
 
         private static void AddMapster()
         {
-            
+
         }
 
 
