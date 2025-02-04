@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NutriDiet.API.Controllers
 {
@@ -63,6 +64,28 @@ namespace NutriDiet.API.Controllers
         {
             var result = await _userService.LoginWithFacebook(idToken);
             return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("whoami")]
+        [Authorize]
+        public async Task<IActionResult> WhoAmI()
+        {
+            var user = await _userService.findUserById(int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value));
+            if(user != null)
+            {
+                return Ok(new
+                {
+                    Id = user.UserId,
+                    Email = user.Email ?? "noemail@example.com",
+                    Role = user.Role?.RoleName,
+                    name = user.FullName ?? "Anonymous",
+                    gender = user.Gender ?? "not specified",
+                    age = user.Age.ToString(),
+                    phoneNumber = user.Phone ?? "0123456789",
+                    address = user.Location ?? "Vietnam"
+                });
+            }
+            return Unauthorized();
         }
 
     }

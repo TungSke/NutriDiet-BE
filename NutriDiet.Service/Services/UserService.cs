@@ -254,9 +254,9 @@ namespace NutriDiet.Service.Services
             }
         }
 
+        public async Task ForgotPassword()
+        {
 
-
-
-
+        }
     }
 }

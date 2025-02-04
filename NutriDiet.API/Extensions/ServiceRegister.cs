@@ -142,7 +142,7 @@ namespace NutriDiet.API.Extensions
 
                     .AddJsonOptions(options =>
                     {
-                        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower;
+                        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     });
         }
 
