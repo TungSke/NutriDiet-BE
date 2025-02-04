@@ -12,6 +12,8 @@ namespace NutriDiet.Repository
         private IUserRepository _userRepository;
         private IFoodRepository _foodRepository;
         private IHealthProfileRepository _healthProfileRepository;
+        private IMealPlanRepository _mealPlanRepository;
+        private IMealPlanDetailRepository _mealPlanDetailRepository;
 
         public UnitOfWork(NutriDietContext context)
         {
@@ -22,6 +24,8 @@ namespace NutriDiet.Repository
 
         public IFoodRepository FoodRepository => _foodRepository ??= new FoodRepository(_context);
         public IHealthProfileRepository HealthProfileRepository => _healthProfileRepository ??= new HealthProfileRepository(_context);
+        public IMealPlanRepository MealPlanRepository => _mealPlanRepository ??= new MealPlanRepository(_context);
+        public IMealPlanDetailRepository MealPlanDetailRepository => _mealPlanDetailRepository ??= new MealPlanDetailRepository(_context);
 
         public async Task BeginTransaction()
         {
