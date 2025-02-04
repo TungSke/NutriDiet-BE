@@ -11,5 +11,7 @@ namespace NutriDiet.Repository.Interface
 
         IUserRepository UserRepository { get; }
         IFoodRepository FoodRepository { get; }
+
+        IHealthProfileRepository HealthProfileRepository { get; }
     }
 }
