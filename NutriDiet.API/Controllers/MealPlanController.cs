@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Common.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
+using System.ComponentModel.DataAnnotations;
 
 namespace NutriDiet.API.Controllers
 {
@@ -37,9 +39,10 @@ namespace NutriDiet.API.Controllers
             return Ok("Xóa thành công");
         }
         [HttpPut("change-status")]
-        public async Task<IActionResult> ChangStatusMealPlan(int id, string status)
+        [Authorize]
+        public async Task<IActionResult> ChangStatusMealPlan(int id,[Required] MealplanStatus status)
         {
-            await _mealPlanService.ChangStatusMealPlan(id, status);
+            await _mealPlanService.ChangStatusMealPlan(id, status.ToString());
             return Ok("Cập nhật trạng thái thành công");
         }
     }
