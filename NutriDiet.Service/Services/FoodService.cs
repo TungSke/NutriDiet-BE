@@ -42,44 +42,63 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task CreateFood(FoodRequest request)
+        public async Task<IBusinessResult> CreateFood(FoodRequest request)
         {
-            var cloudinaryHelper = new CloudinaryHelper(); // Chỉ khởi tạo ở đây
-            var imageUrl = "";
+            var existedfood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower())).FirstOrDefaultAsync();
 
-            if (request.FoodImageUrl != null)
+            if (existedfood != null)
             {
-                imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name existed");
             }
 
             var food = request.Adapt<Food>();
-            food.ImageUrl = imageUrl;
+            if(request.FoodImageUrl != null)
+            {
+                var cloudinaryHelper = new CloudinaryHelper();
+                var imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
+                food.ImageUrl = imageUrl;
+            }
             await _unitOfWork.FoodRepository.AddAsync(food);
-
             await _unitOfWork.SaveChangesAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
 
-        public async Task UpdateFood(int foodId, FoodRequest request)
+        public async Task<IBusinessResult> InsertIngredient(InsertIngredientRequest request)
         {
-            var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
+            var food = await _unitOfWork.FoodRepository.GetByIdAsync(request.FoodId);
+            if (food == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
+            }
+
+            food.Ingredients = request.Ingredients.Adapt<List<Ingredient>>();
+            await _unitOfWork.FoodRepository.UpdateAsync(food);
+            await _unitOfWork.SaveChangesAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
+        }
+
+
+        public async Task UpdateFood(UpdateFoodRequest request)
+        {
+            var food = await _unitOfWork.FoodRepository.GetByIdAsync(request.FoodId);
             if (food == null)
             {
                 throw new Exception("Food not found");
             }
 
-            var cloudinaryHelper = new CloudinaryHelper(); // Khởi tạo ở đây nếu cần
-            var imageUrl = "";
+            food.Adapt(request);
 
+            // Cập nhật ảnh nếu có ảnh mới
             if (request.FoodImageUrl != null)
             {
-                imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
+                var cloudinaryHelper = new CloudinaryHelper();
+                var imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
+                food.ImageUrl = imageUrl;
             }
-
-            food = request.Adapt(food); // Cập nhật thông tin từ request
-            food.ImageUrl = imageUrl;
 
             await _unitOfWork.FoodRepository.UpdateAsync(food);
             await _unitOfWork.SaveChangesAsync();
         }
+
     }
 }

@@ -16,6 +16,7 @@ using NutriDiet.Service.Interface;
 using NutriDiet.Service.Services;
 using Mapster;
 using NutriDiet.Service.ModelDTOs.Response;
+using NutriDiet.Service.ModelDTOs.Request;
 
 namespace NutriDiet.API.Extensions
 {
@@ -149,9 +150,10 @@ namespace NutriDiet.API.Extensions
                     });
         }
 
-        private static void AddMapster()
+        public static void AddMapster()
         {
-
+            TypeAdapterConfig<Food, UpdateFoodRequest>.NewConfig()
+                .Map(dest => dest.IngredientRequests, src => src.Ingredients);
         }
 
 

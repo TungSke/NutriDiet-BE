@@ -7,17 +7,14 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Service.ModelDTOs.Request
 {
-    public class FoodDetailRequest
+    public class IngredientRequest
     {
-        [JsonIgnore]
-        public int? FoodId { get; set; }
+        public string IngredientName { get; set; } = null!;
 
-        public string? FoodDetailName { get; set; }
+        public string? Category { get; set; }
 
         public string Unit { get; set; } = null!;
 
-        public double? Amount { get; set; }
-
-        public string? Description { get; set; }
+        public double? Calories { get; set; }
     }
 }

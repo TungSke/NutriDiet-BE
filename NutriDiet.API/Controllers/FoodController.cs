@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
@@ -22,24 +23,26 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("{foodId}")]
-        public async Task<IActionResult> GetFoodById(int foodId)
-        {
-            //var result = await _foodService.GetFoodById(foodId);
-            return Ok();
-        }
-
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateFood([FromForm] FoodRequest request)
         {
-            await _foodService.CreateFood(request);
-            return Ok();
+            var result = await _foodService.CreateFood(request);
+            return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPut("{foodId}")]
-        public async Task<IActionResult> UpdateFood(int foodId, [FromForm] FoodRequest request)
+        [HttpPut("insert-incredient")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> InsertIngredient([FromBody] InsertIngredientRequest request)
         {
-            await _foodService.UpdateFood(foodId, request);
+            var result = await _foodService.InsertIngredient(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateFood([FromForm] UpdateFoodRequest request)
+        {
+            await _foodService.UpdateFood(request);
             return Ok();
         }
     }

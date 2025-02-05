@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using NutriDiet.Repository.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,17 +11,30 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class FoodRequest
     {
-        [Required]
         public string FoodName { get; set; } = null!;
-        [Required]
-        public string FoodType { get; set; }
+
+        public string? MealType { get; set; }
 
         public IFormFile? FoodImageUrl { get; set; }
 
-        public string? Description { get; set; }
-        [Required]
-        public string ServingSize { get; set; }
+        public string? FoodType { get; set; }
 
-        public ICollection<FoodDetailRequest> foodDetailRequests { get; set; } = new List<FoodDetailRequest>();
+        public string? Description { get; set; }
+
+        public string? ServingSize { get; set; }
+
+        public double? Calories { get; set; }
+
+        public double? Protein { get; set; }
+
+        public double? Carbs { get; set; }
+
+        public double? Fat { get; set; }
+
+        public double? Glucid { get; set; }
+
+        public double? Fiber { get; set; }
+
+        public string? Others { get; set; }
     }
 }
