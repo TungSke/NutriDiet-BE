@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Drive.v3.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Service.Interface;
@@ -21,7 +22,9 @@ namespace NutriDiet.API.Controllers
             var mealPlans = await _mealPlanService.SearchMealPlan(planName, healthGoal, userID);
             return Ok(mealPlans);
         }
+
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateMealPlan([FromBody] MealPlanRequest mealPlanRequest)
         {
             var mealPlan = await _mealPlanService.CreateMealPlan(mealPlanRequest);

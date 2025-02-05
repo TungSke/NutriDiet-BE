@@ -1,5 +1,6 @@
 ﻿using Google.Apis.Drive.v3.Data;
 using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,7 @@ using NutriDiet.Service.ModelDTOs.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,11 +23,22 @@ namespace NutriDiet.Service.Services
     public class MealPlanService : IMealPlanService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _userIdClaim;
 
-        public MealPlanService(IUnitOfWork unitOfWork)
+        public MealPlanService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
+            _httpContextAccessor = httpContextAccessor;
+            _userIdClaim = GetUserIdClaim();
         }
+
+        private string GetUserIdClaim()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        }
+
         public async Task<IBusinessResult> SearchMealPlan(string? planName, string? healthGoal, int? userID)
         {
             var mealPlans = _unitOfWork.MealPlanRepository.GetAll().Include(x=>x.User).ToList();
@@ -54,9 +67,12 @@ namespace NutriDiet.Service.Services
             }).ToList();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, mealPlanResponse);
         }
+
         public async Task<IBusinessResult> CreateMealPlan(MealPlanRequest mealPlanRequest)
         {
-            var existedUser = await _unitOfWork.UserRepository.GetByIdAsync(mealPlanRequest.UserId);
+            var userid = int.Parse(_userIdClaim);
+
+            var existedUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
             if(existedUser == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND,"User is not found");
@@ -125,11 +141,13 @@ namespace NutriDiet.Service.Services
                 throw ex;
             }
         }
+
         public async Task DeleteMealPlan(int id)
         {
             var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByIdAsync(id);
             _unitOfWork.MealPlanRepository.DeleteAsync(mealPlanExisted);
         }
+
         public async Task ChangStatusMealPlan(int id, string status)
         {
             var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByIdAsync(id);

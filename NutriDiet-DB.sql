@@ -1,7 +1,7 @@
-﻿-- Create the NutriDiet database if it doesn't exist
-use master;
+﻿USE master;
 IF EXISTS (SELECT name FROM sys.databases WHERE name = 'NutriDiet')
 BEGIN
+    ALTER DATABASE NutriDiet SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE NutriDiet;
 END;
 GO

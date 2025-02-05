@@ -88,7 +88,6 @@ namespace NutriDiet.Service.Services
 
             food.Adapt(request);
 
-            // Cập nhật ảnh nếu có ảnh mới
             if (request.FoodImageUrl != null)
             {
                 var cloudinaryHelper = new CloudinaryHelper();
