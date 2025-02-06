@@ -1,4 +1,5 @@
-﻿using NutriDiet.Service.ModelDTOs.Request;
+﻿using NutriDiet.Common.BusinessResult;
+using NutriDiet.Service.ModelDTOs.Request;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,8 @@ namespace NutriDiet.Service.Interface
     public interface IHealthProfileService
     {
         Task AddUserHealthRecord(UserHealthRequest request);
+        Task<IBusinessResult> GetHealthProfile();
+
+        Task UpdateHealthProfile(UserHealthRequest request);
     }
 }

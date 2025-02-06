@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
+using Sprache;
 
 namespace NutriDiet.API.Controllers
 {
@@ -16,11 +17,26 @@ namespace NutriDiet.API.Controllers
             _healthprofileService = healthProfileService;
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> Get() { 
+            var result = await _healthprofileService.GetHealthProfile();
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> AddUserHealthRecord([FromForm] UserHealthRequest request)
         {
             await _healthprofileService.AddUserHealthRecord(request);
+            return Ok();
+        }
+
+        [HttpPut]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> UpdateHealthProfile([FromForm] UserHealthRequest request)
+        {
+            await _healthprofileService.UpdateHealthProfile(request);
             return Ok();
         }
     }
