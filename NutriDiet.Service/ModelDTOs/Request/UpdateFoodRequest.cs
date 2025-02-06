@@ -18,7 +18,5 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public double? Glucid { get; set; }
         public double? Fiber { get; set; }
         public string? Others { get; set; }
-
-        public List<IngredientRequest>? IngredientRequests { get; set; }
     }
 }

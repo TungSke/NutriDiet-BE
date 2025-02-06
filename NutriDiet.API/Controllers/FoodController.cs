@@ -23,6 +23,13 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpGet("{foodId}")]
+        public async Task<IActionResult> GetFoodById(int foodId)
+        {
+            var result = await _foodService.GetFoodById(foodId);
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateFood([FromForm] FoodRequest request)
@@ -40,10 +47,21 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateFood([FromForm] UpdateFoodRequest request)
         {
-            await _foodService.UpdateFood(request);
-            return Ok();
+            var result = await _foodService.UpdateFood(request);
+            return StatusCode(result.StatusCode, result);
         }
+
+        [HttpPut("update-incredient")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateIngredient([FromBody] UpdateIngredientRequest request)
+        {
+            var result = await _foodService.UpdateIngredient(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
+
     }
 }
