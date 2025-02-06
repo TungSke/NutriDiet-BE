@@ -150,10 +150,9 @@ namespace NutriDiet.API.Extensions
                     });
         }
 
-        public static void AddMapster()
+        private static void AddMapster()
         {
-            TypeAdapterConfig<Food, UpdateFoodRequest>.NewConfig()
-                .Map(dest => dest.IngredientRequests, src => src.Ingredients);
+            
         }
 
 

@@ -36,5 +36,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
 
         public string? Others { get; set; }
 
+        public IEnumerable<IngredientResponse>? Ingredients { get; set; }
+
     }
 }
