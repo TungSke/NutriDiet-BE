@@ -51,7 +51,6 @@ namespace NutriDiet.Service.Services
             try
             {
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
-                await _unitOfWork.SaveChangesAsync();
 
                 healthProfile.UserId = existingUser.UserId; 
 
@@ -109,7 +108,6 @@ namespace NutriDiet.Service.Services
             try
             {
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
-                await _unitOfWork.SaveChangesAsync();
 
                 healthProfile.UserId = existingUser.UserId;
 
