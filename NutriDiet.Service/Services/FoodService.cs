@@ -89,6 +89,10 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
 
+        public async Task CreateFoodWithIngredient()
+        {
+        }
+
         public async Task<IBusinessResult> UpdateFood(UpdateFoodRequest request)
         {
             var food = await _unitOfWork.FoodRepository.GetByIdAsync(request.FoodId);
@@ -141,5 +145,30 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
 
+        public async Task<IBusinessResult> DeleteIngredient(int ingredientId)
+        {
+            var ingredient = await _unitOfWork.IngredientRepository.GetByIdAsync(ingredientId);
+            if (ingredient == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Ingredient not found");
+            }
+
+            await _unitOfWork.IngredientRepository.DeleteAsync(ingredient);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
+        }
+
+        public async Task<IBusinessResult> GetIngredientById(int ingredientId)
+        {
+            var ingredient = await _unitOfWork.IngredientRepository.GetByIdAsync(ingredientId);
+            if (ingredient == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Ingredient not found");
+            }
+
+            var response = ingredient.Adapt<IngredientResponse>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
     }
 }

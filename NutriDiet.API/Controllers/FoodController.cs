@@ -62,6 +62,21 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpDelete("delete-incredient/{ingredientId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteIngredient(int ingredientId)
+        {
+            var result = await _foodService.DeleteIngredient(ingredientId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("get-incredient/{ingredientId}")]
+        public async Task<IActionResult> GetIngredientById(int ingredientId)
+        {
+            var result = await _foodService.GetIngredientById(ingredientId);
+            return StatusCode(result.StatusCode, result);
+        }
+
 
     }
 }
