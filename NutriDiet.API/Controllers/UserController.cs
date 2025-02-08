@@ -71,7 +71,7 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> WhoAmI()
         {
             var user = await _userService.findUserById(int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value));
-            if(user != null)
+            if (user != null)
             {
                 return Ok(new
                 {
@@ -86,6 +86,20 @@ namespace NutriDiet.API.Controllers
                 });
             }
             return Unauthorized();
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            var result = await _userService.ForgotPassword(email);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPut("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+        {
+            var result = await _userService.ResetPassword(request);
+            return StatusCode(result.StatusCode, result);
         }
 
     }

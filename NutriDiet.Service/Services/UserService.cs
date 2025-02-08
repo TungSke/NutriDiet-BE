@@ -28,16 +28,16 @@ namespace NutriDiet.Service.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PasswordHasher<string> _passwordHasher;
         private readonly TokenHandlerHelper _tokenHandler;
-        private readonly GoogleService _emailService;
+        private readonly GoogleService _googleService;
         private readonly string _UserIdClaim;
         private readonly HttpClient _httpClient = new HttpClient();
 
-        public UserService(IUnitOfWork unitOfWork, GoogleService emailService, TokenHandlerHelper tokenHandlerHelper)
+        public UserService(IUnitOfWork unitOfWork, GoogleService googleService, TokenHandlerHelper tokenHandlerHelper)
         {
             _unitOfWork ??= unitOfWork;
             _passwordHasher = new PasswordHasher<string>();
             _tokenHandler = tokenHandlerHelper;
-            _emailService = emailService;
+            _googleService = googleService;
         }
 
         private string GetUserIdClaim()
@@ -78,13 +78,13 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.UserRepository.AddAsync(acc);
             await _unitOfWork.SaveChangesAsync();
 
-            await _emailService.SendEmailWithOTP(request.Email, "Verify your account");
+            await _googleService.SendEmailWithOTP(request.Email, "Verify your account");
             return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to active account");
         }
 
         public async Task<IBusinessResult> VerifyAccount(VerifyAccountRequest request)
         {
-            var isOtpValid = await _emailService.VerifyOtp(request.Email, request.OTP);
+            var isOtpValid = await _googleService.VerifyOtp(request.Email, request.OTP);
 
             if (!isOtpValid)
             {
@@ -111,7 +111,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed, please register first!");
             }
-            await _emailService.SendEmailWithOTP(request.Email,"Resend Otp");
+            await _googleService.SendEmailWithOTP(request.Email,"Resend Otp");
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
@@ -254,9 +254,38 @@ namespace NutriDiet.Service.Services
             }
         }
 
-        public async Task ForgotPassword()
+        public async Task<IBusinessResult> ForgotPassword(string email)
         {
+            var user = await findUserByEmail(email);
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed");
+            }
 
+            await _googleService.SendEmailWithOTP(email, "Reset password");
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to reset password");
+        }
+
+        public async Task<IBusinessResult> ResetPassword(ResetPasswordRequest request)
+        {
+            var user = await findUserByEmail(request.Email);
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed");
+            }
+
+            var isOtpValid = await _googleService.VerifyOtp(request.Email, request.OTP);
+            if (!isOtpValid)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "OTP is incorrect");
+            }
+
+            user.Password = HashPassword(request.NewPassword);
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Reset password success");
         }
     }
 }

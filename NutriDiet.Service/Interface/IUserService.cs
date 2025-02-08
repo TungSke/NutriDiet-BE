@@ -19,5 +19,9 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> LoginWithGoogle(string idToken);
 
         Task<IBusinessResult> LoginWithFacebook(string accessToken);
+
+        Task<IBusinessResult> ForgotPassword(string email);
+
+        Task<IBusinessResult> ResetPassword(ResetPasswordRequest request);
     }
 }
