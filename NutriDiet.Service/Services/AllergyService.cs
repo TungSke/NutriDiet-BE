@@ -38,27 +38,34 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateAllergy(AllergyRequest request)
         {
-            //try
-            //{
-            //    var existedAllergy = await _unitOfWork.AllergyRepository
-            //    .GetByWhere(x => x.AllergyName.ToLower() == request.AllergyName.ToLower())
-            //    .FirstOrDefaultAsync();
+            var userid = 8;
 
-            //    if (existedAllergy != null)
-            //    {
-            //        return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Allergy name already exists");
-            //    }
+            var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
+            if (existingUser == null)
+            {
+                throw new Exception("User not exist.");
+            } 
+            try
+            {
+                var existedAllergy = await _unitOfWork.AllergyRepository
+                .GetByWhere(x => x.AllergyName.ToLower() == request.AllergyName.ToLower() && x.UserId == userid)
+                .FirstOrDefaultAsync();
 
-            //    var allergy = request.Adapt<Allergy>();
+                if (existedAllergy != null)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Allergy name already exists");
+                }
 
-            //    await _unitOfWork.AllergyRepository.AddAsync(allergy);
-            //    await _unitOfWork.SaveChangesAsync();
+                var allergy = request.Adapt<Allergy>();
+                allergy.UserId = 8;
+                await _unitOfWork.AllergyRepository.AddAsync(allergy);
+                await _unitOfWork.SaveChangesAsync();
 
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine(e.InnerException.Message);
-            //}
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.InnerException.Message);
+            }
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
@@ -87,7 +94,7 @@ namespace NutriDiet.Service.Services
                 pageSize,
                 x => string.IsNullOrEmpty(searchTerm) || x.AllergyName.ToLower().Contains(searchTerm)
             );
-
+            allergies = allergies.Distinct().ToList();
             if (allergies == null || !allergies.Any())
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
