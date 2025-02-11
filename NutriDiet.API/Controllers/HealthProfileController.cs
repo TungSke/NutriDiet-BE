@@ -26,15 +26,15 @@ namespace NutriDiet.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> AddUserHealthRecord([FromForm] UserHealthRequest request)
+        public async Task<IActionResult> CreateHealthProfileRecord([FromForm] HealthProfileRequest request)
         {
-            await _healthprofileService.AddUserHealthRecord(request);
+            await _healthprofileService.CreateHealthProfileRecord(request);
             return Ok();
         }
 
         [HttpPut]
         [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> UpdateHealthProfile([FromForm] UserHealthRequest request)
+        public async Task<IActionResult> UpdateHealthProfile([FromForm] HealthProfileRequest request)
         {
             await _healthprofileService.UpdateHealthProfile(request);
             return Ok();
