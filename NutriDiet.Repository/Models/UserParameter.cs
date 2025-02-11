@@ -9,21 +9,23 @@ public partial class UserParameter
 
     public int UserId { get; set; }
 
-    public string? Code { get; set; }
+    public double? Tdee { get; set; }
 
-    public string? Name { get; set; }
+    public double? Bmi { get; set; }
 
-    public string? Type { get; set; }
+    public double? DailyCalorie { get; set; }
 
-    public double? MinValue { get; set; }
-
-    public double? MaxValue { get; set; }
-
-    public bool? Active { get; set; }
+    public string? FoodsAvoid { get; set; }
 
     public string? Aisuggestion { get; set; }
 
-    public DateTime? Date { get; set; }
+    public DateTime? TargetDate { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public bool? Active { get; set; }
 
     public virtual User User { get; set; } = null!;
 }

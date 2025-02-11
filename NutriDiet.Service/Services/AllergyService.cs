@@ -38,34 +38,34 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateAllergy(AllergyRequest request)
         {
-            var userid = 8;
+            //var userid = 8;
 
-            var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
-            if (existingUser == null)
-            {
-                throw new Exception("User not exist.");
-            } 
-            try
-            {
-                var existedAllergy = await _unitOfWork.AllergyRepository
-                .GetByWhere(x => x.AllergyName.ToLower() == request.AllergyName.ToLower() && x.UserId == userid)
-                .FirstOrDefaultAsync();
+            //var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
+            //if (existingUser == null)
+            //{
+            //    throw new Exception("User not exist.");
+            //} 
+            //try
+            //{
+            //    var existedAllergy = await _unitOfWork.AllergyRepository
+            //    .GetByWhere(x => x.AllergyName.ToLower() == request.AllergyName.ToLower() && x. == userid)
+            //    .FirstOrDefaultAsync();
 
-                if (existedAllergy != null)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Allergy name already exists");
-                }
+            //    if (existedAllergy != null)
+            //    {
+            //        return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Allergy name already exists");
+            //    }
 
-                var allergy = request.Adapt<Allergy>();
-                allergy.UserId = 8;
-                await _unitOfWork.AllergyRepository.AddAsync(allergy);
-                await _unitOfWork.SaveChangesAsync();
+            //    var allergy = request.Adapt<Allergy>();
+            //    allergy.UserId = 8;
+            //    await _unitOfWork.AllergyRepository.AddAsync(allergy);
+            //    await _unitOfWork.SaveChangesAsync();
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.InnerException.Message);
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine(e.InnerException.Message);
+            //}
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }

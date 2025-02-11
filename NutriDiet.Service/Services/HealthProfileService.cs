@@ -66,7 +66,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetHealthProfile()
         {
-            var userid = int.Parse(_userIdClaim);
+            var userid = 7;
 
             var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
             if (existingUser == null)

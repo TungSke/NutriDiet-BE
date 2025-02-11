@@ -31,8 +31,6 @@ public partial class User
 
     public virtual ICollection<Airecommendation> Airecommendations { get; set; } = new List<Airecommendation>();
 
-    public virtual ICollection<Allergy> Allergies { get; set; } = new List<Allergy>();
-
     public virtual ICollection<FeedbackReply> FeedbackReplies { get; set; } = new List<FeedbackReply>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
@@ -58,4 +56,8 @@ public partial class User
     public virtual ICollection<UserPackage> UserPackages { get; set; } = new List<UserPackage>();
 
     public virtual ICollection<UserParameter> UserParameters { get; set; } = new List<UserParameter>();
+
+    public virtual ICollection<Allergy> Allergies { get; set; } = new List<Allergy>();
+
+    public virtual ICollection<Disease> Diseases { get; set; } = new List<Disease>();
 }

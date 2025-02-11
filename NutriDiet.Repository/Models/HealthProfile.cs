@@ -21,8 +21,6 @@ public partial class HealthProfile
 
     public double? TargetWeight { get; set; }
 
-    public DateTime? DurationTarget { get; set; }
-
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
