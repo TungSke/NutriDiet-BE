@@ -33,10 +33,9 @@ namespace NutriDiet.Service.Services
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public async Task AddUserHealthRecord(UserHealthRequest request)
+        public async Task CreateHealthProfileRecord(HealthProfileRequest request)
         {
             var userid = int.Parse(_userIdClaim);
-
             var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
             if (existingUser == null)
             {
@@ -56,7 +55,6 @@ namespace NutriDiet.Service.Services
 
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
                 await _unitOfWork.SaveChangesAsync();
-
                 await _unitOfWork.CommitTransaction();
             }
             catch (Exception)
@@ -90,7 +88,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task UpdateHealthProfile(UserHealthRequest request)
+        public async Task UpdateHealthProfile(HealthProfileRequest request)
         {
             var userid = int.Parse(_userIdClaim);
 
