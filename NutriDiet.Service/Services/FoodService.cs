@@ -1,4 +1,5 @@
 ﻿using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
@@ -8,16 +9,27 @@ using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
+using System.Security.Claims;
 
 namespace NutriDiet.Service.Services
 {
     public class FoodService : IFoodService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _userIdClaim;
 
-        public FoodService(IUnitOfWork unitOfWork)
+        public FoodService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
+            _httpContextAccessor = httpContextAccessor;
+            _userIdClaim = GetUserIdClaim();
+        }
+
+        private string GetUserIdClaim()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
         public async Task<IBusinessResult> GetAllFood(int pageIndex, int pageSize, string foodType, string search)
@@ -169,6 +181,13 @@ namespace NutriDiet.Service.Services
 
             var response = ingredient.Adapt<IngredientResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+
+        public async Task<IBusinessResult> GetFoodRecommend()
+        {
+            int userid = int.Parse(_userIdClaim);
+            var healthProfile = await _unitOfWork.HealthProfileRepository.GetByWhere(x => x.UserId == userid).FirstOrDefaultAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
     }
 }

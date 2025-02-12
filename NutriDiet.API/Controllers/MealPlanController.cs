@@ -45,5 +45,13 @@ namespace NutriDiet.API.Controllers
             await _mealPlanService.ChangStatusMealPlan(id, status.ToString());
             return Ok("Cập nhật trạng thái thành công");
         }
+
+        [HttpPost("create-suitable-meal-plan")]
+        //[Authorize]
+        public async Task<IActionResult> CreateSuitableMealPlanByAI()
+        {
+            var mealPlan = await _mealPlanService.CreateSuitableMealPlanByAI();
+            return Ok(mealPlan);
+        }
     }
 }
