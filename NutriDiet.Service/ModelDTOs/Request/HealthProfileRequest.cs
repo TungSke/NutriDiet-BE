@@ -10,7 +10,6 @@ namespace NutriDiet.Service.ModelDTOs.Request
     public class HealthProfileRequest
     {
         public string FullName { get; set; } = null!;
-        public string? Avatar { get; set; }
         public int? Age { get; set; }
         public Gender? Gender { get; set; }
         public string? Location { get; set; }
@@ -20,7 +19,9 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public ActivityLevel? ActivityLevel { get; set; }
 
-        public string? HealthGoal { get; set; }
+        public HealthGoal? HealthGoal { get; set; }
         public double? TargetWeight { get; set; }
+        public List<string> AllergyNames { get; set; } = new List<string>();
+        public List<string> DiseaseNames { get; set; } = new List<string>();
     }
 }

@@ -49,11 +49,51 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.BeginTransaction();
             try
             {
+                // Update User Table
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
-
+                // Add new Health profile Record for this User
                 healthProfile.UserId = existingUser.UserId; 
-
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
+                // Add Allergy for User if any
+                if (request.AllergyNames != null && request.AllergyNames.Any())
+                {
+                    foreach (var allergyName in request.AllergyNames)
+                    {
+                        var existingAllergy = await _unitOfWork.AllergyRepository.GetByWhere(a => a.AllergyName.ToLower() == allergyName.ToLower()).FirstOrDefaultAsync();
+                        if (existingAllergy != null)
+                        {
+                            if (!existingUser.Allergies.Any(a => a.AllergyId == existingAllergy.AllergyId))
+                            {
+                                existingUser.Allergies.Add(existingAllergy);
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception($"Allergy '{allergyName}' does not exist in the system.");
+                        }
+                    }
+                }
+                // Add Disease for User if any
+                if (request.DiseaseNames != null && request.DiseaseNames.Any())
+                {
+                    foreach (var diseaseName in request.DiseaseNames)
+                    {
+                        var existingDisease = await _unitOfWork.DiseaseRepository
+                            .GetByWhere(d => d.DiseaseName.ToLower() == diseaseName.ToLower()).FirstOrDefaultAsync();
+                        if (existingDisease != null)
+                        {
+                            if (!existingUser.Diseases.Any(d => d.DiseaseId == existingDisease.DiseaseId))
+                            {
+                                existingUser.Diseases.Add(existingDisease);
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception($"Disease '{diseaseName}' does not exist in the system.");
+                        }
+                    }
+                }
+
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransaction();
             }
