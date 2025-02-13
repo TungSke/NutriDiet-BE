@@ -41,14 +41,14 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
         [HttpPut]
-        public async Task<IActionResult> UpdateAllergy([FromBody] AllergyRequest request)
+        public async Task<IActionResult> UpdateAllergy([FromBody] AllergyRequest request, int allergyId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _allergyService.UpdateAllergy(request);
+            var result = await _allergyService.UpdateAllergy(request, allergyId);
             return StatusCode(result.StatusCode, result);
         }
         [HttpDelete("{allergyId}")]
