@@ -25,11 +25,9 @@ namespace NutriDiet.Service.Services
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PasswordHasher<string> _passwordHasher;
         private readonly TokenHandlerHelper _tokenHandler;
         private readonly GoogleService _googleService;
-        private readonly string _UserIdClaim;
         private readonly HttpClient _httpClient = new HttpClient();
 
         public UserService(IUnitOfWork unitOfWork, GoogleService googleService, TokenHandlerHelper tokenHandlerHelper)
@@ -38,12 +36,6 @@ namespace NutriDiet.Service.Services
             _passwordHasher = new PasswordHasher<string>();
             _tokenHandler = tokenHandlerHelper;
             _googleService = googleService;
-        }
-
-        private string GetUserIdClaim()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
         private string HashPassword(string password)

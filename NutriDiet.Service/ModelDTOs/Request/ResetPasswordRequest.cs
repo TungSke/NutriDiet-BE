@@ -8,8 +8,8 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class ResetPasswordRequest
     {
-        public string Email { get; set; }
-        public string OTP { get; set; }
-        public string NewPassword { get; set; }
+        public required string Email { get; set; }
+        public required string OTP { get; set; }
+        public required string NewPassword { get; set; }
     }
 }

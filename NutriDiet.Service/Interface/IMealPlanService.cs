@@ -14,5 +14,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> CreateMealPlan(MealPlanRequest mealPlanRequest);
         Task DeleteMealPlan(int id);
         Task ChangStatusMealPlan(int id, string status);
+
+        Task<IBusinessResult> CreateSuitableMealPlanByAI();
     }
 }
