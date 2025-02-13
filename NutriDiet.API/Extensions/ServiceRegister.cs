@@ -55,6 +55,8 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<IMealPlanService, MealPlanService>();
 
             services.AddScoped<IAllergyService, AllergyService>();
+
+            services.AddScoped<IDiseaseService, DiseaseService>();
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)
