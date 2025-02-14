@@ -70,7 +70,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.UserRepository.AddAsync(acc);
             await _unitOfWork.SaveChangesAsync();
 
-            await _googleService.SendEmailWithOTP(request.Email, "Verify your account");
+            await _googleService.SendEmailWithOTP(request.Email, "Mã OTP xác thực tài khoản NutriDiet");
             return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to active account");
         }
 
@@ -103,7 +103,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed, please register first!");
             }
-            await _googleService.SendEmailWithOTP(request.Email,"Resend Otp");
+            await _googleService.SendEmailWithOTP(request.Email,"Xác nhận lại OTP NutriDiet");
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
@@ -254,7 +254,7 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed");
             }
 
-            await _googleService.SendEmailWithOTP(email, "Reset password");
+            await _googleService.SendEmailWithOTP(email, "Reset mật khẩu cho tài khoản NutriDiet");
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to reset password");
         }

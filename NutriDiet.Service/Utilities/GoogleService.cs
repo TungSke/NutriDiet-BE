@@ -40,7 +40,7 @@ namespace NutriDiet.Service.Utilities
 
                 MailMessage mail = new MailMessage
                 {
-                    From = new MailAddress(emailSender, "NutriDiet Support Team"),
+                    From = new MailAddress("support@nutridiet.com", "NutriDiet Support Team"),
                     Subject = subject,
                     Body = body ?? "No content available",
                     IsBodyHtml = true
@@ -90,7 +90,7 @@ namespace NutriDiet.Service.Utilities
                 // Sử dụng tên miền riêng (thay "no-reply@yourdomain.com" bằng tên miền của bạn)
                 MailMessage mail = new MailMessage
                 {
-                    From = new MailAddress("no-reply@nutridiet.com", "NutriDiet Support Team"),
+                    From = new MailAddress("support@nutridiet.com", "NutriDiet Support Team"),
                     Subject = subject,
                     Body = emailContent,
                     IsBodyHtml = true
