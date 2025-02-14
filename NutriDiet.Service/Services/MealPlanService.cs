@@ -161,6 +161,8 @@ namespace NutriDiet.Service.Services
             //var userid = int.Parse(_userIdClaim);
             var userid = int.Parse("1");
             var user = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid).Include(x => x.Allergies).FirstOrDefaultAsync();
+
+
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, user);
         }
     }

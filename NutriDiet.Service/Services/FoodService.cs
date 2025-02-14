@@ -68,22 +68,34 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateFood(FoodRequest request)
         {
-            var existedfood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower())).FirstOrDefaultAsync();
+            var existedFood = await _unitOfWork.FoodRepository
+                .GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower()))
+                .FirstOrDefaultAsync();
 
-            if (existedfood != null)
+            if (existedFood != null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name existed");
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name already exists");
             }
 
             var food = request.Adapt<Food>();
-            if (request.FoodImageUrl != null)
+
+            foreach (var allergyId in request.AllergyId)
             {
-                var cloudinaryHelper = new CloudinaryHelper();
-                var imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
-                food.ImageUrl = imageUrl;
+                var allergy = new Allergy { AllergyId = allergyId };
+                await _unitOfWork.AllergyRepository.Attach(allergy);
+                food.Allergies.Add(allergy);
             }
+
+            foreach (var diseaseId in request.DiseaseId)
+            {
+                var disease = new Disease { DiseaseId = diseaseId };
+                await _unitOfWork.DiseaseRepository.Attach(disease);
+                food.Diseases.Add(disease);
+            }
+
             await _unitOfWork.FoodRepository.AddAsync(food);
             await _unitOfWork.SaveChangesAsync();
+
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
 
@@ -137,7 +149,7 @@ namespace NutriDiet.Service.Services
             }
 
             request.Adapt(ingredient);
-            await _unitOfWork.IngredientRepository.UpdateAsync(ingredient);   
+            await _unitOfWork.IngredientRepository.UpdateAsync(ingredient);
             await _unitOfWork.SaveChangesAsync();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);

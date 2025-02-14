@@ -19,9 +19,10 @@ namespace NutriDiet.Repository.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task Detach(TEntity entity)
+        public async Task Attach(TEntity entity)
         {
-            _context.Entry(entity).State = EntityState.Detached;
+            _context.Set<TEntity>().Attach(entity);
+            _context.Entry(entity).State = EntityState.Unchanged;
         }
 
         public IQueryable<TEntity> GetAll()

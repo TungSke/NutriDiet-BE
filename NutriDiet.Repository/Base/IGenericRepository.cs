@@ -9,7 +9,7 @@ namespace NutriDiet.Repository.Base
         Task<TEntity> GetByIdAsync(object id);
         IQueryable<TEntity> GetByWhere(Expression<Func<TEntity, bool>> predicate);
 
-        Task Detach(TEntity entity);
+        Task Attach(TEntity entity);
 
         Task AddAsync(TEntity entity);
 
