@@ -305,3 +305,21 @@ CREATE TABLE UserDisease (
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
     FOREIGN KEY (DiseaseID) REFERENCES Disease(DiseaseID) ON DELETE CASCADE
 );
+
+-- Bảng FoodAllergy (liên kết món ăn với dị ứng)
+CREATE TABLE FoodAllergy (
+    FoodID INT NOT NULL,
+    AllergyID INT NOT NULL,
+    PRIMARY KEY (FoodID, AllergyID),
+    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
+    FOREIGN KEY (AllergyID) REFERENCES Allergy(AllergyID) ON DELETE CASCADE
+);
+
+-- Bảng FoodDisease (liên kết món ăn với bệnh lý)
+CREATE TABLE FoodDisease (
+    FoodID INT NOT NULL,
+    DiseaseID INT NOT NULL,
+    PRIMARY KEY (FoodID, DiseaseID),
+    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
+    FOREIGN KEY (DiseaseID) REFERENCES Disease(DiseaseID) ON DELETE CASCADE
+);
