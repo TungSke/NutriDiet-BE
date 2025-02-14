@@ -56,7 +56,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetFoodById(int foodId)
         {
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
             if (food == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -198,7 +198,8 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> GetFoodRecommend()
         {
             int userid = int.Parse(_userIdClaim);
-            var healthProfile = await _unitOfWork.HealthProfileRepository.GetByWhere(x => x.UserId == userid).FirstOrDefaultAsync();
+            var foodidlistUserdontwant = "";
+
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
     }

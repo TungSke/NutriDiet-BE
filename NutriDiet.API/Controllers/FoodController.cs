@@ -31,7 +31,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateFood([FromForm] FoodRequest request)
         {
             var result = await _foodService.CreateFood(request);

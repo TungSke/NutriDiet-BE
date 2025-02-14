@@ -38,5 +38,9 @@ namespace NutriDiet.Service.ModelDTOs.Response
 
         public IEnumerable<IngredientResponse>? Ingredients { get; set; }
 
+        public IEnumerable<AllergyResponse>? Allergies { get; set; }
+
+        public IEnumerable<DiseaseResponse>? Diseases { get; set; }
+
     }
 }
