@@ -1,0 +1,22 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace NutriDiet.Service.ModelDTOs.Response
+{
+    public class MealPlanDetailResponse
+    {
+        public int MealPlanDetailId { get; set; }
+        public string? FoodName { get; set; }
+
+        public double? Quantity { get; set; }
+
+        public string? MealType { get; set; }
+
+        public int DayNumber { get; set; }
+
+        public double? TotalCalories { get; set; }
+    }
+}

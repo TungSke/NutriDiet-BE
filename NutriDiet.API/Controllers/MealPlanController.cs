@@ -19,9 +19,9 @@ namespace NutriDiet.API.Controllers
             _mealPlanService = mealPlanService;
         }
         [HttpGet]
-        public async Task<IActionResult> SearchMealPlan(string? planName, string? healthGoal, int? userID)
+        public async Task<IActionResult> SearchMealPlan(string? planName, string? healthGoal)
         {
-            var mealPlans = await _mealPlanService.SearchMealPlan(planName, healthGoal, userID);
+            var mealPlans = await _mealPlanService.SearchMealPlan(planName, healthGoal);
             return Ok(mealPlans);
         }
 
@@ -38,7 +38,7 @@ namespace NutriDiet.API.Controllers
             await _mealPlanService.DeleteMealPlan(id);
             return Ok("Xóa thành công");
         }
-        [HttpPut("change-status")]
+        [HttpPut("status")]
         [Authorize]
         public async Task<IActionResult> ChangStatusMealPlan(int id,[Required] MealplanStatus status)
         {
@@ -46,12 +46,27 @@ namespace NutriDiet.API.Controllers
             return Ok("Cập nhật trạng thái thành công");
         }
 
+        //[HttpGet("meal-plan-detail")]
+        //public async Task<IActionResult> GetMealPlanDetailByMealPlanID(int mealPlanID) 
+        //{
+        //    var mealPlanDetail = await _mealPlanService.GetMealPlanDetailByMealPlanID(mealPlanID);
+        //    return Ok(mealPlanDetail);
+        //}
+        [HttpPost("clone")]
+        [Authorize]
+        public async Task<IActionResult> CloneSampleMealPlan(int mealPlanID)
+        {
+            var mealPlan = await _mealPlanService.CloneSampleMealPlan(mealPlanID);
+            return Ok();
+
+
         [HttpPost("create-suitable-meal-plan")]
         //[Authorize]
         public async Task<IActionResult> CreateSuitableMealPlanByAI()
         {
             var mealPlan = await _mealPlanService.CreateSuitableMealPlanByAI();
             return Ok(mealPlan);
+
         }
     }
 }
