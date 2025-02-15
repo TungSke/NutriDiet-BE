@@ -198,7 +198,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName)
         {
-            int userid = int.Parse("1");
+            int userid = int.Parse(_userIdClaim);
             var userError = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
             if (userError == null)
             {
