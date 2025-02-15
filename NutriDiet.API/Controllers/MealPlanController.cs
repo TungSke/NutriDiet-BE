@@ -58,7 +58,7 @@ namespace NutriDiet.API.Controllers
         {
             var mealPlan = await _mealPlanService.CloneSampleMealPlan(mealPlanID);
             return Ok();
-
+        }
 
         [HttpPost("create-suitable-meal-plan")]
         //[Authorize]
@@ -70,3 +70,4 @@ namespace NutriDiet.API.Controllers
         }
     }
 }
+
