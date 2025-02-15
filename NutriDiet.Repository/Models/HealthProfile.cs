@@ -9,8 +9,6 @@ public partial class HealthProfile
 
     public int UserId { get; set; }
 
-    public string? MedicalCondition { get; set; }
-
     public double? Height { get; set; }
 
     public double? Weight { get; set; }
@@ -20,6 +18,8 @@ public partial class HealthProfile
     public string? HealthGoal { get; set; }
 
     public double? TargetWeight { get; set; }
+
+    public string? Aisuggestion { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

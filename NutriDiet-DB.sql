@@ -61,12 +61,12 @@ CREATE TABLE UserPackage (
 CREATE TABLE HealthProfile (
     ProfileID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
-    MedicalCondition NVARCHAR(255) NULL,
     Height FLOAT CHECK (Height > 0),
     Weight FLOAT CHECK (Weight > 0),
     ActivityLevel NVARCHAR(50),
     HealthGoal NVARCHAR(50),
     TargetWeight FLOAT CHECK (TargetWeight > 0),
+	AISuggestion NVARCHAR(255),
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
@@ -94,7 +94,7 @@ CREATE TABLE UserAllergy (
 CREATE TABLE Food (
     FoodID INT IDENTITY(1,1) PRIMARY KEY,
     FoodName NVARCHAR(100) UNIQUE NOT NULL,
-    MealType NVARCHAR(100),
+    MealType NVARCHAR(100), -- VD: bữa chính, bữa phụ, ăn vặt...
     ImageUrl NVARCHAR(MAX) NULL,
     FoodType NVARCHAR(100), -- ví dụ: rau củ, thịt
     Description NVARCHAR(255) NULL,
@@ -111,7 +111,7 @@ CREATE TABLE Food (
 -- Bảng nguyên liệu
 CREATE TABLE Ingredient (
     IngredientID INT IDENTITY(1,1) PRIMARY KEY,
-    IngredientName NVARCHAR(100) UNIQUE NOT NULL,
+    IngredientName NVARCHAR(100) NOT NULL,
     Category NVARCHAR(50), -- Loại nguyên liệu (ví dụ: Rau củ, Thịt, Gia vị...)
     Unit NVARCHAR(20) NOT NULL, -- Đơn vị tính (gram, ml, piece...)
     Calories FLOAT NULL,
@@ -222,9 +222,7 @@ CREATE TABLE UserParameter (
     TDEE FLOAT NULL,                         -- Tổng năng lượng tiêu thụ hàng ngày
     BMI FLOAT NULL,                          -- Chỉ số BMI
     DailyCalorie FLOAT NULL,				 -- Số calo cần nạp trong ngày
-    FoodsAvoid NVARCHAR(255) NULL,           -- Các món ăn cần tránh
-    AISuggestion NVARCHAR(255) NULL,         -- Gợi ý từ AI để đạt mục tiêu
-    TargetDate DATETIME NULL,				 -- Ngày sẽ đạt được mục tiêu
+    AISuggestion NVARCHAR(255) NULL,         -- Gợi ý từ AI 
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     Active BIT DEFAULT 1,
@@ -270,21 +268,16 @@ CREATE TABLE PersonalGoal (
     GoalDescription NVARCHAR(255) NOT NULL,             -- Mô tả chi tiết về mục tiêu
     StartDate DATETIME DEFAULT GETDATE(),               -- Ngày bắt đầu
     TargetDate DATETIME NOT NULL,                       -- Ngày hoàn thành dự kiến
-    Status NVARCHAR(20) DEFAULT 'Active' CHECK (Status IN ('Active', 'Completed', 'Failed')),
-    ProgressPercentage FLOAT CHECK (ProgressPercentage >= 0 AND ProgressPercentage <= 100) DEFAULT 0,
+    ProgressRate INT DEFAULT 0,							-- tốc độ tăng giảm tuần/tháng
+	Status NVARCHAR(20) DEFAULT 'Active' CHECK (Status IN ('Active', 'Completed', 'Failed')),
+    ProgressPercentage FLOAT CHECK (ProgressPercentage >= 0 AND ProgressPercentage <= 100) DEFAULT 0, 
     Notes NVARCHAR(MAX) NULL,
+	DailyCalories FLOAT,
+	DailyCarb FLOAT,
+	DailyFat FLOAT,
+	DailyProtein FLOAT,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
-);
-
--- Bảng UserEatingHabit
-CREATE TABLE UserEatingHabit (
-    HabitID INT IDENTITY(1,1) PRIMARY KEY,
-    UserID INT NOT NULL,
-    HabitType NVARCHAR(50) NOT NULL, -- ví dụ: ăn chay, ăn kiêng, low-carb,...
-    Description NVARCHAR(255) NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
@@ -322,4 +315,17 @@ CREATE TABLE FoodDisease (
     PRIMARY KEY (FoodID, DiseaseID),
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
     FOREIGN KEY (DiseaseID) REFERENCES Disease(DiseaseID) ON DELETE CASCADE
+);
+
+-- Bảng MyFood (Món ăn do người dùng tự thêm)
+CREATE TABLE MyFood (
+    MyFoodID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT NOT NULL,  -- Người dùng tạo món ăn
+    FoodName NVARCHAR(100) NOT NULL,
+    ServingSize NVARCHAR(50), -- Đơn vị khẩu phần ví dụ: 100g, 1 thìa
+    Calories FLOAT CHECK (Calories >= 0),
+    Protein FLOAT CHECK (Protein >= 0),
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );

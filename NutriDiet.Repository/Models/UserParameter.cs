@@ -15,11 +15,7 @@ public partial class UserParameter
 
     public double? DailyCalorie { get; set; }
 
-    public string? FoodsAvoid { get; set; }
-
     public string? Aisuggestion { get; set; }
-
-    public DateTime? TargetDate { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

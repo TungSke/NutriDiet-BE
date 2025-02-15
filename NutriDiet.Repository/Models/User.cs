@@ -41,6 +41,8 @@ public partial class User
 
     public virtual ICollection<MealPlan> MealPlans { get; set; } = new List<MealPlan>();
 
+    public virtual ICollection<MyFood> MyFoods { get; set; } = new List<MyFood>();
+
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public virtual ICollection<PersonalGoal> PersonalGoals { get; set; } = new List<PersonalGoal>();
@@ -48,8 +50,6 @@ public partial class User
     public virtual ICollection<RecipeSuggestion> RecipeSuggestions { get; set; } = new List<RecipeSuggestion>();
 
     public virtual Role Role { get; set; } = null!;
-
-    public virtual ICollection<UserEatingHabit> UserEatingHabits { get; set; } = new List<UserEatingHabit>();
 
     public virtual ICollection<UserFoodPreference> UserFoodPreferences { get; set; } = new List<UserFoodPreference>();
 
