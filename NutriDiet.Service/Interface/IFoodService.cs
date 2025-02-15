@@ -16,6 +16,8 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> CreateFood(FoodRequest request);
 
+        Task<IBusinessResult> DeleteFood(int foodId);
+
         Task<IBusinessResult> InsertIngredient(InsertIngredientRequest request);
 
         Task<IBusinessResult> UpdateFood(UpdateFoodRequest request);
@@ -25,5 +27,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> DeleteIngredient(int ingredientId);
 
         Task<IBusinessResult> GetIngredientById(int ingredientId);
+
+        Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName);
     }
 }

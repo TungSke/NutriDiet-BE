@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Service.ModelDTOs.Response
 {
-    public class AllergyResponse
+    public class DiseaseResponse
     {
-        public int AllergyId { get; set; }
-        public string AllergyName { get; set; } = null!;
+        public int DiseaseId { get; set; }
+        public string DiseaseName { get; set; } = null!;
 
-        public string? Notes { get; set; }
+        public string? Description { get; set; }
 
         public DateTime? CreatedAt { get; set; }
 

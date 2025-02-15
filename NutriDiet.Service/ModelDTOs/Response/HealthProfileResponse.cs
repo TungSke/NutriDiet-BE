@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NutriDiet.Repository.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,8 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public string? HealthGoal { get; set; }
         public double? TargetWeight { get; set; }
         public DateTime? DurationTarget { get; set; }
+        public virtual ICollection<AllergyResponse> Allergies { get; set; } = new List<AllergyResponse>();
+        public virtual ICollection<DiseaseResponse> Diseases { get; set; } = new List<DiseaseResponse>();
     }
 
 }

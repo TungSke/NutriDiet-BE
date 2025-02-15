@@ -1,11 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using NutriDiet.Repository.Models;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NutriDiet.Service.ModelDTOs.Request
 {
@@ -36,5 +29,9 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public double? Fiber { get; set; }
 
         public string? Others { get; set; }
+
+        public required IEnumerable<int> AllergyId { get; set; }
+
+        public required IEnumerable<int> DiseaseId { get; set; }
     }
 }

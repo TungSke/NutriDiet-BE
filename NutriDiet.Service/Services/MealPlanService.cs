@@ -128,7 +128,7 @@ namespace NutriDiet.Service.Services
                     mealPlan.Duration = dayNumberSet.Count;
                     await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
                     await _unitOfWork.SaveChangesAsync();
-                    _unitOfWork.CommitTransaction();
+                    await _unitOfWork.CommitTransaction();
                 }
                     return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
             }
@@ -142,7 +142,7 @@ namespace NutriDiet.Service.Services
         public async Task DeleteMealPlan(int id)
         {
             var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByIdAsync(id);
-            _unitOfWork.MealPlanRepository.DeleteAsync(mealPlanExisted);
+            await _unitOfWork.MealPlanRepository.DeleteAsync(mealPlanExisted);
         }
 
         public async Task ChangStatusMealPlan(int id, string status)
@@ -152,6 +152,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlanExisted);
             await _unitOfWork.SaveChangesAsync();
         }
+
 
         public async Task<IBusinessResult> GetMealPlanDetailByMealPlanID(int mealPlanId)
         {
@@ -289,5 +290,15 @@ namespace NutriDiet.Service.Services
         //        throw ex;
         //    }
         //}
+
+        public async Task<IBusinessResult> CreateSuitableMealPlanByAI()
+        {
+            //var userid = int.Parse(_userIdClaim);
+            var userid = int.Parse("1");
+            var user = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid).Include(x => x.Allergies).FirstOrDefaultAsync();
+
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, user);
+        }
     }
 }

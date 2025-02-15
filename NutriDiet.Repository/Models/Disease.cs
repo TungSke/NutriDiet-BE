@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace NutriDiet.Repository.Models;
 
-public partial class Allergy
+public partial class Disease
 {
-    public int AllergyId { get; set; }
+    public int DiseaseId { get; set; }
 
-    public string AllergyName { get; set; } = null!;
+    public string DiseaseName { get; set; } = null!;
 
-    public string? Notes { get; set; }
+    public string? Description { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

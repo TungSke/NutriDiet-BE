@@ -46,4 +46,8 @@ public partial class Food
     public virtual ICollection<RecipeSuggestion> RecipeSuggestions { get; set; } = new List<RecipeSuggestion>();
 
     public virtual ICollection<UserFoodPreference> UserFoodPreferences { get; set; } = new List<UserFoodPreference>();
+
+    public virtual ICollection<Allergy> Allergies { get; set; } = new List<Allergy>();
+
+    public virtual ICollection<Disease> Diseases { get; set; } = new List<Disease>();
 }

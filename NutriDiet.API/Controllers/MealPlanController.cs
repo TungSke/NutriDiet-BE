@@ -45,6 +45,7 @@ namespace NutriDiet.API.Controllers
             await _mealPlanService.ChangStatusMealPlan(id, status.ToString());
             return Ok("Cập nhật trạng thái thành công");
         }
+
         //[HttpGet("meal-plan-detail")]
         //public async Task<IActionResult> GetMealPlanDetailByMealPlanID(int mealPlanID) 
         //{
@@ -57,6 +58,15 @@ namespace NutriDiet.API.Controllers
         {
             var mealPlan = await _mealPlanService.CloneSampleMealPlan(mealPlanID);
             return Ok();
+
+
+        [HttpPost("create-suitable-meal-plan")]
+        //[Authorize]
+        public async Task<IActionResult> CreateSuitableMealPlanByAI()
+        {
+            var mealPlan = await _mealPlanService.CreateSuitableMealPlanByAI();
+            return Ok(mealPlan);
+
         }
     }
 }

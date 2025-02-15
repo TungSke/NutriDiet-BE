@@ -1,4 +1,6 @@
-﻿using Mapster;
+﻿using Google.Apis.Drive.v3.Data;
+using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
@@ -8,16 +10,27 @@ using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
+using System.Security.Claims;
 
 namespace NutriDiet.Service.Services
 {
     public class FoodService : IFoodService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _userIdClaim;
 
-        public FoodService(IUnitOfWork unitOfWork)
+        public FoodService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
+            _httpContextAccessor = httpContextAccessor;
+            _userIdClaim = GetUserIdClaim();
+        }
+
+        private string GetUserIdClaim()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
         public async Task<IBusinessResult> GetAllFood(int pageIndex, int pageSize, string foodType, string search)
@@ -44,7 +57,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetFoodById(int foodId)
         {
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
             if (food == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -56,22 +69,34 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateFood(FoodRequest request)
         {
-            var existedfood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower())).FirstOrDefaultAsync();
+            var existedFood = await _unitOfWork.FoodRepository
+                .GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower()))
+                .FirstOrDefaultAsync();
 
-            if (existedfood != null)
+            if (existedFood != null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name existed");
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name already exists");
             }
 
             var food = request.Adapt<Food>();
-            if (request.FoodImageUrl != null)
+
+            foreach (var allergyId in request.AllergyId)
             {
-                var cloudinaryHelper = new CloudinaryHelper();
-                var imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
-                food.ImageUrl = imageUrl;
+                var allergy = new Allergy { AllergyId = allergyId };
+                await _unitOfWork.AllergyRepository.Attach(allergy);
+                food.Allergies.Add(allergy);
             }
+
+            foreach (var diseaseId in request.DiseaseId)
+            {
+                var disease = new Disease { DiseaseId = diseaseId };
+                await _unitOfWork.DiseaseRepository.Attach(disease);
+                food.Diseases.Add(disease);
+            }
+
             await _unitOfWork.FoodRepository.AddAsync(food);
             await _unitOfWork.SaveChangesAsync();
+
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
 
@@ -125,7 +150,7 @@ namespace NutriDiet.Service.Services
             }
 
             request.Adapt(ingredient);
-            await _unitOfWork.IngredientRepository.UpdateAsync(ingredient);   
+            await _unitOfWork.IngredientRepository.UpdateAsync(ingredient);
             await _unitOfWork.SaveChangesAsync();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
@@ -169,6 +194,27 @@ namespace NutriDiet.Service.Services
 
             var response = ingredient.Adapt<IngredientResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+
+        public async Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName)
+        {
+            int userid = int.Parse("1");
+            var userError = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
+            if (userError == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
+
+            var foods = await _unitOfWork.FoodRepository
+            .GetByWhere(x =>
+            !x.Allergies.Any(a => userError.Allergies.Select(ua => ua.AllergyId).Contains(a.AllergyId)) &&
+            !x.Diseases.Any(d => userError.Diseases.Select(ud => ud.DiseaseId).Contains(d.DiseaseId)) && x.FoodName.ToLower().Contains(searchName.ToLower()))
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+            var foodResponse = foods.Adapt<List<FoodResponse>>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodResponse);
         }
     }
 }

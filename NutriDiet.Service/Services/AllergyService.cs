@@ -38,29 +38,24 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateAllergy(AllergyRequest request)
         {
-            //try
-            //{
-            //    var existedAllergy = await _unitOfWork.AllergyRepository
-            //    .GetByWhere(x => x.AllergyName.ToLower() == request.AllergyName.ToLower())
-            //    .FirstOrDefaultAsync();
+            if (request == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid request");
+            }
 
-            //    if (existedAllergy != null)
-            //    {
-            //        return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Allergy name already exists");
-            //    }
+            var existingAllergy = await _unitOfWork.AllergyRepository.GetByWhere(
+                a => a.AllergyName.ToLower() == request.AllergyName.ToLower()).FirstOrDefaultAsync();
 
-            //    var allergy = request.Adapt<Allergy>();
+            if (existingAllergy != null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Allergy already exists.");
+            }
 
-            //    await _unitOfWork.AllergyRepository.AddAsync(allergy);
-            //    await _unitOfWork.SaveChangesAsync();
-
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine(e.InnerException.Message);
-            //}
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
+            var allergyEntity = request.Adapt<Allergy>();
+            await _unitOfWork.AllergyRepository.AddAsync(allergyEntity);
+            await _unitOfWork.SaveChangesAsync();
+            var response = allergyEntity.Adapt<AllergyResponse>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, response);
         }
 
 
@@ -87,7 +82,7 @@ namespace NutriDiet.Service.Services
                 pageSize,
                 x => string.IsNullOrEmpty(searchTerm) || x.AllergyName.ToLower().Contains(searchTerm)
             );
-
+            allergies = allergies.Distinct().ToList();
             if (allergies == null || !allergies.Any())
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
@@ -112,29 +107,32 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task<IBusinessResult> UpdateAllergy(AllergyRequest request)
+        public async Task<IBusinessResult> UpdateAllergy(AllergyRequest request,int allergyId)
         {
-            //var allergy = await _unitOfWork.AllergyRepository.GetByIdAsync(request.AllergyId);
-            //if (allergy == null)
-            //{
-            //    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Allergy not found");
-            //}
+            if (request == null || allergyId <= 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid request or missing AllergyId");
+            }
 
-            //var duplicateAllergy = await _unitOfWork.AllergyRepository
-            //    .GetByWhere(x => x.AllergyName.ToLower() == request.AllergyName.ToLower() && x.AllergyId != request.AllergyId)
-            //    .FirstOrDefaultAsync();
+            var allergy = await _unitOfWork.AllergyRepository.GetByIdAsync(allergyId);
+            if (allergy == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Allergy not found");
+            }
+            var conflictAllergy = await _unitOfWork.AllergyRepository.GetByWhere(
+                a => a.AllergyName.ToLower() == request.AllergyName.ToLower() && a.AllergyId != allergyId).FirstOrDefaultAsync();
+            if (conflictAllergy != null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Another allergy with the same name already exists.");
+            }
 
-            //if (duplicateAllergy != null)
-            //{
-            //    return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Allergy name already exists");
-            //}
+            request.Adapt(allergy);
 
-            //request.Adapt(allergy);
+            await _unitOfWork.AllergyRepository.UpdateAsync(allergy);
+            await _unitOfWork.SaveChangesAsync();
 
-            //await _unitOfWork.AllergyRepository.UpdateAsync(allergy);
-            //await _unitOfWork.SaveChangesAsync();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
+            var response = allergy.Adapt<AllergyResponse>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response);
         }
     }
 

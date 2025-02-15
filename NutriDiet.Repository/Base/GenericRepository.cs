@@ -16,18 +16,13 @@ namespace NutriDiet.Repository.Repositories
 
         public GenericRepository(NutriDietContext context)
         {
-            this._context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task Detach(TEntity entity)
+        public async Task Attach(TEntity entity)
         {
-            var entry = _context.Entry(entity);
-            if (entry.State == EntityState.Detached)
-            {
-                return;
-            }
-
-            entry.State = EntityState.Detached;
+            _context.Set<TEntity>().Attach(entity);
+            _context.Entry(entity).State = EntityState.Unchanged;
         }
 
         public IQueryable<TEntity> GetAll()
@@ -52,27 +47,13 @@ namespace NutriDiet.Repository.Repositories
 
         public async Task UpdateAsync(TEntity entity)
         {
-            var local = _context.Set<TEntity>().Local.FirstOrDefault(e => e == entity);
-            if (local != null)
-            {
-                _context.Entry(local).State = EntityState.Detached;
-            }
-
-            // Đính kèm thực thể và đánh dấu nó để cập nhật
-            _context.Set<TEntity>().Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
         }
 
         public async Task DeleteAsync(TEntity entity)
         {
-            var local = _context.Set<TEntity>().Local.FirstOrDefault(e => e == entity);
-            if (local != null)
-            {
-                _context.Entry(local).State = EntityState.Detached;
-            }
-            _context.Set<TEntity>().Attach(entity);
-            _context.Entry(entity).State = EntityState.Deleted;
-        }        
+            _context.Set<TEntity>().Remove(entity);
+        }
 
         public async Task<int> CountAsync()
         {

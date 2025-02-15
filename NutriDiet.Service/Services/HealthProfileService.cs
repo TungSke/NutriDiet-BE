@@ -33,10 +33,9 @@ namespace NutriDiet.Service.Services
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public async Task AddUserHealthRecord(UserHealthRequest request)
+        public async Task CreateHealthProfileRecord(HealthProfileRequest request)
         {
             var userid = int.Parse(_userIdClaim);
-
             var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
             if (existingUser == null)
             {
@@ -50,13 +49,52 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.BeginTransaction();
             try
             {
+                // Update User Table
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
-
+                // Add new Health profile Record for this User
                 healthProfile.UserId = existingUser.UserId; 
-
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
-                await _unitOfWork.SaveChangesAsync();
+                // Add Allergy for User if any
+                if (request.AllergyNames != null && request.AllergyNames.Any())
+                {
+                    foreach (var allergyName in request.AllergyNames)
+                    {
+                        var existingAllergy = await _unitOfWork.AllergyRepository.GetByWhere(a => a.AllergyName.ToLower() == allergyName.ToLower()).FirstOrDefaultAsync();
+                        if (existingAllergy != null)
+                        {
+                            if (!existingUser.Allergies.Any(a => a.AllergyId == existingAllergy.AllergyId))
+                            {
+                                existingUser.Allergies.Add(existingAllergy);
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception($"Allergy '{allergyName}' does not exist in the system.");
+                        }
+                    }
+                }
+                // Add Disease for User if any
+                if (request.DiseaseNames != null && request.DiseaseNames.Any())
+                {
+                    foreach (var diseaseName in request.DiseaseNames)
+                    {
+                        var existingDisease = await _unitOfWork.DiseaseRepository
+                            .GetByWhere(d => d.DiseaseName.ToLower() == diseaseName.ToLower()).FirstOrDefaultAsync();
+                        if (existingDisease != null)
+                        {
+                            if (!existingUser.Diseases.Any(d => d.DiseaseId == existingDisease.DiseaseId))
+                            {
+                                existingUser.Diseases.Add(existingDisease);
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception($"Disease '{diseaseName}' does not exist in the system.");
+                        }
+                    }
+                }
 
+                await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransaction();
             }
             catch (Exception)
@@ -70,50 +108,125 @@ namespace NutriDiet.Service.Services
         {
             var userid = int.Parse(_userIdClaim);
 
-            var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userid)
+                .Include(u => u.Allergies)
+                .Include(u => u.Diseases)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
             if (existingUser == null)
             {
                 throw new Exception("User not exist.");
             }
 
             var healthProfile = await _unitOfWork.HealthProfileRepository
-                                        .GetByWhere(hp => hp.UserId == userid)
-                                        .FirstOrDefaultAsync();
+                .GetByWhere(hp => hp.UserId == userid)
+                .AsNoTracking() 
+                .FirstOrDefaultAsync();
 
-            var response = new HealthProfileResponse();
-            existingUser.Adapt(response);
+            HealthProfileResponse response;
+            try
+            {
+                response = existingUser.Adapt<HealthProfileResponse>();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error mapping User to HealthProfileResponse: " + ex.Message, ex);
+            }
+
             if (healthProfile != null)
             {
-                healthProfile.Adapt(response);
+                try
+                {
+                    healthProfile.Adapt(response);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error mapping HealthProfile to HealthProfileResponse: " + ex.Message, ex);
+                }
             }
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task UpdateHealthProfile(UserHealthRequest request)
+
+        public async Task UpdateHealthProfile(HealthProfileRequest request)
         {
             var userid = int.Parse(_userIdClaim);
 
-            var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userid)
+                .Include(u => u.Allergies)
+                .Include(u => u.Diseases)
+                .FirstOrDefaultAsync();
+
             if (existingUser == null)
             {
                 throw new Exception("User not exist.");
             }
 
-            request.Adapt(existingUser);
-
-            var healthProfile = request.Adapt<HealthProfile>();
-
             await _unitOfWork.BeginTransaction();
             try
             {
+                request.Adapt(existingUser);
+
+                if (request.AllergyNames != null)
+                {
+                    existingUser.Allergies.Clear();
+                    foreach (var allergyName in request.AllergyNames)
+                    {
+                        var existingAllergy = await _unitOfWork.AllergyRepository
+                            .GetByWhere(a => a.AllergyName.ToLower() == allergyName.ToLower())
+                            .FirstOrDefaultAsync();
+                        if (existingAllergy != null)
+                        {
+                            existingUser.Allergies.Add(existingAllergy);
+                        }
+                        else
+                        {
+                            throw new Exception($"Allergy '{allergyName}' does not exist in the system.");
+                        }
+                    }
+                }
+
+                if (request.DiseaseNames != null)
+                {
+                    existingUser.Diseases.Clear();
+                    foreach (var diseaseName in request.DiseaseNames)
+                    {
+                        var existingDisease = await _unitOfWork.DiseaseRepository
+                            .GetByWhere(d => d.DiseaseName.ToLower() == diseaseName.ToLower())
+                            .FirstOrDefaultAsync();
+                        if (existingDisease != null)
+                        {
+                            existingUser.Diseases.Add(existingDisease);
+                        }
+                        else
+                        {
+                            throw new Exception($"Disease '{diseaseName}' does not exist in the system.");
+                        }
+                    }
+                }
+
+                var existingHealthProfile = await _unitOfWork.HealthProfileRepository
+                    .GetByWhere(hp => hp.UserId == userid)
+                    .FirstOrDefaultAsync();
+                if (existingHealthProfile != null)
+                {
+                    request.Adapt(existingHealthProfile);
+                    await _unitOfWork.HealthProfileRepository.UpdateAsync(existingHealthProfile);
+                }
+                else
+                {
+                    var newHealthProfile = request.Adapt<HealthProfile>();
+                    newHealthProfile.UserId = existingUser.UserId;
+                    await _unitOfWork.HealthProfileRepository.AddAsync(newHealthProfile);
+                }
+
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
 
-                healthProfile.UserId = existingUser.UserId;
-
-                await _unitOfWork.HealthProfileRepository.UpdateAsync(healthProfile);
                 await _unitOfWork.SaveChangesAsync();
-
                 await _unitOfWork.CommitTransaction();
             }
             catch (Exception)
@@ -122,5 +235,6 @@ namespace NutriDiet.Service.Services
                 throw;
             }
         }
+
     }
 }

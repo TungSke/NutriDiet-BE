@@ -25,11 +25,9 @@ namespace NutriDiet.Service.Services
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PasswordHasher<string> _passwordHasher;
         private readonly TokenHandlerHelper _tokenHandler;
         private readonly GoogleService _googleService;
-        private readonly string _UserIdClaim;
         private readonly HttpClient _httpClient = new HttpClient();
 
         public UserService(IUnitOfWork unitOfWork, GoogleService googleService, TokenHandlerHelper tokenHandlerHelper)
@@ -38,12 +36,6 @@ namespace NutriDiet.Service.Services
             _passwordHasher = new PasswordHasher<string>();
             _tokenHandler = tokenHandlerHelper;
             _googleService = googleService;
-        }
-
-        private string GetUserIdClaim()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
         private string HashPassword(string password)
@@ -78,7 +70,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.UserRepository.AddAsync(acc);
             await _unitOfWork.SaveChangesAsync();
 
-            await _googleService.SendEmailWithOTP(request.Email, "Verify your account");
+            await _googleService.SendEmailWithOTP(request.Email, "Mã OTP xác thực tài khoản NutriDiet");
             return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to active account");
         }
 
@@ -111,7 +103,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed, please register first!");
             }
-            await _googleService.SendEmailWithOTP(request.Email,"Resend Otp");
+            await _googleService.SendEmailWithOTP(request.Email,"Xác nhận lại OTP NutriDiet");
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
@@ -262,7 +254,7 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed");
             }
 
-            await _googleService.SendEmailWithOTP(email, "Reset password");
+            await _googleService.SendEmailWithOTP(email, "Reset mật khẩu cho tài khoản NutriDiet");
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Check email to reset password");
         }

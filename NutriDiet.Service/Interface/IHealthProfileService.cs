@@ -10,9 +10,9 @@ namespace NutriDiet.Service.Interface
 {
     public interface IHealthProfileService
     {
-        Task AddUserHealthRecord(UserHealthRequest request);
+        Task CreateHealthProfileRecord(HealthProfileRequest request);
         Task<IBusinessResult> GetHealthProfile();
 
-        Task UpdateHealthProfile(UserHealthRequest request);
+        Task UpdateHealthProfile(HealthProfileRequest request);
     }
 }

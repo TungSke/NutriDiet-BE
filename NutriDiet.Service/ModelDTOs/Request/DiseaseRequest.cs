@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NutriDiet.Service.ModelDTOs.Response
+namespace NutriDiet.Service.ModelDTOs.Request
 {
-    public class AllergyResponse
+    public class DiseaseRequest
     {
-        public int AllergyId { get; set; }
-        public string AllergyName { get; set; } = null!;
+        public string DiseaseName { get; set; } = null!;
 
-        public string? Notes { get; set; }
+        public string? Description { get; set; }
 
         public DateTime? CreatedAt { get; set; }
 
