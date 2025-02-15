@@ -91,39 +91,57 @@ GO
 SET IDENTITY_INSERT [dbo].[User] OFF
 GO
 
-INSERT INTO Allergy (AllergyName, Notes, CreatedAt, UpdatedAt) VALUES
-(N'Dị ứng đậu phộng', N'Dễ gây phản ứng nghiêm trọng như sốc phản vệ', GETDATE(), GETDATE()),
-(N'Dị ứng hải sản', N'Bao gồm tôm, cua, sò, ốc, hến', GETDATE(), GETDATE()),
-(N'Dị ứng sữa', N'Không dung nạp lactose hoặc dị ứng protein sữa', GETDATE(), GETDATE()),
-(N'Dị ứng trứng', N'Thường gặp ở trẻ nhỏ, đặc biệt là lòng trắng trứng', GETDATE(), GETDATE()),
-(N'Dị ứng gluten', N'Liên quan đến bệnh Celiac hoặc không dung nạp gluten', GETDATE(), GETDATE()),
-(N'Dị ứng đậu nành', N'Phản ứng với protein trong đậu nành', GETDATE(), GETDATE()),
-(N'Dị ứng hạt cây', N'Bao gồm hạt điều, hạnh nhân, óc chó', GETDATE(), GETDATE()),
-(N'Dị ứng mè (vừng)', N'Gây phát ban, khó thở hoặc sốc phản vệ', GETDATE(), GETDATE()),
-(N'Dị ứng lúa mì', N'Không giống như không dung nạp gluten, có thể gây sốc phản vệ', GETDATE(), GETDATE()),
-(N'Dị ứng động vật có vỏ', N'Tôm, cua, sò thường gây dị ứng mạnh', GETDATE(), GETDATE()),
-(N'Dị ứng cá', N'Dị ứng với các loại cá như cá hồi, cá ngừ, cá thu', GETDATE(), GETDATE()),
-(N'Dị ứng mốc', N'Gây các vấn đề về hô hấp và da', GETDATE(), GETDATE()),
-(N'Dị ứng bụi nhà', N'Gây viêm mũi dị ứng và hen suyễn', GETDATE(), GETDATE()),
-(N'Dị ứng phấn hoa', N'Nguyên nhân phổ biến gây hắt hơi, chảy nước mũi', GETDATE(), GETDATE()),
-(N'Dị ứng thuốc kháng sinh', N'Penicillin là tác nhân phổ biến nhất', GETDATE(), GETDATE()),
-(N'Dị ứng côn trùng chích', N'Ong, kiến lửa có thể gây sốc phản vệ', GETDATE(), GETDATE()),
-(N'Dị ứng nấm men', N'Liên quan đến thực phẩm lên men như bia, rượu, bánh mì', GETDATE(), GETDATE()),
-(N'Dị ứng trái cây có múi', N'Cam, chanh, bưởi có thể gây kích ứng da hoặc miệng', GETDATE(), GETDATE()),
-(N'Dị ứng socola', N'Dị ứng với cacao hoặc các chất phụ gia trong socola', GETDATE(), GETDATE()),
-(N'Dị ứng sulfite', N'Chất bảo quản trong rượu vang, trái cây sấy khô', GETDATE(), GETDATE());
+-- Bật IDENTITY_INSERT cho bảng Allergy
+SET IDENTITY_INSERT [dbo].[Allergy] ON;
+GO
 
-INSERT INTO Disease (DiseaseName, Description, CreatedAt, UpdatedAt) VALUES
-(N'Bệnh tiểu đường', N'Yêu cầu chế độ ăn ít đường và tinh bột', GETDATE(), GETDATE()),
-(N'Bệnh tim mạch', N'Chế độ ăn ít cholesterol và muối', GETDATE(), GETDATE()),
-(N'Bệnh cao huyết áp', N'Giảm muối, hạn chế thực phẩm chế biến sẵn', GETDATE(), GETDATE()),
-(N'Bệnh thận', N'Hạn chế protein và muối', GETDATE(), GETDATE()),
-(N'Bệnh gout', N'Giảm thực phẩm giàu purine như hải sản, thịt đỏ', GETDATE(), GETDATE()),
-(N'Không dung nạp lactose', N'Tránh sữa và sản phẩm từ sữa', GETDATE(), GETDATE()),
-(N'Hội chứng ruột kích thích', N'Tránh thực phẩm gây kích thích như cafein, đồ cay', GETDATE(), GETDATE()),
-(N'Béo phì', N'Cần kiểm soát calo, tăng cường thực phẩm lành mạnh', GETDATE(), GETDATE()),
-(N'Suy dinh dưỡng', N'Cần bổ sung vitamin và khoáng chất', GETDATE(), GETDATE()),
-(N'Dị ứng thực phẩm', N'Tổng hợp nhiều loại dị ứng với thực phẩm', GETDATE(), GETDATE());
+-- Chèn dữ liệu vào bảng Allergy với IDENTITY_INSERT được bật
+INSERT INTO Allergy (AllergyID, AllergyName, Notes, CreatedAt, UpdatedAt) VALUES
+(1, N'Dị ứng đậu phộng', N'Dễ gây phản ứng nghiêm trọng như sốc phản vệ', GETDATE(), GETDATE()),
+(2, N'Dị ứng hải sản', N'Bao gồm tôm, cua, sò, ốc, hến', GETDATE(), GETDATE()),
+(3, N'Dị ứng sữa', N'Không dung nạp lactose hoặc dị ứng protein sữa', GETDATE(), GETDATE()),
+(4, N'Dị ứng trứng', N'Thường gặp ở trẻ nhỏ, đặc biệt là lòng trắng trứng', GETDATE(), GETDATE()),
+(5, N'Dị ứng gluten', N'Liên quan đến bệnh Celiac hoặc không dung nạp gluten', GETDATE(), GETDATE()),
+(6, N'Dị ứng đậu nành', N'Phản ứng với protein trong đậu nành', GETDATE(), GETDATE()),
+(7, N'Dị ứng hạt cây', N'Bao gồm hạt điều, hạnh nhân, óc chó', GETDATE(), GETDATE()),
+(8, N'Dị ứng mè (vừng)', N'Gây phát ban, khó thở hoặc sốc phản vệ', GETDATE(), GETDATE()),
+(9, N'Dị ứng lúa mì', N'Không giống như không dung nạp gluten, có thể gây sốc phản vệ', GETDATE(), GETDATE()),
+(10, N'Dị ứng động vật có vỏ', N'Tôm, cua, sò thường gây dị ứng mạnh', GETDATE(), GETDATE()),
+(11, N'Dị ứng cá', N'Dị ứng với các loại cá như cá hồi, cá ngừ, cá thu', GETDATE(), GETDATE()),
+(12, N'Dị ứng mốc', N'Gây các vấn đề về hô hấp và da', GETDATE(), GETDATE()),
+(13, N'Dị ứng bụi nhà', N'Gây viêm mũi dị ứng và hen suyễn', GETDATE(), GETDATE()),
+(14, N'Dị ứng phấn hoa', N'Nguyên nhân phổ biến gây hắt hơi, chảy nước mũi', GETDATE(), GETDATE()),
+(15, N'Dị ứng thuốc kháng sinh', N'Penicillin là tác nhân phổ biến nhất', GETDATE(), GETDATE()),
+(16, N'Dị ứng côn trùng chích', N'Ong, kiến lửa có thể gây sốc phản vệ', GETDATE(), GETDATE()),
+(17, N'Dị ứng nấm men', N'Liên quan đến thực phẩm lên men như bia, rượu, bánh mì', GETDATE(), GETDATE()),
+(18, N'Dị ứng trái cây có múi', N'Cam, chanh, bưởi có thể gây kích ứng da hoặc miệng', GETDATE(), GETDATE()),
+(19, N'Dị ứng socola', N'Dị ứng với cacao hoặc các chất phụ gia trong socola', GETDATE(), GETDATE()),
+(20, N'Dị ứng sulfite', N'Chất bảo quản trong rượu vang, trái cây sấy khô', GETDATE(), GETDATE());
+
+-- Tắt IDENTITY_INSERT cho bảng Allergy
+SET IDENTITY_INSERT [dbo].[Allergy] OFF;
+GO
+
+-- Bật IDENTITY_INSERT cho bảng Disease
+SET IDENTITY_INSERT [dbo].[Disease] ON;
+GO
+
+-- Chèn dữ liệu vào bảng Disease với IDENTITY_INSERT được bật
+INSERT INTO Disease (DiseaseID, DiseaseName, Description, CreatedAt, UpdatedAt) VALUES
+(1, N'Bệnh tiểu đường', N'Yêu cầu chế độ ăn ít đường và tinh bột', GETDATE(), GETDATE()),
+(2, N'Bệnh tim mạch', N'Chế độ ăn ít cholesterol và muối', GETDATE(), GETDATE()),
+(3, N'Bệnh cao huyết áp', N'Giảm muối, hạn chế thực phẩm chế biến sẵn', GETDATE(), GETDATE()),
+(4, N'Bệnh thận', N'Hạn chế protein và muối', GETDATE(), GETDATE()),
+(5, N'Bệnh gout', N'Giảm thực phẩm giàu purine như hải sản, thịt đỏ', GETDATE(), GETDATE()),
+(6, N'Không dung nạp lactose', N'Tránh sữa và sản phẩm từ sữa', GETDATE(), GETDATE()),
+(7, N'Hội chứng ruột kích thích', N'Tránh thực phẩm gây kích thích như cafein, đồ cay', GETDATE(), GETDATE()),
+(8, N'Béo phì', N'Cần kiểm soát calo, tăng cường thực phẩm lành mạnh', GETDATE(), GETDATE()),
+(9, N'Suy dinh dưỡng', N'Cần bổ sung vitamin và khoáng chất', GETDATE(), GETDATE()),
+(10, N'Dị ứng thực phẩm', N'Tổng hợp nhiều loại dị ứng với thực phẩm', GETDATE(), GETDATE());
+
+-- Tắt IDENTITY_INSERT cho bảng Disease
+SET IDENTITY_INSERT [dbo].[Disease] OFF;
+GO
 
 -- Lấy ID của bệnh "Bệnh tiểu đường"
 DECLARE @DiseaseId INT;
@@ -301,3 +319,160 @@ VALUES
     (N'Trứng gà', 'Egg', 'gram', 166, 20),
     (N'Hành lá', 'Vegetable', 'gram', 22, 20),
     (N'Nước mắm', 'Sauce', 'ml', 20, 20);
+
+-- Insert data into FoodAllergy table based on ingredients and common allergies
+INSERT INTO FoodAllergy (FoodID, AllergyID) VALUES
+-- Phở bò (1) - Contains beef
+(1, 2), -- seafood allergy (some broths may contain seafood)
+
+-- Bánh mì thịt (2) - Contains wheat, meat
+(2, 9), -- wheat allergy
+(2, 3), -- dairy allergy (may contain butter)
+
+-- Cơm tấm sườn (3) - Contains pork
+(3, 2), -- seafood allergy (fish sauce)
+
+-- Bún chả (4) - Contains pork, fish sauce
+(4, 2), -- seafood allergy (fish sauce)
+
+-- Gỏi cuốn (5) - Contains shrimp, pork
+(5, 2), -- seafood allergy
+(5, 10), -- shellfish allergy
+
+-- Bánh xèo (6) - Contains shrimp, pork, wheat
+(6, 2), -- seafood allergy
+(6, 9), -- wheat allergy
+(6, 10), -- shellfish allergy
+
+-- Chả giò (7) - Contains pork, shrimp
+(7, 2), -- seafood allergy
+(7, 10), -- shellfish allergy
+
+-- Canh chua cá lóc (8) - Contains fish
+(8, 2), -- seafood allergy
+(8, 11), -- fish allergy
+
+-- Bún riêu (9) - Contains crab, shrimp
+(9, 2), -- seafood allergy
+(9, 10), -- shellfish allergy
+
+-- Cá kho tộ (10) - Contains fish
+(10, 2), -- seafood allergy
+(10, 11), -- fish allergy
+
+-- Bánh cuốn (11) - Contains pork, wheat
+(11, 9), -- wheat allergy
+
+-- Chè đậu đen (12) - Contains beans, coconut milk
+(12, 6), -- soy allergy
+
+-- Bánh bèo (13) - Contains shrimp, rice flour
+(13, 2), -- seafood allergy
+(13, 10), -- shellfish allergy
+
+-- Bánh ướt (14) - Contains rice flour, pork
+(14, 2), -- seafood allergy (fish sauce)
+
+-- Bánh canh cua (15) - Contains crab, wheat flour
+(15, 2), -- seafood allergy
+(15, 9), -- wheat allergy
+(15, 10), -- shellfish allergy
+
+-- Bánh tét (16) - Contains pork, mung beans
+(16, 6), -- soy allergy
+
+-- Bánh chưng (17) - Contains pork, mung beans
+(17, 6), -- soy allergy
+
+-- Bánh đúc (18) - Contains rice flour, coconut milk
+(18, 3), -- dairy allergy (coconut milk)
+
+-- Bánh khọt (19) - Contains shrimp, rice flour
+(19, 2), -- seafood allergy
+(19, 10), -- shellfish allergy
+
+-- Bánh tráng trộn (20) - Contains eggs
+(20, 4); -- egg allergy
+
+-- Insert data into FoodDisease table based on nutritional content and disease restrictions
+INSERT INTO FoodDisease (FoodID, DiseaseID) VALUES
+-- Phở bò (1) - High in sodium, protein
+(1, 2), -- heart disease
+(1, 3), -- high blood pressure
+(1, 4), -- kidney disease
+
+-- Bánh mì thịt (2) - High in carbs
+(2, 1), -- diabetes
+(2, 8), -- obesity
+
+-- Cơm tấm sườn (3) - High in calories, fat
+(3, 1), -- diabetes
+(3, 2), -- heart disease
+(3, 8), -- obesity
+
+-- Bún chả (4) - High in sodium
+(4, 2), -- heart disease
+(4, 3), -- high blood pressure
+
+-- Gỏi cuốn (5) - Generally healthy but contains shrimp
+(5, 5), -- gout
+
+-- Bánh xèo (6) - High in fat, calories
+(6, 1), -- diabetes
+(6, 2), -- heart disease
+(6, 8), -- obesity
+
+-- Chả giò (7) - High in fat, calories
+(7, 1), -- diabetes
+(7, 2), -- heart disease
+(7, 8), -- obesity
+
+-- Canh chua cá lóc (8) - Generally healthy
+(8, 5), -- gout (fish)
+
+-- Bún riêu (9) - High in sodium, contains seafood
+(9, 3), -- high blood pressure
+(9, 5), -- gout
+
+-- Cá kho tộ (10) - High in sodium
+(10, 2), -- heart disease
+(10, 3), -- high blood pressure
+(10, 5), -- gout
+
+-- Bánh cuốn (11) - High in carbs
+(11, 1), -- diabetes
+(11, 8), -- obesity
+
+-- Chè đậu đen (12) - High in sugar
+(12, 1), -- diabetes
+(12, 8), -- obesity
+
+-- Bánh bèo (13) - Contains shrimp
+(13, 5), -- gout
+
+-- Bánh ướt (14) - High in carbs
+(14, 1), -- diabetes
+(14, 8), -- obesity
+
+-- Bánh canh cua (15) - High in sodium, contains seafood
+(15, 3), -- high blood pressure
+(15, 5), -- gout
+
+-- Bánh tét (16) - High in carbs, calories
+(16, 1), -- diabetes
+(16, 8), -- obesity
+
+-- Bánh chưng (17) - High in carbs, calories
+(17, 1), -- diabetes
+(17, 8), -- obesity
+
+-- Bánh đúc (18) - High in carbs
+(18, 1), -- diabetes
+
+-- Bánh khọt (19) - High in fat, contains seafood
+(19, 2), -- heart disease
+(19, 5), -- gout
+(19, 8), -- obesity
+
+-- Bánh tráng trộn (20) - Generally lower in concerns
+(20, 7); -- IBS (spicy ingredients)

@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using Google.Apis.Drive.v3.Data;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
@@ -195,12 +196,25 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task<IBusinessResult> GetFoodRecommend()
+        public async Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName)
         {
-            int userid = int.Parse(_userIdClaim);
-            var foodidlistUserdontwant = "";
+            int userid = int.Parse("1");
+            var userError = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
+            if (userError == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
+            var foods = await _unitOfWork.FoodRepository
+            .GetByWhere(x =>
+            !x.Allergies.Any(a => userError.Allergies.Select(ua => ua.AllergyId).Contains(a.AllergyId)) &&
+            !x.Diseases.Any(d => userError.Diseases.Select(ud => ud.DiseaseId).Contains(d.DiseaseId)) && x.FoodName.ToLower().Contains(searchName.ToLower()))
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+            var foodResponse = foods.Adapt<List<FoodResponse>>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodResponse);
         }
     }
 }
