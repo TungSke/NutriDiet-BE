@@ -17,11 +17,21 @@ public partial class PersonalGoal
 
     public DateTime TargetDate { get; set; }
 
+    public int? ProgressRate { get; set; }
+
     public string? Status { get; set; }
 
     public double? ProgressPercentage { get; set; }
 
     public string? Notes { get; set; }
+
+    public double? DailyCalories { get; set; }
+
+    public double? DailyCarb { get; set; }
+
+    public double? DailyFat { get; set; }
+
+    public double? DailyProtein { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
