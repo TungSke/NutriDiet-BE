@@ -28,6 +28,6 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> GetIngredientById(int ingredientId);
 
-        Task<IBusinessResult> GetFoodRecommend();
+        Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName);
     }
 }

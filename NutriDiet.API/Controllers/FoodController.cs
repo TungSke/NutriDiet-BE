@@ -70,7 +70,7 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpDelete("incredient/{ingredientId}")]
+        [HttpDelete("delete-incredient/{ingredientId}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteIngredient(int ingredientId)
         {
@@ -85,11 +85,10 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("recommendfood")]
-        [Authorize]
-        public async Task<IActionResult> RecommendFood()
+        [HttpGet("recommend")]
+        public async Task<IActionResult> RecommendFood(int pageIndex = 1, int pageSize = 10, string searchName = "")
         {
-            var result = await _foodService.GetFoodRecommend();
+            var result = await _foodService.GetFoodRecommend(pageIndex, pageSize, searchName);
             return StatusCode(result.StatusCode, result);
         }
 

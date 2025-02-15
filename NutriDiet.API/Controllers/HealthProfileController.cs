@@ -18,7 +18,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet]
-        //[Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> Get() { 
             var result = await _healthprofileService.GetHealthProfile();
             return StatusCode(result.StatusCode, result);
