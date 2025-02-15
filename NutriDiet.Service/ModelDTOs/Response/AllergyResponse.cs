@@ -8,6 +8,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
 {
     public class AllergyResponse
     {
+        public int AllergyId { get; set; }
         public string AllergyName { get; set; } = null!;
 
         public string? Notes { get; set; }
