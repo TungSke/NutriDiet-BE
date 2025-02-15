@@ -86,6 +86,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet("recommend")]
+        [Authorize]
         public async Task<IActionResult> RecommendFood(int pageIndex = 1, int pageSize = 10, string searchName = "")
         {
             var result = await _foodService.GetFoodRecommend(pageIndex, pageSize, searchName);
