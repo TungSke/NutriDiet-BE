@@ -54,43 +54,19 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPost("incredient")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> InsertIngredient([FromBody] InsertIngredientRequest request)
-        {
-            var result = await _foodService.InsertIngredient(request);
-            return StatusCode(result.StatusCode, result);
-        }
-
-        [HttpPut("incredient")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateIngredient([FromBody] UpdateIngredientRequest request)
-        {
-            var result = await _foodService.UpdateIngredient(request);
-            return StatusCode(result.StatusCode, result);
-        }
-
-        [HttpDelete("delete-incredient/{ingredientId}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteIngredient(int ingredientId)
-        {
-            var result = await _foodService.DeleteIngredient(ingredientId);
-            return StatusCode(result.StatusCode, result);
-        }
-
-        [HttpGet("incredient/{ingredientId}")]
-        public async Task<IActionResult> GetIngredientById(int ingredientId)
-        {
-            var result = await _foodService.GetIngredientById(ingredientId);
-            return StatusCode(result.StatusCode, result);
-        }
-
         [HttpGet("recommend")]
+        [Authorize]
         public async Task<IActionResult> RecommendFood(int pageIndex = 1, int pageSize = 10, string searchName = "")
         {
             var result = await _foodService.GetFoodRecommend(pageIndex, pageSize, searchName);
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpGet("recipe/{foodId}")]
+        public async Task<IActionResult> FoodRecipe(int foodId)
+        {
+            var result = await _foodService.FoodRecipe(foodId);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

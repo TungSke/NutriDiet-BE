@@ -45,6 +45,7 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<GoogleService>();
             services.AddScoped<TokenHandlerHelper>();
             services.AddScoped<CloudinaryHelper>();
+            services.AddScoped<AIGeneratorService>();
 
             services.AddScoped<IUserService, UserService>();
 
@@ -57,6 +58,9 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<IAllergyService, AllergyService>();
 
             services.AddScoped<IDiseaseService, DiseaseService>();
+
+            services.AddScoped<IIngredientService, IngredientService>();
+
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)
