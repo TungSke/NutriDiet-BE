@@ -17,14 +17,17 @@ namespace NutriDiet.Service.Services
     public class FoodService : IFoodService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AIGeneratorService _aIGeneratorService;
+
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _userIdClaim;
 
-        public FoodService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
+        public FoodService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _userIdClaim = GetUserIdClaim();
+            _aIGeneratorService=aIGeneratorService;
         }
 
         private string GetUserIdClaim()
@@ -100,24 +103,6 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
 
-        public async Task<IBusinessResult> InsertIngredient(InsertIngredientRequest request)
-        {
-            var food = await _unitOfWork.FoodRepository.GetByIdAsync(request.FoodId);
-            if (food == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
-            }
-
-            food.Ingredients = request.Ingredients.Adapt<List<Ingredient>>();
-            await _unitOfWork.FoodRepository.UpdateAsync(food);
-            await _unitOfWork.SaveChangesAsync();
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
-        }
-
-        public async Task CreateFoodWithIngredient()
-        {
-        }
-
         public async Task<IBusinessResult> UpdateFood(UpdateFoodRequest request)
         {
             var food = await _unitOfWork.FoodRepository.GetByIdAsync(request.FoodId);
@@ -139,22 +124,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
-        }
-
-        public async Task<IBusinessResult> UpdateIngredient(UpdateIngredientRequest request)
-        {
-            var ingredient = await _unitOfWork.IngredientRepository.GetByIdAsync(request.IngredientId);
-            if (ingredient == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "ingredient not found");
-            }
-
-            request.Adapt(ingredient);
-            await _unitOfWork.IngredientRepository.UpdateAsync(ingredient);
-            await _unitOfWork.SaveChangesAsync();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
-        }
+        }   
 
         public async Task<IBusinessResult> DeleteFood(int foodId)
         {
@@ -170,51 +140,68 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
 
-        public async Task<IBusinessResult> DeleteIngredient(int ingredientId)
-        {
-            var ingredient = await _unitOfWork.IngredientRepository.GetByIdAsync(ingredientId);
-            if (ingredient == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Ingredient not found");
-            }
-
-            await _unitOfWork.IngredientRepository.DeleteAsync(ingredient);
-            await _unitOfWork.SaveChangesAsync();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
-        }
-
-        public async Task<IBusinessResult> GetIngredientById(int ingredientId)
-        {
-            var ingredient = await _unitOfWork.IngredientRepository.GetByIdAsync(ingredientId);
-            if (ingredient == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Ingredient not found");
-            }
-
-            var response = ingredient.Adapt<IngredientResponse>();
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
-        }
-
         public async Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName)
         {
             int userid = int.Parse(_userIdClaim);
-            var userError = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
-            if (userError == null)
+            var userAllergyDisease = await _unitOfWork.UserRepository
+                            .GetByWhere(x => x.UserId == userid)
+                            .Select(x => new
+                            {
+                                AllergyIds = x.Allergies.Select(a => a.AllergyId).ToList(),
+                                DiseaseIds = x.Diseases.Select(d => d.DiseaseId).ToList()
+                            })
+                            .FirstOrDefaultAsync();
+            if (userAllergyDisease == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
             }
 
+            var allergyIds = new List<int>(userAllergyDisease.AllergyIds);
+            var diseaseIds = new List<int>(userAllergyDisease.DiseaseIds);
+
             var foods = await _unitOfWork.FoodRepository
             .GetByWhere(x =>
-            !x.Allergies.Any(a => userError.Allergies.Select(ua => ua.AllergyId).Contains(a.AllergyId)) &&
-            !x.Diseases.Any(d => userError.Diseases.Select(ud => ud.DiseaseId).Contains(d.DiseaseId)) && x.FoodName.ToLower().Contains(searchName.ToLower()))
+            !x.Allergies.Any(a => allergyIds.Contains(a.AllergyId)) &&
+            !x.Diseases.Any(d => diseaseIds.Contains(d.DiseaseId)) && 
+             x.FoodName.ToLower().Contains(searchName.ToLower()))
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
             var foodResponse = foods.Adapt<List<FoodResponse>>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodResponse);
+        }
+
+        public async Task<IBusinessResult> FoodRecipe(int foodId)
+        {
+            int userid = int.Parse("1");
+            var userError = await _unitOfWork.UserRepository
+                            .GetByWhere(x => x.UserId == userid)
+                            .Select(x => new
+                            {
+                                AllergyNames = x.Allergies.Select(a => a.AllergyName).ToList(),
+                                DiseaseNames = x.Diseases.Select(d => d.DiseaseName).ToList()
+                            })
+                            .FirstOrDefaultAsync();
+
+            if (userError == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
+            var allergyNames = userError?.AllergyNames ?? new List<string>();
+            var diseaseNames = userError?.DiseaseNames ?? new List<string>();
+
+            var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
+            var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
+
+            //var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).FirstOrDefaultAsync();
+
+            var prompt = $"Tôi có các bệnh này: {formattedDiseases} \n" +
+                         $"và dị ứng này: {formattedAllergies} \n" +
+                         $"Hãy gợi ý cho tôi công thức để nấu món phở";
+
+            //var airesponse = await _aIGeneratorService.AIResponseText(prompt);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, prompt);
         }
     }
 }
