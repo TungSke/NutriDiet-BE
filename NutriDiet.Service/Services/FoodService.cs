@@ -2,6 +2,7 @@
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Repository.Interface;
@@ -194,14 +195,36 @@ namespace NutriDiet.Service.Services
             var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
-            //var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).FirstOrDefaultAsync();
+            var foodName = food.Ingredients.Select(x => x.IngredientName);
+            var formatIngredient = foodName.Any() ? string.Join(", ", foodName) : "không có";
 
-            var prompt = $"Tôi có các bệnh này: {formattedDiseases} \n" +
-                         $"và dị ứng này: {formattedAllergies} \n" +
-                         $"Hãy gợi ý cho tôi công thức để nấu món phở";
+            var input = $"Tôi có các bệnh này: {formattedDiseases} " +
+                         $"và dị ứng này: {formattedAllergies} " +
+                         $"Hãy gợi ý cho tôi công thức để nấu món {food.FoodName} với những nguyên liệu {formatIngredient}. Trả lời dưới dạng như này: Công thức của bạn là...";
 
-            //var airesponse = await _aIGeneratorService.AIResponseText(prompt);
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, prompt);
+            var airesponse = await _aIGeneratorService.AIResponseText(input);
+            
+            var foodRecipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.UserId == userid && x.FoodId == foodId).FirstOrDefaultAsync();
+            if(foodRecipe == null)
+            {
+                var recipeSuggestion = new RecipeSuggestion
+                {
+                    UserId = userid,
+                    FoodId = foodId,
+                    Description = airesponse
+                };
+                await _unitOfWork.RecipeSuggestionRepository.AddAsync(recipeSuggestion);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                foodRecipe.Description = airesponse;
+                await _unitOfWork.RecipeSuggestionRepository.UpdateAsync(foodRecipe);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, airesponse);
         }
     }
 }

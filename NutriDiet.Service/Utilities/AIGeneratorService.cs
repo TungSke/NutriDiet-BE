@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Utilities
@@ -18,36 +19,50 @@ namespace NutriDiet.Service.Utilities
             _httpClient = httpClient;
         }
 
-        public async Task<string> AIResponseText(string text)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{aiApiUrl}?key={aiApiKey}")
-            {
-                Content = new StringContent(text, Encoding.UTF8, "application/json")
-            };
-
-            var response = await _httpClient.SendAsync(request);
-            var result = await response.Content.ReadAsStringAsync();
-            return result;
-        }
-
-        public async Task<string> AIResponseJson(string text, string json)
+        public async Task<string> AIResponseText(string input)
         {
             var requestBody = new
             {
                 contents = new[]
                 {
-            new
-            {
-                role = "user",
-                parts = new[]
-                {
-                    new { text = $"input: {text}" },
-                    new { text = $"output: {json}" },
-                    new { text = $"input: {text}" },
-                    new { text = "output: " }
+                    new
+                    {
+                        parts = new[]
+                        {
+                            new { text = $"input: {input}" }
+                        }
+                    }
                 }
-            }
-        },
+            };
+
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{aiApiUrl}?key={aiApiKey}")
+            {
+                Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
+            };
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadAsStringAsync();
+            return ExtractTextFromAIResponse(result);
+        }
+
+        public async Task<string> AIResponseJson(string input, string jsonoutput)
+        {
+            var requestBody = new
+            {
+                contents = new[]
+                {
+                    new
+                    {
+                        role = "user",
+                        parts = new[]
+                        {
+                            new { text = $"input: {input}" },
+                            new { text = $"output: {jsonoutput}" },
+                        }
+                    }
+                },
                 generationConfig = new
                 {
                     temperature = 1,
@@ -60,14 +75,40 @@ namespace NutriDiet.Service.Utilities
 
             var request = new HttpRequestMessage(HttpMethod.Post, $"{aiApiUrl}?key={aiApiKey}")
             {
-                Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
             };
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadAsStringAsync();
-            return result;
+            return ExtractTextFromAIResponse(result);
+        }
+
+        private static string ExtractTextFromAIResponse(string jsonResponse)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(jsonResponse);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                {
+                    var firstCandidate = candidates[0];
+                    if (firstCandidate.TryGetProperty("content", out var content) &&
+                        content.TryGetProperty("parts", out var parts) &&
+                        parts.GetArrayLength() > 0)
+                    {
+                        return parts[0].GetProperty("text").GetString() ?? "Không có nội dung.";
+                    }
+                }
+
+                return "Không tìm thấy dữ liệu hợp lệ.";
+            }
+            catch (Exception ex)
+            {
+                return $"Lỗi khi xử lý phản hồi từ AI: {ex.Message}";
+            }
         }
     }
 }
