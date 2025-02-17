@@ -17,6 +17,7 @@ namespace NutriDiet.Repository
         private IIngredientRepository _ingredientRepository;
         private IAllergyRepository _allergyRepository;
         private IDiseaseRepository _diseaseRepository;
+        private IRecipeSuggestionRepository _recipeSuggestionRepository;
 
         public UnitOfWork(NutriDietContext context)
         {
@@ -32,6 +33,7 @@ namespace NutriDiet.Repository
         public IIngredientRepository IngredientRepository => _ingredientRepository ??= new IncredientRepository(_context);
         public IAllergyRepository AllergyRepository => _allergyRepository ??= new AllergyRepository(_context);
         public IDiseaseRepository DiseaseRepository => _diseaseRepository ??= new DiseaseRepository(_context);
+        public IRecipeSuggestionRepository RecipeSuggestionRepository => _recipeSuggestionRepository ??= new RecipeSuggestionRepository(_context);
 
         public async Task BeginTransaction()
         {
