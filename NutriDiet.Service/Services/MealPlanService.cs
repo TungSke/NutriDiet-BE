@@ -41,7 +41,11 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> SearchMealPlan(string? planName, string? healthGoal)
         {
-            var mealPlans = _unitOfWork.MealPlanRepository.GetAll().Include(x=>x.User).ToList();
+            var mealPlans = _unitOfWork.MealPlanRepository
+                .GetAll()
+                .Include(x=>x.User)
+                .Include(x=>x.MealPlanDetails)
+                .ToList();
             if (!string.IsNullOrEmpty(planName))
             {
                 mealPlans = mealPlans.Where(x => x.PlanName.ToLower().Contains(planName.ToLower())).ToList();
@@ -153,6 +157,15 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task<IBusinessResult> GetMealPlanByID(int mealPlanId)
+        {
+            var mealPlan = _unitOfWork.MealPlanRepository
+                .GetAll()
+                .Include(x=>x.MealPlanDetails)
+                .FirstOrDefault(x => x.MealPlanId == mealPlanId);
+            var response = mealPlan.Adapt<MealPlan_DetailResponse>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
 
         public async Task<IBusinessResult> GetMealPlanDetailByMealPlanID(int mealPlanId)
         {
