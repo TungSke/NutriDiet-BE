@@ -13,7 +13,6 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public int? Age { get; set; }
         public Gender? Gender { get; set; }
         public string? Location { get; set; }
-        public string? MedicalCondition { get; set; }
         public double? Height { get; set; }
         public double? Weight { get; set; }
 
@@ -21,6 +20,9 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public HealthGoal? HealthGoal { get; set; }
         public double? TargetWeight { get; set; }
+        public string? Aisuggestion { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public List<string> AllergyNames { get; set; } = new List<string>();
         public List<string> DiseaseNames { get; set; } = new List<string>();
     }
