@@ -19,6 +19,7 @@ using Azure.Core;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Net.Http;
+using CloudinaryDotNet;
 
 namespace NutriDiet.Service.Services
 {
@@ -278,6 +279,28 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Reset password success");
+        }
+        public async Task<IBusinessResult> SearchUser(int pageIndex, int pageSize, string status, string search)
+        {
+            search = search?.ToLower() ?? string.Empty;
+
+            var users = await _unitOfWork.UserRepository.GetPagedAsync(
+                pageIndex,
+                pageSize,
+                x => (string.IsNullOrEmpty(status) || x.Status.ToLower() == status.ToLower()) &&
+                      (string.IsNullOrEmpty(search) || x.FullName.ToLower().Contains(search) 
+                                                   || x.Email.ToLower().Contains(search)
+                                                   || x.Phone.ToLower().Contains(search))
+            );
+
+            if (users == null || !users.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+
+            var response = users.Adapt<List<UserResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
     }
 }

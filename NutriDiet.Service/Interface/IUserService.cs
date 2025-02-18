@@ -23,5 +23,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> ForgotPassword(string email);
 
         Task<IBusinessResult> ResetPassword(ResetPasswordRequest request);
+        Task<IBusinessResult> SearchUser(int pageIndex, int pageSize, string status, string search);
     }
 }
