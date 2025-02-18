@@ -23,7 +23,12 @@ namespace NutriDiet.API.Controllers
         {
             _userService = userService;
         }
-
+        [HttpGet()]
+        public async Task<IActionResult> GetAll(int pageIndex, int pageSize, string? status, string? search)
+        {
+            var user = await _userService.SearchUser(pageIndex, pageSize, status, search);
+            return Ok(user);
+        }
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
