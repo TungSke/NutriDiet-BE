@@ -19,5 +19,6 @@ namespace NutriDiet.Repository.Interface
         IAllergyRepository AllergyRepository { get; }
         IDiseaseRepository DiseaseRepository { get; }
         IRecipeSuggestionRepository RecipeSuggestionRepository { get; }
+        IPersonalGoalRepository PersonalGoalRepository { get; }
     }
 }

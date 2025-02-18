@@ -60,6 +60,7 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<IDiseaseService, DiseaseService>();
 
             services.AddScoped<IIngredientService, IngredientService>();
+            services.AddScoped<IPersonalGoalService, PersonalGoalService>();
 
         }
 
