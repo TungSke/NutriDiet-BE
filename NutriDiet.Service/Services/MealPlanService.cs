@@ -39,30 +39,26 @@ namespace NutriDiet.Service.Services
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public async Task<IBusinessResult> SearchMealPlan(string? planName, string? healthGoal)
+        public async Task<IBusinessResult> SearchMealPlan(int pageIndex, int pageSize, string? status, string? search)
         {
-            var mealPlans = _unitOfWork.MealPlanRepository.GetAll().Include(x=>x.User).ToList();
-            if (!string.IsNullOrEmpty(planName))
+            search = search?.ToLower() ?? string.Empty;
+
+            var mealPlans = await _unitOfWork.MealPlanRepository.GetPagedAsync(
+                pageIndex,
+                pageSize,
+                x => (string.IsNullOrEmpty(status) || x.Status.ToLower() == status.ToLower()) &&
+                      (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
+                                                   || x.HealthGoal.ToLower().Contains(search)));
+
+
+            if (mealPlans == null || !mealPlans.Any())
             {
-                mealPlans = mealPlans.Where(x => x.PlanName.ToLower().Contains(planName.ToLower())).ToList();
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }
-            if (!string.IsNullOrEmpty(healthGoal))
-            {
-                mealPlans = mealPlans.Where(x => x.HealthGoal.ToLower().Contains(healthGoal.ToLower())).ToList();
-            }
-            
-            var mealPlanResponse = mealPlans.Select(x=> new MealPlanResponse
-            {
-                MealPlanID = x.MealPlanId,
-                PlanName = x.PlanName,
-                HealthGoal = x.HealthGoal,
-                Duration = x.Duration,
-                Status = x.Status,
-                UserName = x.User?.FullName,
-                CreatedBy = x.CreatedBy,
-                CreatedAt = x.CreatedAt
-            }).ToList();
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, mealPlanResponse);
+
+            var response = mealPlans.Adapt<List<MealPlanResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
         public async Task<IBusinessResult> CreateMealPlan(MealPlanRequest mealPlanRequest)
@@ -153,6 +149,27 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task<IBusinessResult> GetMealPlanByID(int mealPlanId)
+        {
+            var mealPlan = _unitOfWork.MealPlanRepository
+                .GetAll()
+                .Include(x=>x.MealPlanDetails)
+                .ThenInclude(x=>x.Food)
+                .FirstOrDefault(x => x.MealPlanId == mealPlanId);
+          
+            var response = mealPlan.Adapt<MealPlan_DetailResponse>();
+            response.MealPlanDetails = mealPlan.MealPlanDetails.Select(m => new MealPlanDetailResponse
+            {
+                MealPlanDetailId = m.MealPlanId,
+                FoodName = m.Food.FoodName,
+                Quantity = m.Quantity,
+                MealType = m.MealType,
+                DayNumber = m.DayNumber,
+                TotalCalories = m.TotalCalories
+            }).ToList();
+            
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
 
         public async Task<IBusinessResult> GetMealPlanDetailByMealPlanID(int mealPlanId)
         {
@@ -202,94 +219,94 @@ namespace NutriDiet.Service.Services
             }
         }
 
-        //public async Task<IBusinessResult> UpdateMealPlan(int mealPlanID, MealPlanRequest mealPlanRequest)
-        //{
-        //    var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanID);
-        //    if (mealPlan == null)
-        //    {
-        //        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal Plan not found.");
-        //    }
+        public async Task<IBusinessResult> UpdateMealPlan(int mealPlanID, MealPlanRequest mealPlanRequest)
+        {
+            var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanID);
+            if (mealPlan == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal Plan not found.");
+            }
 
-        //    mealPlan.PlanName = mealPlanRequest.PlanName;
-        //    mealPlan.HealthGoal = mealPlanRequest.HealthGoal;
-        //    mealPlan.UpdatedBy = _userIdClaim;
-        //    mealPlan.UpdatedAt = DateTime.Now;
+            mealPlan.PlanName = mealPlanRequest.PlanName;
+            mealPlan.HealthGoal = mealPlanRequest.HealthGoal;
+            mealPlan.UpdatedBy = _userIdClaim;
+            mealPlan.UpdatedAt = DateTime.Now;
 
-        //    await _unitOfWork.BeginTransaction();
-        //    try
-        //    {
-        //        var existingDetails = _unitOfWork.MealPlanDetailRepository
-        //            .GetAll()
-        //            .Where(x => x.MealPlanId == mealPlan.MealPlanId)
-        //            .ToList();
+            await _unitOfWork.BeginTransaction();
+            try
+            {
+                var existingDetails = _unitOfWork.MealPlanDetailRepository
+                    .GetAll()
+                    .Where(x => x.MealPlanId == mealPlan.MealPlanId)
+                    .ToList();
 
-        //        var updatedDetails = new List<MealPlanDetail>();
-        //        var existingDetailIds = existingDetails.Select(x => x.MealPlanDetailId).ToHashSet();
-        //        var newDetailIds = mealPlanRequest.MealPlanDetails.Select(x => x.FoodId).ToHashSet();
+                var updatedDetails = new List<MealPlanDetail>();
+                var existingDetailIds = existingDetails.Select(x => x.MealPlanDetailId).ToHashSet();
+                var newDetailIds = mealPlanRequest.MealPlanDetails.Select(x => x.FoodId).ToHashSet();
 
-        //        var dayNumberSet = new HashSet<int>();
-        //        var caloriesByDay = new Dictionary<int, double?>();
+                var dayNumberSet = new HashSet<int>();
+                var caloriesByDay = new Dictionary<int, double?>();
 
-        //        foreach (var detail in mealPlanRequest.MealPlanDetails)
-        //        {
-        //            var foodExist = await _unitOfWork.FoodRepository.GetByIdAsync(detail.FoodId);
-        //            if (foodExist == null)
-        //            {
-        //                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food is not found");
-        //            }
+                foreach (var detail in mealPlanRequest.MealPlanDetails)
+                {
+                    var foodExist = await _unitOfWork.FoodRepository.GetByIdAsync(detail.FoodId);
+                    if (foodExist == null)
+                    {
+                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food is not found");
+                    }
 
-        //            dayNumberSet.Add(detail.DayNumber);
+                    dayNumberSet.Add(detail.DayNumber);
 
-        //            if (!caloriesByDay.ContainsKey(detail.DayNumber))
-        //            {
-        //                caloriesByDay[detail.DayNumber] = 0;
-        //            }
-        //            caloriesByDay[detail.DayNumber] += (foodExist.Calories) * (detail.Quantity ?? 1);
+                    if (!caloriesByDay.ContainsKey(detail.DayNumber))
+                    {
+                        caloriesByDay[detail.DayNumber] = 0;
+                    }
+                    caloriesByDay[detail.DayNumber] += (foodExist.Calories) * (detail.Quantity ?? 1);
 
-        //            var existingDetail = existingDetails.FirstOrDefault(x => x.FoodId == detail.FoodId);
-        //            if (existingDetail != null)
-        //            {
-        //                existingDetail.Quantity = detail.Quantity;
-        //                existingDetail.MealType = detail.MealType;
-        //                existingDetail.DayNumber = detail.DayNumber;
-        //                existingDetail.TotalCalories = caloriesByDay[detail.DayNumber];
-        //                updatedDetails.Add(existingDetail);
-        //            }
-        //            else
-        //            {
-        //                var newDetail = new MealPlanDetail
-        //                {
-        //                    MealPlanId = mealPlan.MealPlanId,
-        //                    FoodId = detail.FoodId,
-        //                    FoodName = foodExist.FoodName,
-        //                    Quantity = detail.Quantity,
-        //                    MealType = detail.MealType,
-        //                    DayNumber = detail.DayNumber,
-        //                    TotalCalories = caloriesByDay[detail.DayNumber]
-        //                };
-        //                updatedDetails.Add(newDetail);
-        //            }
-        //        }
+                    var existingDetail = existingDetails.FirstOrDefault(x => x.FoodId == detail.FoodId);
+                    if (existingDetail != null)
+                    {
+                        existingDetail.Quantity = detail.Quantity;
+                        existingDetail.MealType = detail.MealType;
+                        existingDetail.DayNumber = detail.DayNumber;
+                        existingDetail.TotalCalories = caloriesByDay[detail.DayNumber];
+                        updatedDetails.Add(existingDetail);
+                    }
+                    else
+                    {
+                        var newDetail = new MealPlanDetail
+                        {
+                            MealPlanId = mealPlan.MealPlanId,
+                            FoodId = detail.FoodId,
+                            FoodName = foodExist.FoodName,
+                            Quantity = detail.Quantity,
+                            MealType = detail.MealType,
+                            DayNumber = detail.DayNumber,
+                            TotalCalories = caloriesByDay[detail.DayNumber]
+                        };
+                        updatedDetails.Add(newDetail);
+                    }
+                }
 
-        //        if (updatedDetails.Any())
-        //        {
-        //            await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(updatedDetails);
-        //        }
+                if (updatedDetails.Any())
+                {
+                    await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(updatedDetails);
+                }
 
-        //        mealPlan.Duration = dayNumberSet.Count;
+                mealPlan.Duration = dayNumberSet.Count;
 
-        //        await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
-        //        await _unitOfWork.SaveChangesAsync();
-        //        _unitOfWork.CommitTransaction();
+                await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+                await _unitOfWork.SaveChangesAsync();
+                _unitOfWork.CommitTransaction();
 
-        //        return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _unitOfWork.RollbackTransaction();
-        //        throw ex;
-        //    }
-        //}
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransaction();
+                throw ex;
+            }
+        }
 
         public async Task<IBusinessResult> CreateSuitableMealPlanByAI()
         {
