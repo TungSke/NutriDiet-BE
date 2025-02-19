@@ -19,9 +19,9 @@ namespace NutriDiet.API.Controllers
             _mealPlanService = mealPlanService;
         }
         [HttpGet]
-        public async Task<IActionResult> SearchMealPlan(string? planName, string? healthGoal)
+        public async Task<IActionResult> SearchMealPlan(int pageIndex, int pageSize, string? status, string? search)
         {
-            var mealPlans = await _mealPlanService.SearchMealPlan(planName, healthGoal);
+            var mealPlans = await _mealPlanService.SearchMealPlan(pageIndex, pageSize, status, search);
             return Ok(mealPlans);
         }
 
