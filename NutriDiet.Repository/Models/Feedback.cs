@@ -19,8 +19,6 @@ public partial class Feedback
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<FeedbackReply> FeedbackReplies { get; set; } = new List<FeedbackReply>();
-
     public virtual MealPlan MealPlan { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

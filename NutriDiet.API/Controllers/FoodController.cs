@@ -62,10 +62,11 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("recipe/{foodId}")]
+        [HttpPost("recipe/{foodId}")]
+        [Authorize]
         public async Task<IActionResult> FoodRecipe(int foodId)
         {
-            var result = await _foodService.FoodRecipe(foodId);
+            var result = await _foodService.CreateFoodRecipeByAI(foodId);
             return StatusCode(result.StatusCode, result);
         }
     }

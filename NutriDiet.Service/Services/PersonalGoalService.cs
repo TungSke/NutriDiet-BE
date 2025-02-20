@@ -36,34 +36,34 @@ namespace NutriDiet.Service.Services
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public async Task CreatePersonalGoal(PersonalGoalRequest request)
-        {
-            var userid = int.Parse(_userIdClaim);
-            var existingUser = await _unitOfWork.UserRepository
-                .GetByWhere(u => u.UserId == userid)
-                .Include(u => u.HealthProfiles)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
+        //public async Task CreatePersonalGoal(PersonalGoalRequest request)
+        //{
+        //    var userid = int.Parse(_userIdClaim);
+        //    var existingUser = await _unitOfWork.UserRepository
+        //        .GetByWhere(u => u.UserId == userid)
+        //        //.Include(u => u.HealthProfiles)
+        //        .AsNoTracking()
+        //        .FirstOrDefaultAsync();
 
-            if (existingUser == null)
-            {
-                throw new Exception("User not exist.");
-            }
-            var ProgressRate = Convert.ToInt32(existingUser.HealthProfiles
-                                        .OrderBy(h => h.CreatedAt)
-                                        .FirstOrDefault()?.Weight - existingUser.HealthProfiles
-                                        .OrderBy(h => h.CreatedAt)
-                                        .FirstOrDefault()?.TargetWeight ?? 0);
+        //    if (existingUser == null)
+        //    {
+        //        throw new Exception("User not exist.");
+        //    }
+        //    var ProgressRate = Convert.ToInt32(existingUser.HealthProfiles
+        //                                .OrderBy(h => h.CreatedAt)
+        //                                .FirstOrDefault()?.Weight - existingUser.HealthProfiles
+        //                                .OrderBy(h => h.CreatedAt)
+        //                                .FirstOrDefault()?.TargetWeight ?? 0);
 
-            var personalGoal = request.Adapt<PersonalGoal>();
-            personalGoal.UserId = userid;
-            personalGoal.StartDate = DateTime.Now;
-            personalGoal.Status = "Active";
-            personalGoal.ProgressPercentage = 0;
-            personalGoal.ProgressRate = ProgressRate;
-            await _unitOfWork.PersonalGoalRepository.AddAsync(personalGoal);
-            await _unitOfWork.SaveChangesAsync();
-        }
+        //    var personalGoal = request.Adapt<PersonalGoal>();
+        //    personalGoal.UserId = userid;
+        //    personalGoal.StartDate = DateTime.Now;
+        //    personalGoal.Status = "Active";
+        //    personalGoal.ProgressPercentage = 0;
+        //    personalGoal.ProgressRate = ProgressRate;
+        //    await _unitOfWork.PersonalGoalRepository.AddAsync(personalGoal);
+        //    await _unitOfWork.SaveChangesAsync();
+        //}
 
 
         public async Task<IBusinessResult> GetPersonalGoal()

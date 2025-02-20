@@ -22,6 +22,6 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName);
 
-        Task<IBusinessResult> FoodRecipe(int foodId);
+        Task<IBusinessResult> CreateFoodRecipeByAI(int foodId);
     }
 }

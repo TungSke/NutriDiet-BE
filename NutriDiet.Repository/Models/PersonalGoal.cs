@@ -11,6 +11,8 @@ public partial class PersonalGoal
 
     public string GoalType { get; set; } = null!;
 
+    public double? TargetWeight { get; set; }
+
     public string GoalDescription { get; set; } = null!;
 
     public DateTime? StartDate { get; set; }

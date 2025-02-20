@@ -173,9 +173,9 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodResponse);
         }
 
-        public async Task<IBusinessResult> FoodRecipe(int foodId)
+        public async Task<IBusinessResult> CreateFoodRecipeByAI(int foodId)
         {
-            int userid = int.Parse("1");
+            int userid = int.Parse(_userIdClaim);
             var userError = await _unitOfWork.UserRepository
                             .GetByWhere(x => x.UserId == userid)
                             .Select(x => new
@@ -205,26 +205,37 @@ namespace NutriDiet.Service.Services
 
             var airesponse = await _aIGeneratorService.AIResponseText(input);
             
+            //var foodRecipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.UserId == userid && x.FoodId == foodId).FirstOrDefaultAsync();
+            //if(foodRecipe == null)
+            //{
+            //    var recipeSuggestion = new RecipeSuggestion
+            //    {
+            //        UserId = userid,
+            //        FoodId = foodId,
+            //        Description = airesponse
+            //    };
+            //    await _unitOfWork.RecipeSuggestionRepository.AddAsync(recipeSuggestion);
+            //    await _unitOfWork.SaveChangesAsync();
+            //}
+            //else
+            //{
+            //    foodRecipe.Description = airesponse;
+            //    await _unitOfWork.RecipeSuggestionRepository.UpdateAsync(foodRecipe);
+            //    await _unitOfWork.SaveChangesAsync();
+            //}
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, airesponse);
+        }
+
+        public async Task<IBusinessResult> GetFoodRecipe(int foodId)
+        {
+            int userid = int.Parse(_userIdClaim);
             var foodRecipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.UserId == userid && x.FoodId == foodId).FirstOrDefaultAsync();
-            if(foodRecipe == null)
+            if (foodRecipe == null)
             {
-                var recipeSuggestion = new RecipeSuggestion
-                {
-                    UserId = userid,
-                    FoodId = foodId,
-                    Description = airesponse
-                };
-                await _unitOfWork.RecipeSuggestionRepository.AddAsync(recipeSuggestion);
-                await _unitOfWork.SaveChangesAsync();
-            }
-            else
-            {
-                foodRecipe.Description = airesponse;
-                await _unitOfWork.RecipeSuggestionRepository.UpdateAsync(foodRecipe);
-                await _unitOfWork.SaveChangesAsync();
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Recipe not found");
             }
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, airesponse);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodRecipe);
         }
     }
 }

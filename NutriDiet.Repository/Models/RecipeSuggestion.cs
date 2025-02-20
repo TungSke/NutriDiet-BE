@@ -11,11 +11,17 @@ public partial class RecipeSuggestion
 
     public int FoodId { get; set; }
 
-    public string Description { get; set; } = null!;
+    public int CuisineId { get; set; }
 
-    public string CreatedBy { get; set; } = null!;
+    public string? Airequest { get; set; }
+
+    public string? Airesponse { get; set; }
+
+    public string Aimodel { get; set; } = null!;
 
     public DateTime? CreatedAt { get; set; }
+
+    public virtual CuisineType Cuisine { get; set; } = null!;
 
     public virtual Food Food { get; set; } = null!;
 

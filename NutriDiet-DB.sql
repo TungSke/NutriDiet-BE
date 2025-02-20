@@ -58,15 +58,15 @@ CREATE TABLE UserPackage (
 );
 
 -- Bảng HealthProfile
-CREATE TABLE HealthProfile (
+CREATE TABLE GeneralHealthProfile (
     ProfileID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
     Height FLOAT CHECK (Height > 0),
     Weight FLOAT CHECK (Weight > 0),
     ActivityLevel NVARCHAR(50),
     HealthGoal NVARCHAR(50),
-    TargetWeight FLOAT CHECK (TargetWeight > 0),
 	AISuggestion NVARCHAR(255),
+	Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')), 
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
@@ -119,16 +119,25 @@ CREATE TABLE Ingredient (
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
 );
 
+-- Bảng CuisineType
+CREATE TABLE CuisineType (
+    CuisineID INT IDENTITY(1,1) PRIMARY KEY,
+    CuisineName NVARCHAR(50) UNIQUE NOT NULL -- miền nam, miền trung, trung hoa...
+);
+
 -- Bảng RecipeSuggestion
 CREATE TABLE RecipeSuggestion (
     RecipeID INT IDENTITY(1,1) PRIMARY KEY, -- ID của công thức
     UserID INT NOT NULL,
     FoodID INT NOT NULL,                    -- Món ăn được gợi ý công thức
-    Description NVARCHAR(MAX) NOT NULL,       -- Mô tả các bước thực hiện
-    CreatedBy NVARCHAR(255) NOT NULL,
+	CuisineID INT NOT NULL,    
+    AIRequest NVARCHAR(MAX),       -- Đầu vào cho AI xử lý
+	AIResponse NVARCHAR(MAX),		--Đầu ra của AI
+    AIModel NVARCHAR(255) NOT NULL, -- call api dùng model nào của AI
     CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
-    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
+    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
+	FOREIGN KEY (CuisineID) REFERENCES CuisineType(CuisineID) ON DELETE CASCADE
 );
 
 -- Bảng UserFoodPreferences
@@ -144,16 +153,14 @@ CREATE TABLE UserFoodPreference (
 -- Bảng MealPlan
 CREATE TABLE MealPlan (
     MealPlanID INT IDENTITY(1,1) PRIMARY KEY,
-    UserID INT NOT NULL,
     PlanName NVARCHAR(100) UNIQUE NOT NULL,
     HealthGoal NVARCHAR(50),
     Duration INT CHECK (Duration > 0),
     Status NVARCHAR(20) DEFAULT 'Active',
-    CreatedBy NVARCHAR(50),
+    CreatedBy NVARCHAR(50), --Admin, System, UserName, AI
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedBy NVARCHAR(50),
     UpdatedAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
 -- Bảng MealPlanDetail
@@ -164,14 +171,28 @@ CREATE TABLE MealPlanDetail (
     FoodName NVARCHAR(255) NULL,
     Quantity FLOAT CHECK (Quantity > 0),
     MealType NVARCHAR(50), -- ví dụ: bữa sáng, bữa trưa
-    DayNumber INT NOT NULL,
-    TotalCalories FLOAT CHECK (TotalCalories >= 0),
+    DayNumber INT NOT NULL, -- ngày 1,2...
+    TotalCalories FLOAT CHECK (TotalCalories >= 0) DEFAULT 0, -- tổng calo theo bữa
+    TotalCarbs FLOAT CHECK (TotalCarbs >= 0) DEFAULT 0, -- theo bữa
+    TotalFat FLOAT CHECK (TotalFat >= 0) DEFAULT 0, -- theo bữa
+	TotalProtein FLOAT CHECK (TotalProtein >= 0) DEFAULT 0, -- theo bữa
     FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE CASCADE,
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
 );
 
+-- Bảng UserMealPlan
+-- Nếu User áp dụng kế hoạch của người khác, hệ thống chỉ cần thêm một dòng trong UserMealPlan
+CREATE TABLE UserMealPlan (
+    UserMealPlanID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT NOT NULL,
+    MealPlanID INT NOT NULL,
+    AppliedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
+    FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE CASCADE
+);
+
 -- Bảng Feedback
-CREATE TABLE Feedback (
+CREATE TABLE FeedbackMealPlan (
     FeedbackID INT IDENTITY(1,1) PRIMARY KEY,
     MealPlanID INT NOT NULL,
     UserID INT NOT NULL,
@@ -180,17 +201,6 @@ CREATE TABLE Feedback (
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE CASCADE,
-    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE NO ACTION
-);
-
--- Bảng FeedbackReply
-CREATE TABLE FeedbackReply (
-    ReplyID INT IDENTITY(1,1) PRIMARY KEY,
-    FeedbackID INT NOT NULL,
-    UserID INT NOT NULL,
-    ReplyMessage NVARCHAR(MAX) NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (FeedbackID) REFERENCES Feedback(FeedbackID) ON DELETE CASCADE,
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE NO ACTION
 );
 
@@ -215,17 +225,21 @@ CREATE TABLE Notification (
     FOREIGN KEY (UserId) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
--- Bảng UserParameter (các tham số người dùng)
-CREATE TABLE UserParameter (
+-- Bảng HealthcareIndicator/UserParameter (các tham số người dùng)
+CREATE TABLE HealthcareIndicator (
     UserParameterID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
-    TDEE FLOAT NULL,                         -- Tổng năng lượng tiêu thụ hàng ngày
-    BMI FLOAT NULL,                          -- Chỉ số BMI
-    DailyCalorie FLOAT NULL,				 -- Số calo cần nạp trong ngày
-    AISuggestion NVARCHAR(255) NULL,         -- Gợi ý từ AI 
+    Code NVARCHAR(50) NOT NULL, -- BMI,TDEE,..
+    Name NVARCHAR(255) NOT NULL, -- Tên đầy đủ của tham số
+    Type NVARCHAR(50) NOT NULL, -- Loại dữ liệu (Calorie, Health, Nutrient, Hydration,...)
+	CurrentValue NVARCHAR(20), -- giá trị hiện tại của khách
+    MinValue FLOAT NULL, 
+    MediumValue FLOAT NULL,
+    MaxValue FLOAT NULL,
+    Active BIT DEFAULT 1,
+    AISuggestion NVARCHAR(255) NULL,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
-    Active BIT DEFAULT 1,
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
@@ -235,7 +249,6 @@ CREATE TABLE AIRecommendation (
     UserID INT NOT NULL,
     RecommendedAt DATETIME DEFAULT GETDATE(),
     RecommendationText NVARCHAR(MAX),
-    IsAccepted BIT DEFAULT 0,
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
@@ -265,12 +278,13 @@ CREATE TABLE PersonalGoal (
     GoalID INT IDENTITY(1,1) PRIMARY KEY,               
     UserID INT NOT NULL,                                
     GoalType NVARCHAR(50) NOT NULL,                     -- Loại mục tiêu (ví dụ: Sức khỏe, Thể hình, Dinh dưỡng)
+	TargetWeight FLOAT CHECK (TargetWeight > 0),
     GoalDescription NVARCHAR(255) NOT NULL,             -- Mô tả chi tiết về mục tiêu
     StartDate DATETIME DEFAULT GETDATE(),               -- Ngày bắt đầu
     TargetDate DATETIME NOT NULL,                       -- Ngày hoàn thành dự kiến
     ProgressRate INT DEFAULT 0,							-- tốc độ tăng giảm tuần/tháng
 	Status NVARCHAR(20) DEFAULT 'Active' CHECK (Status IN ('Active', 'Completed', 'Failed')),
-    ProgressPercentage FLOAT CHECK (ProgressPercentage >= 0 AND ProgressPercentage <= 100) DEFAULT 0, 
+    ProgressPercentage FLOAT CHECK (ProgressPercentage >= 0 AND ProgressPercentage <= 100) DEFAULT 0, -- phần trăm hoàn thành
     Notes NVARCHAR(MAX) NULL,
 	DailyCalories FLOAT,
 	DailyCarb FLOAT,
@@ -325,6 +339,8 @@ CREATE TABLE MyFood (
     ServingSize NVARCHAR(50), -- Đơn vị khẩu phần ví dụ: 100g, 1 thìa
     Calories FLOAT CHECK (Calories >= 0),
     Protein FLOAT CHECK (Protein >= 0),
+	Carbs FLOAT CHECK (Carbs >= 0),
+    Fat FLOAT CHECK (Fat >= 0),
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE

@@ -7,8 +7,6 @@ public partial class MealPlan
 {
     public int MealPlanId { get; set; }
 
-    public int UserId { get; set; }
-
     public string PlanName { get; set; } = null!;
 
     public string? HealthGoal { get; set; }
@@ -25,9 +23,9 @@ public partial class MealPlan
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+    public virtual ICollection<FeedbackMealPlan> FeedbackMealPlans { get; set; } = new List<FeedbackMealPlan>();
 
     public virtual ICollection<MealPlanDetail> MealPlanDetails { get; set; } = new List<MealPlanDetail>();
 
-    public virtual User User { get; set; } = null!;
+    public virtual ICollection<UserMealPlan> UserMealPlans { get; set; } = new List<UserMealPlan>();
 }

@@ -21,6 +21,12 @@ public partial class MealPlanDetail
 
     public double? TotalCalories { get; set; }
 
+    public double? TotalCarbs { get; set; }
+
+    public double? TotalFat { get; set; }
+
+    public double? TotalProtein { get; set; }
+
     public virtual Food? Food { get; set; }
 
     public virtual MealPlan MealPlan { get; set; } = null!;

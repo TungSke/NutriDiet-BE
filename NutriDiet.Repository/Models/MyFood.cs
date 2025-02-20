@@ -17,6 +17,10 @@ public partial class MyFood
 
     public double? Protein { get; set; }
 
+    public double? Carbs { get; set; }
+
+    public double? Fat { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }

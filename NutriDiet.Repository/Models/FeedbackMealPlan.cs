@@ -3,19 +3,23 @@ using System.Collections.Generic;
 
 namespace NutriDiet.Repository.Models;
 
-public partial class FeedbackReply
+public partial class FeedbackMealPlan
 {
-    public int ReplyId { get; set; }
-
     public int FeedbackId { get; set; }
+
+    public int MealPlanId { get; set; }
 
     public int UserId { get; set; }
 
-    public string ReplyMessage { get; set; } = null!;
+    public int? Rating { get; set; }
+
+    public string? Message { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual Feedback Feedback { get; set; } = null!;
+    public DateTime? UpdatedAt { get; set; }
+
+    public virtual MealPlan MealPlan { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
 }

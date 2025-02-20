@@ -72,7 +72,7 @@ namespace NutriDiet.Service.Services
             }
             var mealPlan = new MealPlan
             {
-                UserId = existedUser.UserId,
+                //UserId = existedUser.UserId,
                 PlanName = mealPlanRequest.PlanName,
                 HealthGoal = mealPlanRequest.HealthGoal,
                 Status = "Chưa sử dụng",
@@ -81,7 +81,7 @@ namespace NutriDiet.Service.Services
                 UpdatedBy = existedUser.FullName,
                 UpdatedAt = DateTime.Now
             };
-            
+
             await _unitOfWork.BeginTransaction();
             try
             {
@@ -188,7 +188,7 @@ namespace NutriDiet.Service.Services
             var userID = int.Parse(_userIdClaim);
             var mealPlan = new MealPlan
             {
-                UserId = userID,
+                //UserId = userID,
                 PlanName = mealPlanExisted.PlanName,
                 HealthGoal = mealPlanExisted.HealthGoal,
                 Status = "Chưa sử dụng",

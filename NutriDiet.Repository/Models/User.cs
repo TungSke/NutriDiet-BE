@@ -31,15 +31,13 @@ public partial class User
 
     public virtual ICollection<Airecommendation> Airecommendations { get; set; } = new List<Airecommendation>();
 
-    public virtual ICollection<FeedbackReply> FeedbackReplies { get; set; } = new List<FeedbackReply>();
+    public virtual ICollection<FeedbackMealPlan> FeedbackMealPlans { get; set; } = new List<FeedbackMealPlan>();
 
-    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+    public virtual ICollection<GeneralHealthProfile> GeneralHealthProfiles { get; set; } = new List<GeneralHealthProfile>();
 
-    public virtual ICollection<HealthProfile> HealthProfiles { get; set; } = new List<HealthProfile>();
+    public virtual ICollection<HealthcareIndicator> HealthcareIndicators { get; set; } = new List<HealthcareIndicator>();
 
     public virtual ICollection<MealLog> MealLogs { get; set; } = new List<MealLog>();
-
-    public virtual ICollection<MealPlan> MealPlans { get; set; } = new List<MealPlan>();
 
     public virtual ICollection<MyFood> MyFoods { get; set; } = new List<MyFood>();
 
@@ -53,9 +51,9 @@ public partial class User
 
     public virtual ICollection<UserFoodPreference> UserFoodPreferences { get; set; } = new List<UserFoodPreference>();
 
-    public virtual ICollection<UserPackage> UserPackages { get; set; } = new List<UserPackage>();
+    public virtual ICollection<UserMealPlan> UserMealPlans { get; set; } = new List<UserMealPlan>();
 
-    public virtual ICollection<UserParameter> UserParameters { get; set; } = new List<UserParameter>();
+    public virtual ICollection<UserPackage> UserPackages { get; set; } = new List<UserPackage>();
 
     public virtual ICollection<Allergy> Allergies { get; set; } = new List<Allergy>();
 
