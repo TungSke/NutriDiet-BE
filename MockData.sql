@@ -5,13 +5,12 @@ GO
 ALTER TABLE UserAllergy NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserDisease NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserPackage NOCHECK CONSTRAINT ALL;
-ALTER TABLE HealthProfile NOCHECK CONSTRAINT ALL;
+ALTER TABLE GeneralHealthProfile NOCHECK CONSTRAINT ALL;
 ALTER TABLE Ingredient NOCHECK CONSTRAINT ALL;
 ALTER TABLE RecipeSuggestion NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserFoodPreference NOCHECK CONSTRAINT ALL;
 ALTER TABLE MealPlanDetail NOCHECK CONSTRAINT ALL;
-ALTER TABLE Feedback NOCHECK CONSTRAINT ALL;
-ALTER TABLE FeedbackReply NOCHECK CONSTRAINT ALL;
+ALTER TABLE FeedbackMealplan NOCHECK CONSTRAINT ALL;
 ALTER TABLE FoodSubstitution NOCHECK CONSTRAINT ALL;
 ALTER TABLE Notification NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserParameter NOCHECK CONSTRAINT ALL;
@@ -24,17 +23,16 @@ ALTER TABLE PersonalGoal NOCHECK CONSTRAINT ALL;
 DELETE FROM UserAllergy;
 DELETE FROM UserDisease;
 DELETE FROM UserPackage;
-DELETE FROM HealthProfile;
+DELETE FROM GeneralHealthProfile;
 DELETE FROM Ingredient;
 DELETE FROM RecipeSuggestion;
 DELETE FROM UserFoodPreference;
 DELETE FROM MealPlanDetail;
 DELETE FROM MealPlan;
-DELETE FROM FeedbackReply;
-DELETE FROM Feedback;
+DELETE FROM FeedbackMealPlan;
 DELETE FROM FoodSubstitution;
 DELETE FROM Notification;
-DELETE FROM UserParameter;
+DELETE FROM HealthcareIndicator;
 DELETE FROM AIRecommendation;
 DELETE FROM MealLogDetail;
 DELETE FROM MealLog;
@@ -476,3 +474,125 @@ INSERT INTO FoodDisease (FoodID, DiseaseID) VALUES
 
 -- Bánh tráng trộn (20) - Generally lower in concerns
 (20, 7); -- IBS (spicy ingredients)
+
+INSERT INTO CuisineType (CuisineName) VALUES 
+(N'Ẩm thực miền Bắc'),
+(N'Ẩm thực miền Trung'),
+(N'Ẩm thực miền Nam'),
+(N'Ẩm thực Tây Nguyên'),
+(N'Ẩm thực Nam Bộ'),
+(N'Ẩm thực Trung Hoa');
+
+-- Insert data into MealPlan
+-- Thêm 3 MealPlan
+SET IDENTITY_INSERT MealPlan ON;
+
+INSERT INTO MealPlan (MealPlanID, PlanName, HealthGoal, Duration, CreatedBy, UpdatedBy)
+VALUES
+    (1, N'Kế hoạch ăn uống giảm cân', N'Giảm cân', 7, N'Admin', N'Admin'),
+    (2, N'Kế hoạch ăn uống tăng cân', N'Tăng cơ bắp', 7, N'Admin', N'Admin'),
+    (3, N'Kế hoạch ăn uống cân bằng', N'Cân bằng dinh dưỡng', 7, N'Admin', N'Admin');
+
+SET IDENTITY_INSERT MealPlan OFF;
+
+-- Insert data into MealPlanDetail for 'Giảm cân nhanh'
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    (1, 5, N'Gỏi cuốn', 2, N'Bữa sáng', 1, 200, 20, 6, 10),
+    (1, 8, N'Canh chua cá lóc', 1, N'Bữa trưa', 1, 200, 10, 5, 15),
+    (1, 14, N'Bánh ướt', 1, N'Bữa tối', 1, 200, 25, 5, 10),
+    (1, 7, N'Chả giò', 2, N'Bữa sáng', 2, 300, 20, 10, 10),
+    (1, 2, N'Bánh mì thịt', 1, N'Bữa trưa', 2, 350, 40, 12, 15),
+    (1, 18, N'Bánh đúc', 1, N'Bữa tối', 2, 150, 20, 5, 5),
+    (1, 1, N'Phở bò', 1, N'Bữa sáng', 3, 450, 50, 10, 25),
+    (1, 6, N'Bánh xèo', 1, N'Bữa trưa', 3, 300, 30, 15, 10),
+    (1, 12, N'Chè đậu đen', 1, N'Bữa tối', 3, 200, 30, 5, 5),
+    (1, 9, N'Bún riêu', 1, N'Bữa sáng', 4, 350, 40, 10, 20),
+    (1, 10, N'Cá kho tộ', 1, N'Bữa trưa', 4, 400, 10, 20, 25),
+    (1, 15, N'Bánh canh cua', 1, N'Bữa tối', 4, 400, 40, 15, 20),
+    (1, 3, N'Cơm tấm sườn', 1, N'Bữa sáng', 5, 600, 70, 20, 30),
+    (1, 11, N'Bánh cuốn', 1, N'Bữa trưa', 5, 300, 40, 8, 10),
+    (1, 20, N'Bánh tráng trộn', 1, N'Bữa tối', 5, 250, 30, 10, 5),
+    (1, 16, N'Bánh tét', 1, N'Bữa sáng', 6, 300, 40, 10, 10),
+    (1, 19, N'Bánh khọt', 1, N'Bữa trưa', 6, 200, 20, 10, 10),
+    (1, 13, N'Bánh bèo', 1, N'Bữa tối', 6, 250, 30, 10, 8),
+    (1, 4, N'Cháo lòng', 1, N'Bữa sáng', 7, 350, 35, 12, 20),
+    (1, 17, N'Bánh chưng', 1, N'Bữa trưa', 7, 350, 45, 12, 15),
+    (1, 21, N'Bánh khoai mì', 1, N'Bữa tối', 7, 300, 40, 15, 10);
+
+-- Insert data into MealPlanDetail for 'Tăng cơ bắp'
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (2, 10, N'Cá kho tộ', 1, N'Bữa sáng', 1, 400, 10, 20, 25),
+    (2, 3, N'Cơm tấm sườn', 1, N'Bữa trưa', 1, 600, 70, 20, 30),
+    (2, 15, N'Bánh canh cua', 1, N'Bữa tối', 1, 400, 40, 15, 20),
+    
+    -- Ngày 2
+    (2, 9, N'Bún riêu', 1, N'Bữa sáng', 2, 350, 40, 10, 20),
+    (2, 16, N'Bánh tét', 1, N'Bữa trưa', 2, 300, 40, 10, 10),
+    (2, 19, N'Bánh khọt', 1, N'Bữa tối', 2, 200, 20, 10, 10),
+
+    -- Ngày 3
+    (2, 11, N'Bánh cuốn', 1, N'Bữa sáng', 3, 300, 40, 8, 10),
+    (2, 6, N'Bánh xèo', 1, N'Bữa trưa', 3, 300, 30, 15, 10),
+    (2, 13, N'Bánh bèo', 1, N'Bữa tối', 3, 250, 30, 10, 8),
+
+    -- Ngày 4
+    (2, 5, N'Gỏi cuốn', 2, N'Bữa sáng', 4, 200, 20, 6, 10),
+    (2, 1, N'Phở bò', 1, N'Bữa trưa', 4, 450, 50, 10, 25),
+    (2, 8, N'Canh chua cá lóc', 1, N'Bữa tối', 4, 200, 10, 5, 15),
+
+    -- Ngày 5
+    (2, 7, N'Chả giò', 2, N'Bữa sáng', 5, 300, 20, 10, 10),
+    (2, 2, N'Bánh mì thịt', 1, N'Bữa trưa', 5, 350, 40, 12, 15),
+    (2, 12, N'Chè đậu đen', 1, N'Bữa tối', 5, 200, 30, 5, 5),
+
+    -- Ngày 6
+    (2, 14, N'Bánh ướt', 1, N'Bữa sáng', 6, 200, 25, 5, 10),
+    (2, 4, N'Cháo lòng', 1, N'Bữa trưa', 6, 350, 35, 12, 20),
+    (2, 18, N'Bánh đúc', 1, N'Bữa tối', 6, 150, 20, 5, 5),
+
+    -- Ngày 7
+    (2, 17, N'Bánh chưng', 1, N'Bữa sáng', 7, 350, 45, 12, 15),
+    (2, 20, N'Bánh tráng trộn', 1, N'Bữa trưa', 7, 250, 30, 10, 5),
+    (2, 21, N'Bánh khoai mì', 1, N'Bữa tối', 7, 300, 40, 15, 10);
+
+
+-- Insert data into MealPlanDetail for 'Dinh dưỡng cân bằng'
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (3, 1, N'Phở bò', 1, N'Bữa sáng', 1, 450, 50, 10, 25),
+    (3, 6, N'Bánh xèo', 1, N'Bữa trưa', 1, 300, 30, 15, 10),
+    (3, 12, N'Chè đậu đen', 1, N'Bữa tối', 1, 200, 30, 5, 5),
+
+    -- Ngày 2
+    (3, 11, N'Bánh cuốn', 1, N'Bữa sáng', 2, 300, 40, 8, 10),
+    (3, 17, N'Bánh chưng', 1, N'Bữa trưa', 2, 350, 45, 12, 15),
+    (3, 20, N'Bánh tráng trộn', 1, N'Bữa tối', 2, 250, 30, 10, 5),
+
+    -- Ngày 3
+    (3, 5, N'Gỏi cuốn', 2, N'Bữa sáng', 3, 200, 20, 6, 10),
+    (3, 3, N'Cơm tấm sườn', 1, N'Bữa trưa', 3, 600, 70, 20, 30),
+    (3, 15, N'Bánh canh cua', 1, N'Bữa tối', 3, 400, 40, 15, 20),
+
+    -- Ngày 4
+    (3, 7, N'Chả giò', 2, N'Bữa sáng', 4, 300, 20, 10, 10),
+    (3, 2, N'Bánh mì thịt', 1, N'Bữa trưa', 4, 350, 40, 12, 15),
+    (3, 8, N'Canh chua cá lóc', 1, N'Bữa tối', 4, 200, 10, 5, 15),
+
+    -- Ngày 5
+    (3, 9, N'Bún riêu', 1, N'Bữa sáng', 5, 350, 40, 10, 20),
+    (3, 16, N'Bánh tét', 1, N'Bữa trưa', 5, 300, 40, 10, 10),
+    (3, 19, N'Bánh khọt', 1, N'Bữa tối', 5, 200, 20, 10, 10),
+
+    -- Ngày 6
+    (3, 14, N'Bánh ướt', 1, N'Bữa sáng', 6, 200, 25, 5, 10),
+    (3, 4, N'Cháo lòng', 1, N'Bữa trưa', 6, 350, 35, 12, 20),
+    (3, 18, N'Bánh đúc', 1, N'Bữa tối', 6, 150, 20, 5, 5),
+
+    -- Ngày 7
+    (3, 10, N'Cá kho tộ', 1, N'Bữa sáng', 7, 400, 10, 20, 25),
+    (3, 13, N'Bánh bèo', 1, N'Bữa trưa', 7, 250, 30, 10, 8),
+    (3, 21, N'Bánh khoai mì', 1, N'Bữa tối', 7, 300, 40, 15, 10);

@@ -173,7 +173,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodResponse);
         }
 
-        public async Task<IBusinessResult> CreateFoodRecipeByAI(int foodId)
+        public async Task<IBusinessResult> CreateFoodRecipeByAI(int foodId, int cuisineId)
         {
             int userid = int.Parse(_userIdClaim);
             var userError = await _unitOfWork.UserRepository
@@ -196,33 +196,44 @@ namespace NutriDiet.Service.Services
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
             var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).FirstOrDefaultAsync();
-            var foodName = food.Ingredients.Select(x => x.IngredientName);
-            var formatIngredient = foodName.Any() ? string.Join(", ", foodName) : "không có";
+            var cuisineType = await _unitOfWork.CuisineRepository.GetByIdAsync(cuisineId);
 
-            var input = $"Tôi có các bệnh này: {formattedDiseases} " +
-                         $"và dị ứng này: {formattedAllergies} " +
-                         $"Hãy gợi ý cho tôi công thức để nấu món {food.FoodName} với những nguyên liệu {formatIngredient}. Trả lời dưới dạng như này: Công thức của bạn là...";
+            if (food == null || cuisineType == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"{(food == null ? "food" : "cuisine")} not found");
+            }
+
+            var foodIngredient = food.Ingredients.Select(x => x.IngredientName);
+            var formatIngredient = foodIngredient.Any() ? string.Join(", ", foodIngredient) : "không có";
+
+            var input = $"Tôi có các bệnh này: {formattedDiseases} \n" +
+                         $"và dị ứng này: {formattedAllergies} \n" +
+                         $"Hãy gợi ý cho tôi công thức để nấu món {food.FoodName} với những nguyên liệu {formatIngredient}, nấu theo phong cách {cuisineType.CuisineName}.\n" +
+                         $"Trả lời dưới dạng như này: Công thức của bạn là...";
 
             var airesponse = await _aIGeneratorService.AIResponseText(input);
-            
-            //var foodRecipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.UserId == userid && x.FoodId == foodId).FirstOrDefaultAsync();
-            //if(foodRecipe == null)
-            //{
-            //    var recipeSuggestion = new RecipeSuggestion
-            //    {
-            //        UserId = userid,
-            //        FoodId = foodId,
-            //        Description = airesponse
-            //    };
-            //    await _unitOfWork.RecipeSuggestionRepository.AddAsync(recipeSuggestion);
-            //    await _unitOfWork.SaveChangesAsync();
-            //}
-            //else
-            //{
-            //    foodRecipe.Description = airesponse;
-            //    await _unitOfWork.RecipeSuggestionRepository.UpdateAsync(foodRecipe);
-            //    await _unitOfWork.SaveChangesAsync();
-            //}
+
+            var foodRecipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.UserId == userid && x.FoodId == foodId).FirstOrDefaultAsync();
+            if (foodRecipe == null)
+            {
+                var recipeSuggestion = new RecipeSuggestion
+                {
+                    UserId = userid,
+                    CuisineId = cuisineId,
+                    FoodId = foodId,
+                    Airequest = input,
+                    Airesponse = airesponse,
+                    Aimodel = "Gemini AI"
+                };
+                await _unitOfWork.RecipeSuggestionRepository.AddAsync(recipeSuggestion);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                foodRecipe.Airesponse = airesponse;
+                await _unitOfWork.RecipeSuggestionRepository.UpdateAsync(foodRecipe);
+                await _unitOfWork.SaveChangesAsync();
+            }
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, airesponse);
         }
 
