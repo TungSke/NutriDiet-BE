@@ -13,7 +13,5 @@ public partial class Airecommendation
 
     public string? RecommendationText { get; set; }
 
-    public bool? IsAccepted { get; set; }
-
     public virtual User User { get; set; } = null!;
 }
