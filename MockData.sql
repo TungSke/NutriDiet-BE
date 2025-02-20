@@ -5,13 +5,12 @@ GO
 ALTER TABLE UserAllergy NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserDisease NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserPackage NOCHECK CONSTRAINT ALL;
-ALTER TABLE HealthProfile NOCHECK CONSTRAINT ALL;
+ALTER TABLE GeneralHealthProfile NOCHECK CONSTRAINT ALL;
 ALTER TABLE Ingredient NOCHECK CONSTRAINT ALL;
 ALTER TABLE RecipeSuggestion NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserFoodPreference NOCHECK CONSTRAINT ALL;
 ALTER TABLE MealPlanDetail NOCHECK CONSTRAINT ALL;
-ALTER TABLE Feedback NOCHECK CONSTRAINT ALL;
-ALTER TABLE FeedbackReply NOCHECK CONSTRAINT ALL;
+ALTER TABLE FeedbackMealplan NOCHECK CONSTRAINT ALL;
 ALTER TABLE FoodSubstitution NOCHECK CONSTRAINT ALL;
 ALTER TABLE Notification NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserParameter NOCHECK CONSTRAINT ALL;
@@ -24,17 +23,16 @@ ALTER TABLE PersonalGoal NOCHECK CONSTRAINT ALL;
 DELETE FROM UserAllergy;
 DELETE FROM UserDisease;
 DELETE FROM UserPackage;
-DELETE FROM HealthProfile;
+DELETE FROM GeneralHealthProfile;
 DELETE FROM Ingredient;
 DELETE FROM RecipeSuggestion;
 DELETE FROM UserFoodPreference;
 DELETE FROM MealPlanDetail;
 DELETE FROM MealPlan;
-DELETE FROM FeedbackReply;
-DELETE FROM Feedback;
+DELETE FROM FeedbackMealPlan;
 DELETE FROM FoodSubstitution;
 DELETE FROM Notification;
-DELETE FROM UserParameter;
+DELETE FROM HealthcareIndicator;
 DELETE FROM AIRecommendation;
 DELETE FROM MealLogDetail;
 DELETE FROM MealLog;
@@ -476,3 +474,11 @@ INSERT INTO FoodDisease (FoodID, DiseaseID) VALUES
 
 -- Bánh tráng trộn (20) - Generally lower in concerns
 (20, 7); -- IBS (spicy ingredients)
+
+INSERT INTO CuisineType (CuisineName) VALUES 
+(N'Ẩm thực miền Bắc'),
+(N'Ẩm thực miền Trung'),
+(N'Ẩm thực miền Nam'),
+(N'Ẩm thực Tây Nguyên'),
+(N'Ẩm thực Nam Bộ'),
+(N'Ẩm thực Trung Hoa');

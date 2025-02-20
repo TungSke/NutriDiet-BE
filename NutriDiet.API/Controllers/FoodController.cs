@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Common.BusinessResult;
+using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 
@@ -62,11 +64,19 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPost("recipe/{foodId}")]
+        [HttpPost("recipe/{foodId}/{cuisineId}")]
         [Authorize]
-        public async Task<IActionResult> FoodRecipe(int foodId)
+        public async Task<IActionResult> FoodRecipe(int foodId, int cuisineId)
         {
-            var result = await _foodService.CreateFoodRecipeByAI(foodId);
+            var result = await _foodService.CreateFoodRecipeByAI(foodId, cuisineId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("recipe/{foodId}")]
+        [Authorize]
+        public async Task<IActionResult> GetFoodByType(int foodId) 
+        {
+            var result = await _foodService.GetFoodRecipe(foodId);
             return StatusCode(result.StatusCode, result);
         }
     }

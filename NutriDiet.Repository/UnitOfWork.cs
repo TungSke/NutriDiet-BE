@@ -19,6 +19,7 @@ namespace NutriDiet.Repository
         private IDiseaseRepository _diseaseRepository;
         private IRecipeSuggestionRepository _recipeSuggestionRepository;
         private IPersonalGoalRepository _personalGoalRepository;
+        private ICuisineRepository _cuisineRepository;
 
         public UnitOfWork(NutriDietContext context)
         {
@@ -26,7 +27,6 @@ namespace NutriDiet.Repository
         }
 
         public IUserRepository UserRepository => _userRepository ??= new UserRepository(_context);
-
         public IFoodRepository FoodRepository => _foodRepository ??= new FoodRepository(_context);
         public IHealthProfileRepository HealthProfileRepository => _healthProfileRepository ??= new HealthProfileRepository(_context);
         public IMealPlanRepository MealPlanRepository => _mealPlanRepository ??= new MealPlanRepository(_context);
@@ -36,6 +36,7 @@ namespace NutriDiet.Repository
         public IDiseaseRepository DiseaseRepository => _diseaseRepository ??= new DiseaseRepository(_context);
         public IRecipeSuggestionRepository RecipeSuggestionRepository => _recipeSuggestionRepository ??= new RecipeSuggestionRepository(_context);
         public IPersonalGoalRepository PersonalGoalRepository => _personalGoalRepository ??= new PersonalGoalRepository(_context);
+        public ICuisineRepository CuisineRepository => _cuisineRepository ??= new CuisineRepository(_context);
 
         public async Task BeginTransaction()
         {
