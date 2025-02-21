@@ -45,6 +45,8 @@ namespace NutriDiet.Service.Services
             request.Adapt(existingUser);
 
             var healthProfile = request.Adapt<GeneralHealthProfile>();
+            healthProfile.CreatedAt = DateTime.Now;
+            healthProfile.UpdatedAt = DateTime.Now;
 
             await _unitOfWork.BeginTransaction();
             try
@@ -214,6 +216,7 @@ namespace NutriDiet.Service.Services
                     .FirstOrDefaultAsync();
                 if (existingHealthProfile != null)
                 {
+                    existingHealthProfile.UpdatedAt = DateTime.Now;
                     request.Adapt(existingHealthProfile);
                     await _unitOfWork.HealthProfileRepository.UpdateAsync(existingHealthProfile);
                 }
@@ -221,6 +224,8 @@ namespace NutriDiet.Service.Services
                 {
                     var newHealthProfile = request.Adapt<GeneralHealthProfile>();
                     newHealthProfile.UserId = existingUser.UserId;
+                    newHealthProfile.CreatedAt = DateTime.Now;
+                    newHealthProfile.UpdatedAt= DateTime.Now;
                     await _unitOfWork.HealthProfileRepository.AddAsync(newHealthProfile);
                 }
 

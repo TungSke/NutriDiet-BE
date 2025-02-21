@@ -72,7 +72,7 @@ namespace NutriDiet.Service.Services
             }
             var mealPlan = new MealPlan
             {
-                //UserId = existedUser.UserId,
+                
                 PlanName = mealPlanRequest.PlanName,
                 HealthGoal = mealPlanRequest.HealthGoal,
                 Status = "Chưa sử dụng",
@@ -93,6 +93,9 @@ namespace NutriDiet.Service.Services
                     var mealPlanDetails = new List<MealPlanDetail>();
                     var dayNumberSet = new HashSet<int>();
                     var caloriesByDay = new Dictionary<int, double?>();
+                    var carbsByDay = new Dictionary<int, double?>();
+                    var fatByDay = new Dictionary<int, double?>();
+                    var proteinByDay = new Dictionary<int, double?>();
                     foreach (var detail in  mealPlanRequest.MealPlanDetails)
                     {
                         var foodExist = await _unitOfWork.FoodRepository.GetByIdAsync(detail.FoodId);
@@ -107,7 +110,26 @@ namespace NutriDiet.Service.Services
                         {
                             caloriesByDay[detail.DayNumber] = 0;
                         }
+
                         caloriesByDay[detail.DayNumber] += (foodExist.Calories) * (detail.Quantity ?? 1);
+
+                        if (!carbsByDay.ContainsKey(detail.DayNumber))
+                        {
+                            carbsByDay[detail.DayNumber] = 0;
+                        }
+                        carbsByDay[detail.DayNumber] += (foodExist.Carbs) * (detail.Quantity ?? 1);
+
+                        if (!fatByDay.ContainsKey(detail.DayNumber))
+                        {
+                            fatByDay[detail.DayNumber] = 0;
+                        }
+                        fatByDay[detail.DayNumber] += (foodExist.Fat) * (detail.Quantity ?? 1);
+
+                        if (!proteinByDay.ContainsKey(detail.DayNumber))
+                        {
+                            proteinByDay[detail.DayNumber] = 0;
+                        }
+                        proteinByDay[detail.DayNumber] += (foodExist.Protein) * (detail.Quantity ?? 1);
 
                         var mealPlanDetail = detail.Adapt<MealPlanDetail>();
                         mealPlanDetail.MealPlanId = mealPlan.MealPlanId;
@@ -117,6 +139,9 @@ namespace NutriDiet.Service.Services
                     foreach(var detail in mealPlanDetails)
                     {
                         detail.TotalCalories = caloriesByDay[detail.DayNumber];
+                        detail.TotalCarbs = carbsByDay[detail.DayNumber];
+                        detail.TotalFat = fatByDay[detail.DayNumber];
+                        detail.TotalProtein = proteinByDay[detail.DayNumber];
                     }
 
                     await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(mealPlanDetails);
@@ -160,12 +185,15 @@ namespace NutriDiet.Service.Services
             var response = mealPlan.Adapt<MealPlan_DetailResponse>();
             response.MealPlanDetails = mealPlan.MealPlanDetails.Select(m => new MealPlanDetailResponse
             {
-                MealPlanDetailId = m.MealPlanId,
+                MealPlanDetailId = m.MealPlanDetailId,
                 FoodName = m.Food.FoodName,
                 Quantity = m.Quantity,
                 MealType = m.MealType,
                 DayNumber = m.DayNumber,
-                TotalCalories = m.TotalCalories
+                TotalCalories = m.TotalCalories,
+                TotalCarbs = m.TotalCarbs,
+                TotalFat = m.TotalFat,
+                TotalProtein = m.TotalProtein
             }).ToList();
             
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
@@ -188,7 +216,6 @@ namespace NutriDiet.Service.Services
             var userID = int.Parse(_userIdClaim);
             var mealPlan = new MealPlan
             {
-                //UserId = userID,
                 PlanName = mealPlanExisted.PlanName,
                 HealthGoal = mealPlanExisted.HealthGoal,
                 Status = "Chưa sử dụng",
@@ -219,7 +246,7 @@ namespace NutriDiet.Service.Services
             }
         }
 
-        public async Task<IBusinessResult> UpdateMealPlan(int mealPlanID, MealPlanRequest mealPlanRequest)
+        public async Task<IBusinessResult> UpdateMealPlan(int mealPlanID, UpdateMealPlanRequest mealPlanRequest)
         {
             var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanID);
             if (mealPlan == null)
@@ -242,10 +269,16 @@ namespace NutriDiet.Service.Services
 
                 var updatedDetails = new List<MealPlanDetail>();
                 var existingDetailIds = existingDetails.Select(x => x.MealPlanDetailId).ToHashSet();
-                var newDetailIds = mealPlanRequest.MealPlanDetails.Select(x => x.FoodId).ToHashSet();
+                var requestDetailIds = mealPlanRequest.MealPlanDetails
+                    .Where(x => x.MealPlanDetailId > 0)
+                    .Select(x => x.MealPlanDetailId)
+                    .ToHashSet();
 
                 var dayNumberSet = new HashSet<int>();
                 var caloriesByDay = new Dictionary<int, double?>();
+                var carbsByDay = new Dictionary<int, double?>();
+                var fatByDay = new Dictionary<int, double?>();
+                var proteinByDay = new Dictionary<int, double?>();
 
                 foreach (var detail in mealPlanRequest.MealPlanDetails)
                 {
@@ -261,18 +294,42 @@ namespace NutriDiet.Service.Services
                     {
                         caloriesByDay[detail.DayNumber] = 0;
                     }
+
                     caloriesByDay[detail.DayNumber] += (foodExist.Calories) * (detail.Quantity ?? 1);
 
-                    var existingDetail = existingDetails.FirstOrDefault(x => x.FoodId == detail.FoodId);
+                    if (!carbsByDay.ContainsKey(detail.DayNumber))
+                    {
+                        carbsByDay[detail.DayNumber] = 0;
+                    }
+                    carbsByDay[detail.DayNumber] += (foodExist.Carbs) * (detail.Quantity ?? 1);
+
+                    if (!fatByDay.ContainsKey(detail.DayNumber))
+                    {
+                        fatByDay[detail.DayNumber] = 0;
+                    }
+                    fatByDay[detail.DayNumber] += (foodExist.Fat) * (detail.Quantity ?? 1);
+
+                    if (!proteinByDay.ContainsKey(detail.DayNumber))
+                    {
+                        proteinByDay[detail.DayNumber] = 0;
+                    }
+                    proteinByDay[detail.DayNumber] += (foodExist.Protein) * (detail.Quantity ?? 1);
+
+                    var existingDetail = existingDetails.FirstOrDefault(x => x.MealPlanDetailId == detail.MealPlanDetailId);
                     if (existingDetail != null)
                     {
+                        existingDetail.FoodId = detail.FoodId;
+                        existingDetail.FoodName = foodExist.FoodName;
                         existingDetail.Quantity = detail.Quantity;
                         existingDetail.MealType = detail.MealType;
                         existingDetail.DayNumber = detail.DayNumber;
                         existingDetail.TotalCalories = caloriesByDay[detail.DayNumber];
+                        existingDetail.TotalCarbs = carbsByDay[detail.DayNumber];
+                        existingDetail.TotalFat = fatByDay[detail.DayNumber];
+                        existingDetail.TotalProtein = proteinByDay[detail.DayNumber];
                         updatedDetails.Add(existingDetail);
                     }
-                    else
+                    if(detail.MealPlanDetailId <= 0 || existingDetail == null)
                     {
                         var newDetail = new MealPlanDetail
                         {
@@ -282,15 +339,38 @@ namespace NutriDiet.Service.Services
                             Quantity = detail.Quantity,
                             MealType = detail.MealType,
                             DayNumber = detail.DayNumber,
-                            TotalCalories = caloriesByDay[detail.DayNumber]
+                            TotalCalories = caloriesByDay[detail.DayNumber],
+                            TotalCarbs = carbsByDay[detail.DayNumber],
+                            TotalFat = fatByDay[detail.DayNumber],
+                            TotalProtein = proteinByDay[detail.DayNumber]
                         };
-                        updatedDetails.Add(newDetail);
+                        _unitOfWork.MealPlanDetailRepository.AddAsync(newDetail);
                     }
                 }
 
+                // xóa nếu k có trong request
+                var detailsToRemove = existingDetails
+                    .Where(x => !requestDetailIds.Contains(x.MealPlanDetailId))
+                    .ToList();
+                if (detailsToRemove.Any())
+                {
+                    foreach (var detail in detailsToRemove)
+                    {
+                        await _unitOfWork.MealPlanDetailRepository.DeleteAsync(detail);
+                    }
+                }
+                // tính lại các total theo từng bữa
+
                 if (updatedDetails.Any())
                 {
-                    await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(updatedDetails);
+                    foreach (var detail in updatedDetails)
+                    {
+                        detail.TotalCalories = caloriesByDay[detail.DayNumber];
+                        detail.TotalCarbs = carbsByDay[detail.DayNumber];
+                        detail.TotalFat = fatByDay[detail.DayNumber];
+                        detail.TotalProtein = proteinByDay[detail.DayNumber];
+                        await _unitOfWork.MealPlanDetailRepository.UpdateAsync(detail);
+                    }
                 }
 
                 mealPlan.Duration = dayNumberSet.Count;

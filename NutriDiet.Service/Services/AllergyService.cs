@@ -52,6 +52,8 @@ namespace NutriDiet.Service.Services
             }
 
             var allergyEntity = request.Adapt<Allergy>();
+            allergyEntity.CreatedAt = DateTime.Now;
+            allergyEntity.UpdatedAt = DateTime.Now;
             await _unitOfWork.AllergyRepository.AddAsync(allergyEntity);
             await _unitOfWork.SaveChangesAsync();
             var response = allergyEntity.Adapt<AllergyResponse>();
@@ -125,7 +127,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Another allergy with the same name already exists.");
             }
-
+            allergy.UpdatedAt = DateTime.Now;
             request.Adapt(allergy);
 
             await _unitOfWork.AllergyRepository.UpdateAsync(allergy);
