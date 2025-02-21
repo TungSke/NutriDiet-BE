@@ -20,8 +20,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public HealthGoal? HealthGoal { get; set; }
         public string? Aisuggestion { get; set; }
-        public DateTime? CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+
         public List<string> AllergyNames { get; set; } = new List<string>();
         public List<string> DiseaseNames { get; set; } = new List<string>();
     }

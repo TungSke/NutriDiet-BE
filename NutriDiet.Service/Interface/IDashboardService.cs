@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Interface
 {
-    public class IDashboardService
+    public interface IDashboardService
     {
+        Task<int> CountUser();
     }
 }

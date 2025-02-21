@@ -54,6 +54,8 @@ namespace NutriDiet.Service.Services
             // Map the request to a Disease entity
             var diseaseEntity = request.Adapt<Disease>();
 
+            diseaseEntity.CreatedAt = DateTime.Now;
+            diseaseEntity.UpdatedAt = DateTime.Now;
             // Add the new Disease to the repository
             await _unitOfWork.DiseaseRepository.AddAsync(diseaseEntity);
             await _unitOfWork.SaveChangesAsync();
@@ -133,6 +135,8 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Another disease with the same name already exists.");
             }
+
+            disease.UpdatedAt = DateTime.Now;
 
             // Map updated properties from the request into the existing entity
             request.Adapt(disease);
