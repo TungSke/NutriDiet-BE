@@ -14,13 +14,13 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public int? Age { get; set; }
         public string? Gender { get; set; }
         public string? Location { get; set; }
-        public string? MedicalCondition { get; set; }
         public double? Height { get; set; }
         public double? Weight { get; set; }
         public string? ActivityLevel { get; set; }
         public string? HealthGoal { get; set; }
-        public double? TargetWeight { get; set; }
-        public DateTime? DurationTarget { get; set; }
+        public string? Aisuggestion { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public virtual ICollection<AllergyResponse> Allergies { get; set; } = new List<AllergyResponse>();
         public virtual ICollection<DiseaseResponse> Diseases { get; set; } = new List<DiseaseResponse>();
     }

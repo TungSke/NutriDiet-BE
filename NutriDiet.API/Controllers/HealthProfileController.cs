@@ -11,8 +11,8 @@ namespace NutriDiet.API.Controllers
     [ApiController]
     public class HealthProfileController : ControllerBase
     {
-        private readonly IHealthProfileService _healthprofileService;
-        public HealthProfileController(IHealthProfileService healthProfileService)
+        private readonly IGeneralHealthProfileService _healthprofileService;
+        public HealthProfileController(IGeneralHealthProfileService healthProfileService)
         {
             _healthprofileService = healthProfileService;
         }

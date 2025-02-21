@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Repository.Repositories
 {
-    public class HealthProfileRepository : GenericRepository<HealthProfile>, IHealthProfileRepository
+    public class GeneralHealthProfileRepository : GenericRepository<GeneralHealthProfile>, IGeneralHealthProfileRepository
     {
-        public HealthProfileRepository(NutriDietContext context) : base(context)
+        public GeneralHealthProfileRepository(NutriDietContext context) : base(context)
         {
         }
 

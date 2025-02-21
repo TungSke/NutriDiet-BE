@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Repository.Interface
 {
-    public interface IHealthProfileRepository : IGenericRepository<HealthProfile>
+    public interface IGeneralHealthProfileRepository : IGenericRepository<GeneralHealthProfile>
     {
     }
 }
