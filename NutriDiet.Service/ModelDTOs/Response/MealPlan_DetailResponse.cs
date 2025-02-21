@@ -9,7 +9,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
 {
     public class MealPlan_DetailResponse
     {
-        public int MealPlanID { get; set; }
+        public int MealPlanId { get; set; }
         public string PlanName { get; set; } = null!;
 
         public string? HealthGoal { get; set; }
@@ -17,7 +17,6 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public int? Duration { get; set; }
 
         public string? Status { get; set; }
-        public string? UserName { get; set; }
 
         public string? CreatedBy { get; set; }
 
