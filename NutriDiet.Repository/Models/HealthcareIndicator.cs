@@ -5,7 +5,7 @@ namespace NutriDiet.Repository.Models;
 
 public partial class HealthcareIndicator
 {
-    public int UserParameterId { get; set; }
+    public int HealthcareIndicatorId { get; set; }
 
     public int UserId { get; set; }
 
@@ -15,7 +15,7 @@ public partial class HealthcareIndicator
 
     public string Type { get; set; } = null!;
 
-    public string? CurrentValue { get; set; }
+    public double? CurrentValue { get; set; }
 
     public double? MinValue { get; set; }
 

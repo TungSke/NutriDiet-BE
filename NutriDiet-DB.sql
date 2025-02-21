@@ -227,12 +227,12 @@ CREATE TABLE Notification (
 
 -- Bảng HealthcareIndicator/UserParameter (các tham số người dùng)
 CREATE TABLE HealthcareIndicator (
-    UserParameterID INT IDENTITY(1,1) PRIMARY KEY,
+    HealthcareIndicatorID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
     Code NVARCHAR(50) NOT NULL, -- BMI,TDEE,..
     Name NVARCHAR(255) NOT NULL, -- Tên đầy đủ của tham số
     Type NVARCHAR(50) NOT NULL, -- Loại dữ liệu (Calorie, Health, Nutrient, Hydration,...)
-	CurrentValue NVARCHAR(20), -- giá trị hiện tại của khách
+	CurrentValue FLOAT NULL, -- giá trị hiện tại của khách
     MinValue FLOAT NULL, 
     MediumValue FLOAT NULL,
     MaxValue FLOAT NULL,
