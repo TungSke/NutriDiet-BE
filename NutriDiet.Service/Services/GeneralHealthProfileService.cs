@@ -377,7 +377,7 @@ namespace NutriDiet.Service.Services
 
             if (existingIndicator != null)
             {
-                existingIndicator.CurrentValue = value.ToString();
+                existingIndicator.CurrentValue = value;
                 await _unitOfWork.HealthcareIndicatorRepository.UpdateAsync(existingIndicator);
             }
             else
