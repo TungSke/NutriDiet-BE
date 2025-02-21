@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Interface
 {
-    public interface IHealthProfileService
+    public interface IGeneralHealthProfileService
     {
         Task CreateHealthProfileRecord(HealthProfileRequest request);
         Task<IBusinessResult> GetHealthProfile();

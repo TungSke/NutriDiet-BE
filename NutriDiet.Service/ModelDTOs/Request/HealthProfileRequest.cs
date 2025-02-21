@@ -19,7 +19,6 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public ActivityLevel? ActivityLevel { get; set; }
 
         public HealthGoal? HealthGoal { get; set; }
-        public double? TargetWeight { get; set; }
         public string? Aisuggestion { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

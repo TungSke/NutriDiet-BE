@@ -14,13 +14,13 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Services
 {
-    public class HealthProfileService : IHealthProfileService
+    public class GeneralHealthProfileService : IGeneralHealthProfileService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _userIdClaim;
 
-        public HealthProfileService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
+        public GeneralHealthProfileService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
@@ -44,7 +44,7 @@ namespace NutriDiet.Service.Services
 
             request.Adapt(existingUser);
 
-            var healthProfile = request.Adapt<HealthProfile>();
+            var healthProfile = request.Adapt<GeneralHealthProfile>();
 
             await _unitOfWork.BeginTransaction();
             try
@@ -219,7 +219,7 @@ namespace NutriDiet.Service.Services
                 }
                 else
                 {
-                    var newHealthProfile = request.Adapt<HealthProfile>();
+                    var newHealthProfile = request.Adapt<GeneralHealthProfile>();
                     newHealthProfile.UserId = existingUser.UserId;
                     await _unitOfWork.HealthProfileRepository.AddAsync(newHealthProfile);
                 }
