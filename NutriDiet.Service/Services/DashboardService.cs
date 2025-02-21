@@ -21,7 +21,7 @@ namespace NutriDiet.Service.Services
         }
         public async Task<int> CountUser()
         {
-            return _unitOfWork.UserRepository.GetAll().Count();
+            return _unitOfWork.UserRepository.GetAll().Where(x=>x.RoleId != 1).Count();
         }
     }
 }
