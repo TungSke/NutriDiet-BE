@@ -37,7 +37,7 @@ namespace NutriDiet.Repository.Repositories
 
         public IQueryable<TEntity> GetByWhere(Expression<Func<TEntity, bool>> predicate)
         {
-            return _context.Set<TEntity>().Where(predicate).AsNoTracking();
+            return _context.Set<TEntity>().Where(predicate);
         }
 
         public async Task AddAsync(TEntity entity)
@@ -45,24 +45,35 @@ namespace NutriDiet.Repository.Repositories
             await _context.Set<TEntity>().AddAsync(entity);
         }
 
+        public async Task AddRangeAsync(IEnumerable<TEntity> entities)
+        {
+            await _context.Set<TEntity>().AddRangeAsync(entities);
+        }
+
         public async Task UpdateAsync(TEntity entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
         }
+
+        public async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
+        {
+            _context.Set<TEntity>().UpdateRange(entities);
+        }
+
 
         public async Task DeleteAsync(TEntity entity)
         {
             _context.Set<TEntity>().Remove(entity);
         }
 
+        public async Task RemoveRange(IEnumerable<TEntity> entities)
+        {
+            _context.Set<TEntity>().RemoveRange(entities);
+        }
+
         public async Task<int> CountAsync()
         {
             return await _context.Set<TEntity>().CountAsync();
-        }
-
-        public async Task AddRangeAsync(IEnumerable<TEntity> entities)
-        {
-            await _context.Set<TEntity>().AddRangeAsync(entities);
         }
 
         public async Task<IEnumerable<TEntity>> GetPagedAsync(

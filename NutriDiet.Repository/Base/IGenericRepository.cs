@@ -15,9 +15,13 @@ namespace NutriDiet.Repository.Base
 
         Task UpdateAsync(TEntity entity);
 
-        Task DeleteAsync(TEntity entity);
+        Task DeleteAsync(TEntity entity);       
 
         Task AddRangeAsync(IEnumerable<TEntity> entities);
+
+        Task UpdateRangeAsync(IEnumerable<TEntity> entities);
+
+        Task RemoveRange(IEnumerable<TEntity> entities);
 
         Task<int> CountAsync();
 
