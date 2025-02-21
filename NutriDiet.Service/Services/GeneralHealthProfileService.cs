@@ -115,7 +115,7 @@ namespace NutriDiet.Service.Services
                 Name = name,
                 Type = type,
                 Code = code,
-                CurrentValue = value.ToString()
+                CurrentValue = value
             }.Adapt<HealthcareIndicator>();
         }
 
@@ -183,6 +183,7 @@ namespace NutriDiet.Service.Services
 
             var healthProfile = await _unitOfWork.HealthProfileRepository
                 .GetByWhere(hp => hp.UserId == userid)
+                .OrderBy(hp => hp.CreatedAt)
                 .AsNoTracking() 
                 .FirstOrDefaultAsync();
 
@@ -211,91 +212,67 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
+        public  async Task<IBusinessResult> DeleteHealthProfile(int userId)
+        {
+            var profile = _unitOfWork.HealthProfileRepository.GetByWhere(p => p.UserId == userId);
+            if (profile == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "profile not found");
+            }
 
-        //public async Task UpdateHealthProfile(HealthProfileRequest request)
-        //{
-        //    var userid = int.Parse(_userIdClaim);
+            await _unitOfWork.HealthProfileRepository.RemoveRange(profile);
+            await _unitOfWork.SaveChangesAsync();
 
-        //    var existingUser = await _unitOfWork.UserRepository
-        //        .GetByWhere(u => u.UserId == userid)
-        //        .Include(u => u.Allergies)
-        //        .Include(u => u.Diseases)
-        //        .FirstOrDefaultAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
+        }
 
-        //    if (existingUser == null)
-        //    {
-        //        throw new Exception("User not exist.");
-        //    }
+        public async Task<IBusinessResult> TrackingHealthProfile()
+        {
+            var userId = int.Parse(_userIdClaim);
 
-        //    await _unitOfWork.BeginTransaction();
-        //    try
-        //    {
-        //        request.Adapt(existingUser);
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.Allergies)
+                .Include(u => u.Diseases)
+                .Include(u => u.HealthcareIndicators)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
-        //        if (request.AllergyNames != null)
-        //        {
-        //            existingUser.Allergies.Clear();
-        //            foreach (var allergyName in request.AllergyNames)
-        //            {
-        //                var existingAllergy = await _unitOfWork.AllergyRepository
-        //                    .GetByWhere(a => a.AllergyName.ToLower() == allergyName.ToLower())
-        //                    .FirstOrDefaultAsync();
-        //                if (existingAllergy != null)
-        //                {
-        //                    existingUser.Allergies.Add(existingAllergy);
-        //                }
-        //                else
-        //                {
-        //                    throw new Exception($"Allergy '{allergyName}' does not exist in the system.");
-        //                }
-        //            }
-        //        }
+            if (existingUser == null)
+            {
+                throw new Exception("User does not exist.");
+            }
 
-        //        if (request.DiseaseNames != null)
-        //        {
-        //            existingUser.Diseases.Clear();
-        //            foreach (var diseaseName in request.DiseaseNames)
-        //            {
-        //                var existingDisease = await _unitOfWork.DiseaseRepository
-        //                    .GetByWhere(d => d.DiseaseName.ToLower() == diseaseName.ToLower())
-        //                    .FirstOrDefaultAsync();
-        //                if (existingDisease != null)
-        //                {
-        //                    existingUser.Diseases.Add(existingDisease);
-        //                }
-        //                else
-        //                {
-        //                    throw new Exception($"Disease '{diseaseName}' does not exist in the system.");
-        //                }
-        //            }
-        //        }
+            var healthProfiles = await _unitOfWork.HealthProfileRepository
+                .GetByWhere(hp => hp.UserId == userId)
+                .OrderBy(hp => hp.CreatedAt)
+                .AsNoTracking()
+                .ToListAsync();
 
-        //        var existingHealthProfile = await _unitOfWork.HealthProfileRepository
-        //            .GetByWhere(hp => hp.UserId == userid)
-        //            .FirstOrDefaultAsync();
-        //        if (existingHealthProfile != null)
-        //        {
-        //            request.Adapt(existingHealthProfile);
-        //            await _unitOfWork.HealthProfileRepository.UpdateAsync(existingHealthProfile);
-        //        }
-        //        else
-        //        {
-        //            var newHealthProfile = request.Adapt<GeneralHealthProfile>();
-        //            newHealthProfile.UserId = existingUser.UserId;
-        //            await _unitOfWork.HealthProfileRepository.AddAsync(newHealthProfile);
-        //        }
+            if (healthProfiles == null || !healthProfiles.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No health history found.");
+            }
 
-        //        await _unitOfWork.UserRepository.UpdateAsync(existingUser);
+            List<HealthProfileResponse> responseList = new();
 
-        //        await _unitOfWork.SaveChangesAsync();
-        //        await _unitOfWork.CommitTransaction();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        await _unitOfWork.RollbackTransaction();
-        //        throw;
-        //    }
-        //}
+            foreach (var healthProfile in healthProfiles)
+            {
+                try
+                {
+                    var response = existingUser.Adapt<HealthProfileResponse>();
+                    healthProfile.Adapt(response);
+                    responseList.Add(response);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error mapping HealthProfile to HealthProfileResponse: " + ex.Message, ex);
+                }
+            }
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, responseList);
+        }
+
 
     }
 }

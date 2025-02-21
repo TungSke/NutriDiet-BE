@@ -15,7 +15,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public string Type { get; set; } = null!;
 
-        public string? CurrentValue { get; set; }
+        public double? CurrentValue { get; set; }
 
         public double? MinValue { get; set; }
 
