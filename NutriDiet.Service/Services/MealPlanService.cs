@@ -163,6 +163,7 @@ namespace NutriDiet.Service.Services
         {
             var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByIdAsync(id);
             await _unitOfWork.MealPlanRepository.DeleteAsync(mealPlanExisted);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task ChangStatusMealPlan(int id, string status)
@@ -181,7 +182,7 @@ namespace NutriDiet.Service.Services
                 .ThenInclude(x=>x.Food)
                 .FirstOrDefault(x => x.MealPlanId == mealPlanId);
           
-            var response = mealPlan.Adapt<MealPlan_DetailResponse>();
+            var response = mealPlan.Adapt<MealPlanResponse>();
             response.MealPlanDetails = mealPlan.MealPlanDetails.Select(m => new MealPlanDetailResponse
             {
                 MealPlanDetailId = m.MealPlanDetailId,
