@@ -21,5 +21,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public string? CreatedBy { get; set; }
 
         public DateTime? CreatedAt { get; set; }
+
+        public List<MealPlanDetailResponse> MealPlanDetails { get; set; } = new();
     }
 }
