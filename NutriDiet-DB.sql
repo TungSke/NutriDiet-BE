@@ -108,17 +108,6 @@ CREATE TABLE Food (
     Others NVARCHAR(255) NULL
 );
 
--- Bảng nguyên liệu
-CREATE TABLE Ingredient (
-    IngredientID INT IDENTITY(1,1) PRIMARY KEY,
-    IngredientName NVARCHAR(100) NOT NULL,
-    Category NVARCHAR(50), -- Loại nguyên liệu (ví dụ: Rau củ, Thịt, Gia vị...)
-    Unit NVARCHAR(20) NOT NULL, -- Đơn vị tính (gram, ml, piece...)
-    Calories FLOAT NULL,
-    FoodID INT NOT NULL,
-    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
-);
-
 -- Bảng CuisineType
 CREATE TABLE CuisineType (
     CuisineID INT IDENTITY(1,1) PRIMARY KEY,

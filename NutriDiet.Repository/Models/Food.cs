@@ -37,8 +37,6 @@ public partial class Food
 
     public virtual ICollection<FoodSubstitution> FoodSubstitutionSubstituteFoods { get; set; } = new List<FoodSubstitution>();
 
-    public virtual ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
-
     public virtual ICollection<MealLogDetail> MealLogDetails { get; set; } = new List<MealLogDetail>();
 
     public virtual ICollection<MealPlanDetail> MealPlanDetails { get; set; } = new List<MealPlanDetail>();

@@ -6,7 +6,6 @@ ALTER TABLE UserAllergy NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserDisease NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserPackage NOCHECK CONSTRAINT ALL;
 ALTER TABLE GeneralHealthProfile NOCHECK CONSTRAINT ALL;
-ALTER TABLE Ingredient NOCHECK CONSTRAINT ALL;
 ALTER TABLE RecipeSuggestion NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserFoodPreference NOCHECK CONSTRAINT ALL;
 ALTER TABLE MealPlanDetail NOCHECK CONSTRAINT ALL;
@@ -24,7 +23,6 @@ DELETE FROM UserAllergy;
 DELETE FROM UserDisease;
 DELETE FROM UserPackage;
 DELETE FROM GeneralHealthProfile;
-DELETE FROM Ingredient;
 DELETE FROM RecipeSuggestion;
 DELETE FROM UserFoodPreference;
 DELETE FROM MealPlanDetail;
@@ -50,7 +48,6 @@ ALTER TABLE UserAllergy CHECK CONSTRAINT ALL;
 ALTER TABLE UserDisease CHECK CONSTRAINT ALL;
 ALTER TABLE UserPackage CHECK CONSTRAINT ALL;
 ALTER TABLE GeneralHealthProfile CHECK CONSTRAINT ALL;
-ALTER TABLE Ingredient CHECK CONSTRAINT ALL;
 ALTER TABLE RecipeSuggestion CHECK CONSTRAINT ALL;
 ALTER TABLE UserFoodPreference CHECK CONSTRAINT ALL;
 ALTER TABLE MealPlanDetail CHECK CONSTRAINT ALL;
@@ -195,196 +192,7 @@ VALUES
 
 SET IDENTITY_INSERT Food OFF;
 
--- Thêm nguyên liệu cho các món ăn
-INSERT INTO Ingredient (IngredientName, Category, Unit, Calories, FoodID)
-VALUES
-    -- Nguyên liệu cho Phở bò (FoodID = 1)
-    (N'Bánh phở', 'Noodle', 'gram', 143, 1),
-    (N'Thịt bò', 'Meat', 'gram', 118, 1),
-    (N'Hành tây', 'Vegetable', 'gram', 40, 1),
-    (N'Gừng', 'Spice', 'gram', 10, 1),
-    (N'Nước dùng', 'Broth', 'ml', 50, 1),
-
-    -- Nguyên liệu cho Bánh mì thịt (FoodID = 2)
-    (N'Bánh mì', 'Bread', 'gram', 249, 2),
-    (N'Thịt nguội', 'Meat', 'gram', 118, 2),
-    (N'Chả lụa', 'Meat', 'gram', 136, 2),
-    (N'Rau sống', 'Vegetable', 'gram', 20, 2),
-    (N'Dưa leo', 'Vegetable', 'gram', 12, 2),
-
-    -- Nguyên liệu cho Cơm tấm sườn (FoodID = 3)
-    (N'Cơm tấm', 'Rice', 'gram', 344, 3),
-    (N'Sườn heo', 'Meat', 'gram', 260, 3),
-    (N'Nước mắm', 'Sauce', 'ml', 20, 3),
-    (N'Dưa leo', 'Vegetable', 'gram', 12, 3),
-    (N'Đồ chua', 'Vegetable', 'gram', 20, 3),
-
-    -- Nguyên liệu cho Bún chả (FoodID = 4)
-    (N'Bún', 'Noodle', 'gram', 110, 4),
-    (N'Thịt heo nướng', 'Meat', 'gram', 260, 4),
-    (N'Nước mắm', 'Sauce', 'ml', 20, 4),
-    (N'Rau sống', 'Vegetable', 'gram', 20, 4),
-    (N'Đồ chua', 'Vegetable', 'gram', 20, 4),
-
-    -- Nguyên liệu cho Gỏi cuốn (FoodID = 5)
-    (N'Bánh tráng', 'Wrapper', 'gram', 333, 5),
-    (N'Tôm', 'Seafood', 'gram', 82, 5),
-    (N'Thịt heo', 'Meat', 'gram', 260, 5),
-    (N'Rau sống', 'Vegetable', 'gram', 20, 5),
-    (N'Bún', 'Noodle', 'gram', 110, 5),
-
-    -- Nguyên liệu cho Bánh xèo (FoodID = 6)
-    (N'Bột gạo', 'Flour', 'gram', 359, 6),
-    (N'Tôm', 'Seafood', 'gram', 82, 6),
-    (N'Thịt heo', 'Meat', 'gram', 260, 6),
-    (N'Giá đỗ', 'Vegetable', 'gram', 44, 6),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 6),
-
-    -- Nguyên liệu cho Chả giò (FoodID = 7)
-    (N'Bánh tráng', 'Wrapper', 'gram', 333, 7),
-    (N'Thịt heo', 'Meat', 'gram', 260, 7),
-    (N'Tôm', 'Seafood', 'gram', 82, 7),
-    (N'Cà rốt', 'Vegetable', 'gram', 39, 7),
-    (N'Nấm mèo', 'Vegetable', 'gram', 304, 7),
-
-    -- Nguyên liệu cho Canh chua cá lóc (FoodID = 8)
-    (N'Cá lóc', 'Fish', 'gram', 97, 8),
-    (N'Cà chua', 'Vegetable', 'gram', 20, 8),
-    (N'Dứa', 'Fruit', 'gram', 50, 8),
-    (N'Giá đỗ', 'Vegetable', 'gram', 44, 8),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 8),
-
-    -- Nguyên liệu cho Bún riêu (FoodID = 9)
-    (N'Bún', 'Noodle', 'gram', 110, 9),
-    (N'Cua đồng', 'Seafood', 'gram', 87, 9),
-    (N'Cà chua', 'Vegetable', 'gram', 20, 9),
-    (N'Đậu hũ', 'Legume', 'gram', 95, 9),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 9),
-
-    -- Nguyên liệu cho Cá kho tộ (FoodID = 10)
-    (N'Cá trê', 'Fish', 'gram', 173, 10),
-    (N'Nước mắm', 'Sauce', 'ml', 20, 10),
-    (N'Đường', 'Sweetener', 'gram', 397, 10),
-    (N'Hành tím', 'Vegetable', 'gram', 118, 10),
-    (N'Ớt', 'Spice', 'gram', 10, 10),
-
-    -- Nguyên liệu cho Bánh cuốn (FoodID = 11)
-    (N'Bột gạo', 'Flour', 'gram', 359, 11),
-    (N'Thịt heo', 'Meat', 'gram', 260, 11),
-    (N'Hành khô', 'Vegetable', 'gram', 118, 11),
-    (N'Nấm mèo', 'Vegetable', 'gram', 304, 11),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 11),
-
-    -- Nguyên liệu cho Chè đậu đen (FoodID = 12)
-    (N'Đậu đen', 'Legume', 'gram', 325, 12),
-    (N'Đường', 'Sweetener', 'gram', 397, 12),
-    (N'Nước cốt dừa', 'Dairy', 'ml', 336, 12),
-    (N'Gừng', 'Spice', 'gram', 10, 12),
-
-    -- Nguyên liệu cho Bánh bèo (FoodID = 13)
-    (N'Bột gạo', 'Flour', 'gram', 359, 13),
-    (N'Tôm', 'Seafood', 'gram', 82, 13),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 13),
-    (N'Nước mắm', 'Sauce', 'ml', 20, 13),
-
-    -- Nguyên liệu cho Bánh ướt (FoodID = 14)
-    (N'Bột gạo', 'Flour', 'gram', 359, 14),
-    (N'Thịt heo', 'Meat', 'gram', 260, 14),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 14),
-    (N'Nước mắm', 'Sauce', 'ml', 20, 14),
-
-    -- Nguyên liệu cho Bánh canh cua (FoodID = 15)
-    (N'Bánh canh', 'Noodle', 'gram', 110, 15),
-    (N'Cua đồng', 'Seafood', 'gram', 87, 15),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 15),
-    (N'Nước mắm', 'Sauce', 'ml', 20, 15),
-
-    -- Nguyên liệu cho Bánh tét (FoodID = 16)
-    (N'Gạo nếp', 'Rice', 'gram', 346, 16),
-    (N'Đậu xanh', 'Legume', 'gram', 328, 16),
-    (N'Thịt heo', 'Meat', 'gram', 260, 16),
-    (N'Lá chuối', 'Wrapper', 'gram', 10, 16),
-
-    -- Nguyên liệu cho Bánh chưng (FoodID = 17)
-    (N'Gạo nếp', 'Rice', 'gram', 346, 17),
-    (N'Đậu xanh', 'Legume', 'gram', 328, 17),
-    (N'Thịt heo', 'Meat', 'gram', 260, 17),
-    (N'Lá dong', 'Wrapper', 'gram', 10, 17),
-
-    -- Nguyên liệu cho Bánh đúc (FoodID = 18)
-    (N'Bột gạo', 'Flour', 'gram', 359, 18),
-    (N'Nước cốt dừa', 'Dairy', 'ml', 336, 18),
-    (N'Đường', 'Sweetener', 'gram', 397, 18),
-
-    -- Nguyên liệu cho Bánh khọt (FoodID = 19)
-    (N'Bột gạo', 'Flour', 'gram', 359, 19),
-    (N'Tôm', 'Seafood', 'gram', 82, 19),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 19),
-    (N'Nước mắm', 'Sauce', 'ml', 20, 19),
-
-    -- Nguyên liệu cho Bánh tráng trộn (FoodID = 20)
-    (N'Bánh tráng', 'Wrapper', 'gram', 333, 20),
-    (N'Trứng gà', 'Egg', 'gram', 166, 20),
-    (N'Hành lá', 'Vegetable', 'gram', 22, 20),
-    (N'Nước mắm', 'Sauce', 'ml', 20, 20),
-
-
-    -- Nguyên liệu cho Salad ức gà (FoodID = 21)
-    (N'Ức gà', 'Meat', 'gram', 165, 21),
-    (N'Rau xà lách', 'Vegetable', 'gram', 14, 21),
-    (N'Dầu oliu', 'Oil', 'ml', 119, 21),
-    (N'Sốt chanh leo', 'Sauce', 'ml', 40, 21),
-
-    -- Nguyên liệu cho Cháo yến mạch (FoodID = 22)
-    (N'Yến mạch', 'Grain', 'gram', 389, 22),
-    (N'Chuối', 'Fruit', 'gram', 89, 22),
-    (N'Hạt chia', 'Seed', 'gram', 486, 22),
-    (N'Sữa hạnh nhân', 'Dairy', 'ml', 17, 22),
-
-    -- Nguyên liệu cho Smoothie bơ chuối (FoodID = 23)
-    (N'Bơ', 'Fruit', 'gram', 160, 23),
-    (N'Chuối', 'Fruit', 'gram', 89, 23),
-    (N'Sữa hạnh nhân', 'Dairy', 'ml', 17, 23),
-    (N'Mật ong', 'Sweetener', 'ml', 64, 23),
-
-    -- Nguyên liệu cho Cá hồi áp chảo (FoodID = 24)
-    (N'Cá hồi', 'Fish', 'gram', 208, 24),
-    (N'Bông cải xanh', 'Vegetable', 'gram', 55, 24),
-    (N'Dầu oliu', 'Oil', 'ml', 119, 24),
-
-    -- Nguyên liệu cho Súp lơ hấp (FoodID = 25)
-    (N'Súp lơ xanh', 'Vegetable', 'gram', 55, 25),
-    (N'Dầu oliu', 'Oil', 'ml', 119, 25),
-    (N'Hạt lanh', 'Seed', 'gram', 534, 25),
-
-    -- Nguyên liệu cho Bánh pancake chuối yến mạch (FoodID = 26)
-    (N'Chuối', 'Fruit', 'gram', 89, 26),
-    (N'Yến mạch', 'Grain', 'gram', 389, 26),
-    (N'Trứng gà', 'Egg', 'quả', 155, 26),
-    (N'Mật ong', 'Sweetener', 'ml', 64, 26),
-
-    -- Nguyên liệu cho Trà gừng mật ong (FoodID = 27)
-    (N'Gừng', 'Spice', 'gram', 80, 27),
-    (N'Nước sôi', 'Liquid', 'ml', 0, 27),
-    (N'Mật ong', 'Sweetener', 'ml', 64, 27),
-
-    -- Nguyên liệu cho Xôi gạo lứt (FoodID = 28)
-    (N'Gạo lứt', 'Grain', 'gram', 370, 28),
-    (N'Đậu phộng', 'Legume', 'gram', 567, 28),
-    (N'Mè đen', 'Seed', 'gram', 573, 28),
-
-    -- Nguyên liệu cho Súp bí đỏ (FoodID = 29)
-    (N'Bí đỏ', 'Vegetable', 'gram', 26, 29),
-    (N'Sữa hạnh nhân', 'Dairy', 'ml', 17, 29),
-    (N'Mật ong', 'Sweetener', 'ml', 64, 29),
-
-    -- Nguyên liệu cho Salad cá ngừ (FoodID = 30)
-    (N'Cá ngừ', 'Fish', 'gram', 144, 30),
-    (N'Rau xà lách', 'Vegetable', 'gram', 14, 30),
-    (N'Dầu oliu', 'Oil', 'ml', 119, 30),
-    (N'Sốt dầu giấm', 'Sauce', 'ml', 45, 30);
-
--- Insert data into FoodAllergy table based on ingredients and common allergies
+-- Insert data into FoodAllergy table based on common allergies
 INSERT INTO FoodAllergy (FoodID, AllergyID) VALUES
 -- Phở bò (1) - Contains beef
 (1, 2), -- seafood allergy (some broths may contain seafood)

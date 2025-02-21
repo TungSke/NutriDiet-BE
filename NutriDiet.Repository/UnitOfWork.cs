@@ -14,7 +14,6 @@ namespace NutriDiet.Repository
         private IGeneralHealthProfileRepository _healthProfileRepository;
         private IMealPlanRepository _mealPlanRepository;
         private IMealPlanDetailRepository _mealPlanDetailRepository;
-        private IIngredientRepository _ingredientRepository;
         private IAllergyRepository _allergyRepository;
         private IDiseaseRepository _diseaseRepository;
         private IRecipeSuggestionRepository _recipeSuggestionRepository;
@@ -32,7 +31,6 @@ namespace NutriDiet.Repository
         public IGeneralHealthProfileRepository HealthProfileRepository => _healthProfileRepository ??= new GeneralHealthProfileRepository(_context);
         public IMealPlanRepository MealPlanRepository => _mealPlanRepository ??= new MealPlanRepository(_context);
         public IMealPlanDetailRepository MealPlanDetailRepository => _mealPlanDetailRepository ??= new MealPlanDetailRepository(_context);
-        public IIngredientRepository IngredientRepository => _ingredientRepository ??= new IncredientRepository(_context);
         public IAllergyRepository AllergyRepository => _allergyRepository ??= new AllergyRepository(_context);
         public IDiseaseRepository DiseaseRepository => _diseaseRepository ??= new DiseaseRepository(_context);
         public IRecipeSuggestionRepository RecipeSuggestionRepository => _recipeSuggestionRepository ??= new RecipeSuggestionRepository(_context);

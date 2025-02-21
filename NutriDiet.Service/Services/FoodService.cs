@@ -62,7 +62,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetFoodById(int foodId)
         {
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
             if (food == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -239,7 +239,7 @@ namespace NutriDiet.Service.Services
             var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).FirstOrDefaultAsync();
             var cuisineType = await _unitOfWork.CuisineRepository.GetByIdAsync(cuisineId);
 
             if (food == null || cuisineType == null)
@@ -247,12 +247,9 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"{(food == null ? "food" : "cuisine")} not found");
             }
 
-            var foodIngredient = food.Ingredients.Select(x => x.IngredientName);
-            var formatIngredient = foodIngredient.Any() ? string.Join(", ", foodIngredient) : "không có";
-
             var input = $"Tôi có các bệnh này: {formattedDiseases} \n" +
                          $"và dị ứng này: {formattedAllergies} \n" +
-                         $"Hãy gợi ý cho tôi công thức để nấu món {food.FoodName} với những nguyên liệu {formatIngredient}, nấu theo phong cách {cuisineType.CuisineName}.\n" +
+                         $"Hãy gợi ý cho tôi công thức để nấu món {food.FoodName}, nấu theo phong cách {cuisineType.CuisineName}.\n" +
                          $"Trả lời dưới dạng như này: Công thức của bạn là...";
 
             var airesponse = await _aIGeneratorService.AIResponseText(input);
