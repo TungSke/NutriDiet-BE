@@ -20,6 +20,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Net.Http;
 using CloudinaryDotNet;
+using System.Runtime.CompilerServices;
 
 namespace NutriDiet.Service.Services
 {
@@ -290,7 +291,8 @@ namespace NutriDiet.Service.Services
                 x => (string.IsNullOrEmpty(status) || x.Status.ToLower() == status.ToLower()) &&
                       (string.IsNullOrEmpty(search) || x.FullName.ToLower().Contains(search) 
                                                    || x.Email.ToLower().Contains(search)
-                                                   || x.Phone.ToLower().Contains(search))
+                                                   || x.Phone.ToLower().Contains(search)) &&
+                                                   x.RoleId != 1
             );
 
             if (users == null || !users.Any())
@@ -300,6 +302,16 @@ namespace NutriDiet.Service.Services
 
             var response = users.Adapt<List<UserResponse>>();
 
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+        public async Task<IBusinessResult> GetUserById(int id)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if(user == null || user.RoleId == 1)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+            var response = user.Adapt<UserResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
     }
