@@ -1,4 +1,4 @@
-﻿﻿USE NutriDiet;
+﻿USE NutriDiet
 GO
 
 -- Tắt ràng buộc khóa ngoại tạm thời

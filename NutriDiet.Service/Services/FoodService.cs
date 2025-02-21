@@ -2,6 +2,7 @@
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
@@ -84,18 +85,42 @@ namespace NutriDiet.Service.Services
 
             var food = request.Adapt<Food>();
 
-            foreach (var allergyId in request.AllergyId)
+            var validAllergyIds = await _unitOfWork.AllergyRepository
+                .GetByWhere(a => request.AllergyId.Contains(a.AllergyId)).AsNoTracking()
+                .Select(a => a.AllergyId)
+                .ToListAsync();
+
+            var validDiseaseIds = await _unitOfWork.DiseaseRepository
+                .GetByWhere(d => request.DiseaseId.Contains(d.DiseaseId)).AsNoTracking()
+                .Select(d => d.DiseaseId)
+                .ToListAsync();
+
+            if (validAllergyIds == null || validDiseaseIds == null)
+            {
+                string missingItems = (validAllergyIds == null ? "Allergy" : "") +
+                                      (validDiseaseIds == null ? (validAllergyIds == null ? " & " : "") + "Disease" : "");
+
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"{missingItems} not found");
+            }
+
+            foreach (var allergyId in validAllergyIds)
             {
                 var allergy = new Allergy { AllergyId = allergyId };
                 await _unitOfWork.AllergyRepository.Attach(allergy);
                 food.Allergies.Add(allergy);
             }
 
-            foreach (var diseaseId in request.DiseaseId)
+            foreach (var diseaseId in validDiseaseIds)
             {
                 var disease = new Disease { DiseaseId = diseaseId };
                 await _unitOfWork.DiseaseRepository.Attach(disease);
                 food.Diseases.Add(disease);
+            }
+
+            if (request.FoodImageUrl != null)
+            {
+                var cloudinaryHelper = new CloudinaryHelper();
+                food.ImageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
             }
 
             await _unitOfWork.FoodRepository.AddAsync(food);
@@ -106,26 +131,45 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> UpdateFood(UpdateFoodRequest request)
         {
-            var food = await _unitOfWork.FoodRepository.GetByIdAsync(request.FoodId);
-            if (food == null)
+            var existedFood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == request.FoodId).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
+            if (existedFood == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
             }
 
-            request.Adapt(food);
+            request.Adapt(existedFood);
+
+            var validAllergies = await _unitOfWork.AllergyRepository
+            .GetByWhere(a => request.AllergyId.Contains(a.AllergyId))
+            .ToListAsync();
+
+            var validDiseases = await _unitOfWork.DiseaseRepository
+                .GetByWhere(d => request.DiseaseId.Contains(d.DiseaseId))
+                .ToListAsync();
+
+            if (!validAllergies.Any() || !validDiseases.Any())
+            {
+                var missingItems = new List<string>();
+                if (!validAllergies.Any()) missingItems.Add("Allergy");
+                if (!validDiseases.Any()) missingItems.Add("Disease");
+
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"{string.Join(" & ", missingItems)} not found");
+            }
+
+            existedFood.Allergies = validAllergies;
+            existedFood.Diseases = validDiseases;
 
             if (request.FoodImageUrl != null)
             {
                 var cloudinaryHelper = new CloudinaryHelper();
-                var imageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
-                food.ImageUrl = imageUrl;
+                existedFood.ImageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl) ;
             }
 
-            await _unitOfWork.FoodRepository.UpdateAsync(food);
+            await _unitOfWork.FoodRepository.UpdateAsync(existedFood);
             await _unitOfWork.SaveChangesAsync();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
-        }   
+        }
 
         public async Task<IBusinessResult> DeleteFood(int foodId)
         {
@@ -163,7 +207,7 @@ namespace NutriDiet.Service.Services
             var foods = await _unitOfWork.FoodRepository
             .GetByWhere(x =>
             !x.Allergies.Any(a => allergyIds.Contains(a.AllergyId)) &&
-            !x.Diseases.Any(d => diseaseIds.Contains(d.DiseaseId)) && 
+            !x.Diseases.Any(d => diseaseIds.Contains(d.DiseaseId)) &&
              x.FoodName.ToLower().Contains(searchName.ToLower()))
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)

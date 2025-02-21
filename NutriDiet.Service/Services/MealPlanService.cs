@@ -71,8 +71,7 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND,"User is not found");
             }
             var mealPlan = new MealPlan
-            {
-                
+            {                
                 PlanName = mealPlanRequest.PlanName,
                 HealthGoal = mealPlanRequest.HealthGoal,
                 Status = "Chưa sử dụng",
@@ -237,7 +236,7 @@ namespace NutriDiet.Service.Services
                 }
                 await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(mealPlanDetail);
                 await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.CommitTransaction();
+                await _unitOfWork.CommitTransaction();
                 return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
             }catch (Exception ex)
             {
@@ -344,7 +343,7 @@ namespace NutriDiet.Service.Services
                             TotalFat = fatByDay[detail.DayNumber],
                             TotalProtein = proteinByDay[detail.DayNumber]
                         };
-                        _unitOfWork.MealPlanDetailRepository.AddAsync(newDetail);
+                        await _unitOfWork.MealPlanDetailRepository.AddAsync(newDetail);
                     }
                 }
 
@@ -377,7 +376,7 @@ namespace NutriDiet.Service.Services
 
                 await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
                 await _unitOfWork.SaveChangesAsync();
-                _unitOfWork.CommitTransaction();
+                await _unitOfWork.CommitTransaction();
 
                 return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
             }

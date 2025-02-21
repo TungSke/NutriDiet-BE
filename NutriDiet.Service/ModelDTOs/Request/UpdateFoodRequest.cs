@@ -5,7 +5,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
     public class UpdateFoodRequest
     {
         public int FoodId { get; set; }
-        public string? FoodName { get; set; }
+        public required string FoodName { get; set; }
         public string? MealType { get; set; }
         public IFormFile? FoodImageUrl { get; set; }
         public string? FoodType { get; set; }
@@ -18,5 +18,9 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public double? Glucid { get; set; }
         public double? Fiber { get; set; }
         public string? Others { get; set; }
+
+        public required IEnumerable<int> AllergyId { get; set; }
+
+        public required IEnumerable<int> DiseaseId { get; set; }
     }
 }

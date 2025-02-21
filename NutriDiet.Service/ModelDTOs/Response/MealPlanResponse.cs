@@ -9,6 +9,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
     public class MealPlanResponse
     {
         public int MealPlanId { get; set; }
+
         public string PlanName { get; set; } = null!;
 
         public string? HealthGoal { get; set; }
