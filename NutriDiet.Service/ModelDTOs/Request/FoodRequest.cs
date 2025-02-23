@@ -30,8 +30,8 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public string? Others { get; set; }
 
-        public required IEnumerable<int> AllergyId { get; set; }
+        public IEnumerable<int> AllergyId { get; set; }
 
-        public required IEnumerable<int> DiseaseId { get; set; }
+        public IEnumerable<int> DiseaseId { get; set; }
     }
 }

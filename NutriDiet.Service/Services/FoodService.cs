@@ -239,7 +239,7 @@ namespace NutriDiet.Service.Services
             var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
             var cuisineType = await _unitOfWork.CuisineRepository.GetByIdAsync(cuisineId);
 
             if (food == null || cuisineType == null)
