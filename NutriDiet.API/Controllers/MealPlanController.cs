@@ -25,10 +25,10 @@ namespace NutriDiet.API.Controllers
             return Ok(mealPlans);
         }
 
-        [HttpGet("{mealplanId}")]
-        public async Task<IActionResult> GetMealPlanByID(int mealplanId)
+        [HttpGet("{mealPlanId}")]
+        public async Task<IActionResult> GetMealPlanByID(int mealPlanId)
         {
-            var mealPlan = await _mealPlanService.GetMealPlanByID(mealplanId);
+            var mealPlan = await _mealPlanService.GetMealPlanByID(mealPlanId);
             return Ok(mealPlan);
         }
 
