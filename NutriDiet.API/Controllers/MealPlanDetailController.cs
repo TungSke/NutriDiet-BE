@@ -25,16 +25,16 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMealPlan(int mealplanId, [FromBody] List<MealPlanDetailRequest> mealPlanDetailRequest)
+        public async Task<IActionResult> CreateMealPlanDetail(int mealPlanId, [FromBody] List<MealPlanDetailRequest> mealPlanDetailRequest)
         {
-            var mealPlan = await _mealPlanDetailService.CreateMealPlanDetail(mealplanId, mealPlanDetailRequest);
+            var mealPlan = await _mealPlanDetailService.CreateMealPlanDetail(mealPlanId, mealPlanDetailRequest);
             return Ok("Tạo thực đơn thành công");
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteMealPlanDetail(int mealplandetailId)
+        [HttpDelete("{mealPlanDetailId}")]
+        public async Task<IActionResult> DeleteMealPlanDetail(int mealPlanDetailId)
         {
-            await _mealPlanDetailService.DeleteMealPlanDetail(mealplandetailId);
+            await _mealPlanDetailService.DeleteMealPlanDetail(mealPlanDetailId);
             return Ok("Xóa thành công");
         }
 
