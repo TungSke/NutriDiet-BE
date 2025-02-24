@@ -25,5 +25,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> ResetPassword(ResetPasswordRequest request);
         Task<IBusinessResult> SearchUser(int pageIndex, int pageSize, string status, string search);
         Task<IBusinessResult> GetUserById(int id);
+
+        Task<IBusinessResult> RefreshToken(RefreshTokenRequest request);
     }
 }

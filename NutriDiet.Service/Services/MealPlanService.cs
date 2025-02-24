@@ -414,8 +414,14 @@ namespace NutriDiet.Service.Services
             var allergyIds = new List<int>(userAllergyDisease.AllergyIds);
             var diseaseIds = new List<int>(userAllergyDisease.DiseaseIds);
 
+            var likedFoodIds = userInfo.UserFoodPreferences
+                            .Where(x => x.Preference.ToLower() == "like")
+                            .Select(x => x.FoodId)
+                            .ToList();
+
             var foods = await _unitOfWork.FoodRepository
             .GetByWhere(x =>
+            likedFoodIds.Contains(x.FoodId) && // Chỉ lấy món thích
             !x.Allergies.Any(a => allergyIds.Contains(a.AllergyId)) &&
             !x.Diseases.Any(d => diseaseIds.Contains(d.DiseaseId)))
             .ToListAsync();

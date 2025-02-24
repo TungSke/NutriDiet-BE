@@ -117,5 +117,12 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken(RefreshTokenRequest request)
+        {
+            var result = await _userService.RefreshToken(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }

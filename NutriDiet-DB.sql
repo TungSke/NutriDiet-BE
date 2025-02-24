@@ -32,8 +32,8 @@ CREATE TABLE [User] (
     fcmToken NVARCHAR(MAX) NULL,
     Status NVARCHAR(50) CHECK (Status IN ('Active', 'Inactive')) DEFAULT 'Active',
     RoleID INT NOT NULL,
-    AccessToken NVARCHAR(MAX) NULL,
     RefreshToken NVARCHAR(MAX) NULL,
+	RefreshTokenExpiryTime DATETIME NULL,
     FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
 );
 -- Bảng Package

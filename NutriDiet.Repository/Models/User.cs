@@ -29,9 +29,9 @@ public partial class User
 
     public int RoleId { get; set; }
 
-    public string? AccessToken { get; set; }
-
     public string? RefreshToken { get; set; }
+
+    public DateTime? RefreshTokenExpiryTime { get; set; }
 
     public virtual ICollection<Airecommendation> Airecommendations { get; set; } = new List<Airecommendation>();
 

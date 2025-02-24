@@ -18,9 +18,6 @@ using Google.Apis.Auth;
 using Azure.Core;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using System.Net.Http;
-using CloudinaryDotNet;
-using System.Runtime.CompilerServices;
 
 namespace NutriDiet.Service.Services
 {
@@ -105,7 +102,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Email not existed, please register first!");
             }
-            await _googleService.SendEmailWithOTP(request.Email,"Xác nhận lại OTP NutriDiet");
+            await _googleService.SendEmailWithOTP(request.Email, "Xác nhận lại OTP NutriDiet");
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
@@ -127,20 +124,28 @@ namespace NutriDiet.Service.Services
             }
 
             var result = _passwordHasher.VerifyHashedPassword(null, account.Password, request.Password);
+            if (result != PasswordVerificationResult.Success)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Email or password is incorrect");
+            }
 
-            if (result == PasswordVerificationResult.Success)
+            var accessToken = await _tokenHandler.GenerateJwtToken(account);
+            var refreshToken = await _tokenHandler.GenerateRefreshToken();
+
+            account.RefreshToken = refreshToken;
+            account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            await _unitOfWork.UserRepository.UpdateAsync(account);
+            await _unitOfWork.SaveChangesAsync();
+
+            var res = new LoginResponse
             {
-                var res = new LoginResponse
-                {
-                    Role = account.Role.RoleName,
-                    Token = _tokenHandler.GenerateJwtToken(account).Result
-                };
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
-            }
-            else
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Password is incorrect");
-            }
+                Role = account.Role.RoleName,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
+
         }
 
         public async Task<IBusinessResult> LoginWithGoogle(string idToken)
@@ -152,41 +157,50 @@ namespace NutriDiet.Service.Services
             }
             catch (Exception)
             {
-                throw new Exception("Invalid Google token.");
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid Google token.");
             }
 
             var account = await findUserByEmail(payload.Email);
-            
+
             if (account == null)
             {
                 account = new User
                 {
                     FullName = payload.Name ?? "User",
                     Email = payload.Email,
-                    Password = HashPassword("12345"),
+                    Password = HashPassword("tungdeptrai123142"),
                     Avatar = payload.Picture,
                     Status = "ACTIVE",
                     RoleId = (int)RoleEnum.Customer
                 };
+
                 await _unitOfWork.UserRepository.AddAsync(account);
                 await _unitOfWork.SaveChangesAsync();
-
-                //get again
-                account = await findUserByEmail(payload.Email);
-                var res = new LoginResponse
-                {
-                    Role = account.Role.RoleName,
-                    Token = _tokenHandler.GenerateJwtToken(account).Result
-                };
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
             }
             else if (account.Status == "INACTIVE")
             {
-                throw new Exception("Account is deleted, please contact admin to restore");
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Account is inactive, please contact support.");
             }
 
-            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, Const.FAIL_READ_MSG);
+            var accessToken = await _tokenHandler.GenerateJwtToken(account);
+            var refreshToken = await _tokenHandler.GenerateRefreshToken();
+
+            account.RefreshToken = refreshToken;
+            account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            await _unitOfWork.UserRepository.UpdateAsync(account);
+            await _unitOfWork.SaveChangesAsync();
+
+            var response = new LoginResponse
+            {
+                Role = account.Role.RoleName,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Login successful", response);
         }
+
 
         public async Task<IBusinessResult> LoginWithFacebook(string accessToken)
         {
@@ -226,12 +240,20 @@ namespace NutriDiet.Service.Services
                     await _unitOfWork.UserRepository.AddAsync(account);
                     await _unitOfWork.SaveChangesAsync();
 
-                    //get again
                     account = await findUserByEmail(email);
+
+                    var accessTokenRes = await _tokenHandler.GenerateJwtToken(account);
+                    var refreshToken = await _tokenHandler.GenerateRefreshToken();
+
+                    account.RefreshToken = refreshToken;
+                    await _unitOfWork.UserRepository.UpdateAsync(account);
+                    await _unitOfWork.SaveChangesAsync();
+
                     var res = new LoginResponse
                     {
                         Role = account.Role.RoleName,
-                        Token = _tokenHandler.GenerateJwtToken(account).Result
+                        AccessToken = accessTokenRes,
+                        RefreshToken = refreshToken
                     };
                     return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
                 }
@@ -244,7 +266,7 @@ namespace NutriDiet.Service.Services
             }
             catch (Exception ex)
             {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST,ex.Message);
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, ex.Message);
             }
         }
 
@@ -289,7 +311,7 @@ namespace NutriDiet.Service.Services
                 pageIndex,
                 pageSize,
                 x => (string.IsNullOrEmpty(status) || x.Status.ToLower() == status.ToLower()) &&
-                      (string.IsNullOrEmpty(search) || x.FullName.ToLower().Contains(search) 
+                      (string.IsNullOrEmpty(search) || x.FullName.ToLower().Contains(search)
                                                    || x.Email.ToLower().Contains(search)
                                                    || x.Phone.ToLower().Contains(search)) &&
                                                    x.RoleId != 1
@@ -307,12 +329,51 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> GetUserById(int id)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            if(user == null || user.RoleId == 1)
+            if (user == null || user.RoleId == 1)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }
             var response = user.Adapt<UserResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+
+        public async Task<IBusinessResult> RefreshToken(RefreshTokenRequest request)
+        {
+            var user = await _unitOfWork.UserRepository.GetByWhere(x => x.RefreshToken.Equals(request.RefreshToken)).Include(x => x.Role).FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Refresh token is invalid");
+            }
+            if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                user.RefreshToken = null;
+                user.RefreshTokenExpiryTime = null;
+                await _unitOfWork.UserRepository.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+
+                return new BusinessResult(Const.HTTP_STATUS_UNAUTHORIZED, "Refresh token is expired, please login again");
+            }
+            
+            var newAccessToken = await _tokenHandler.GenerateJwtToken(user);
+            var newRefreshToken = await _tokenHandler.GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            var response = new LoginResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                Role = user.Role.RoleName
+            };
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Refresh token success", response);
+        }
+
+
     }
 }
