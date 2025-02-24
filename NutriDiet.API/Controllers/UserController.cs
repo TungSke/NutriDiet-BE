@@ -24,6 +24,7 @@ namespace NutriDiet.API.Controllers
             _userService = userService;
         }
         [HttpGet()]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll(int pageIndex, int pageSize, string? status, string? search)
         {
             var user = await _userService.SearchUser(pageIndex, pageSize, status, search);
@@ -31,6 +32,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet("{userId}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUserById(int userId)
         {
             var user = await _userService.GetUserById(userId);
