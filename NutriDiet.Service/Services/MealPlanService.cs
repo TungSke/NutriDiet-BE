@@ -392,10 +392,44 @@ namespace NutriDiet.Service.Services
         {
             //var userid = int.Parse(_userIdClaim);
             var userid = int.Parse("1");
-            var user = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid).Include(x => x.Allergies).FirstOrDefaultAsync();
+
+            var userInfo = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid)
+                                                       .Include(x => x.GeneralHealthProfiles)
+                                                       .Include(x => x.HealthcareIndicators)
+                                                       .Include(x => x.PersonalGoals)
+                                                       .Include(x => x.UserFoodPreferences)
+                                                       .FirstOrDefaultAsync();
+
+            var userAllergyDisease = new
+            {
+                AllergyIds = userInfo.Allergies?.Select(a => a.AllergyId).ToList() ?? new List<int>(),
+                DiseaseIds = userInfo.Diseases?.Select(d => d.DiseaseId).ToList() ?? new List<int>()
+            };
+
+            if (userAllergyDisease == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
+
+            var allergyIds = new List<int>(userAllergyDisease.AllergyIds);
+            var diseaseIds = new List<int>(userAllergyDisease.DiseaseIds);
+
+            var foods = await _unitOfWork.FoodRepository
+            .GetByWhere(x =>
+            !x.Allergies.Any(a => allergyIds.Contains(a.AllergyId)) &&
+            !x.Diseases.Any(d => diseaseIds.Contains(d.DiseaseId)))
+            .ToListAsync();
+
+            var foodResponse = foods.Adapt<List<FoodResponse>>();
+
+            var input = "Tôi cần một kế hoạch bữa ăn cá nhân hóa theo các thông tin sau: \n" +
+                $"- **Người dùng**: {userInfo.Gender}, {userInfo.Age} tuổi, cao {userInfo.GeneralHealthProfiles.Select(x => x.Height).FirstOrDefault()}cm, nặng {userInfo.GeneralHealthProfiles.Select(x => x.Weight).FirstOrDefault()}kg \n" +
+                $"- **Mục tiêu**: {userInfo.PersonalGoals.Select(x => x.GoalType).FirstOrDefault()} ({userInfo.PersonalGoals.Select(x => x.GoalType).FirstOrDefault()} từ {userInfo.PersonalGoals.Select(x => x.StartDate).FirstOrDefault()} đền {userInfo.PersonalGoals.Select(x => x.TargetDate).FirstOrDefault()}) \n" +
+                $"- **Mức độ vận động**: {userInfo.GeneralHealthProfiles.Select(x => x.ActivityLevel).FirstOrDefault()} \n"  
+                ;
 
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, user);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, input);
         }
     }
 }

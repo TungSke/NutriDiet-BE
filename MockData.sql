@@ -79,11 +79,31 @@ INSERT INTO Role (RoleID, RoleName) VALUES
 
 SET IDENTITY_INSERT [dbo].[User] ON 
 GO
-INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], [Gender], [Location], [Avatar], [fcmToken], [Status], [RoleID]) VALUES (1, N'New User', N'user@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, NULL, NULL, NULL, N'', NULL, N'Active', 2)
+INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], [Gender], [Location], [Avatar], [fcmToken], [Status], [RoleID]) VALUES (1, N'New User', N'user@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '21', 'Male', 'VietNam', N'', NULL, N'Active', 2)
 INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], [Gender], [Location], [Avatar], [fcmToken], [Status], [RoleID]) VALUES (2, N'Admin', N'admin@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, NULL, NULL, NULL, N'', NULL, N'Active', 1)
 GO
 SET IDENTITY_INSERT [dbo].[User] OFF
 GO
+
+-- Bật IDENTITY_INSERT cho GeneralHealthProfile
+SET IDENTITY_INSERT [dbo].[GeneralHealthProfile] ON;
+
+INSERT INTO [dbo].[GeneralHealthProfile] ([ProfileID], [UserID], [Height], [Weight], [ActivityLevel], HealthGoal, [Status], [CreatedAt], [UpdatedAt])  
+VALUES (1, 1, 170, 70, 'ModeratelyActive', 'LoseWeight', 'Active', GETDATE(), GETDATE());
+
+-- Tắt IDENTITY_INSERT
+SET IDENTITY_INSERT [dbo].[GeneralHealthProfile] OFF;
+
+
+-- Bật IDENTITY_INSERT cho PersonalGoal
+SET IDENTITY_INSERT [dbo].[PersonalGoal] ON;
+
+INSERT INTO [dbo].[PersonalGoal] 
+    ([GoalID], [UserID], [GoalType], [TargetWeight], [StartDate], [TargetDate], [ProgressRate], [Status], 
+	[DailyCalories], [DailyCarb], [DailyFat], [DailyProtein], [CreatedAt], [UpdatedAt], GoalDescription)  
+VALUES 
+    (1, 1, 'LoseWeight', 65, GETDATE(), DATEADD(MONTH, 3, GETDATE()), 0, 'Active', 1800, 150, 50, 120, GETDATE(), GETDATE(), 'LoseWeight in 3 months');
+SET IDENTITY_INSERT [dbo].[PersonalGoal] OFF;
 
 -- Bật IDENTITY_INSERT cho bảng Allergy
 SET IDENTITY_INSERT [dbo].[Allergy] ON;
