@@ -29,6 +29,10 @@ public partial class User
 
     public int RoleId { get; set; }
 
+    public string? AccessToken { get; set; }
+
+    public string? RefreshToken { get; set; }
+
     public virtual ICollection<Airecommendation> Airecommendations { get; set; } = new List<Airecommendation>();
 
     public virtual ICollection<FeedbackMealPlan> FeedbackMealPlans { get; set; } = new List<FeedbackMealPlan>();
