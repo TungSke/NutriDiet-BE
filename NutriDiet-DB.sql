@@ -32,9 +32,10 @@ CREATE TABLE [User] (
     fcmToken NVARCHAR(MAX) NULL,
     Status NVARCHAR(50) CHECK (Status IN ('Active', 'Inactive')) DEFAULT 'Active',
     RoleID INT NOT NULL,
+    AccessToken NVARCHAR(MAX) NULL,
+    RefreshToken NVARCHAR(MAX) NULL,
     FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
 );
-
 -- Bảng Package
 CREATE TABLE Package (
     PackageID INT IDENTITY(1,1) PRIMARY KEY,
@@ -245,9 +246,12 @@ CREATE TABLE AIRecommendation (
 CREATE TABLE MealLog (
     MealLogID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
-    MealType NVARCHAR(50), -- ví dụ: Bữa sáng, bữa trưa, bữa tối
+    MealType NVARCHAR(50),
     LogDate DATETIME DEFAULT GETDATE(),
     TotalCalories FLOAT CHECK (TotalCalories >= 0),
+    TotalProtein FLOAT CHECK (TotalProtein >= 0) DEFAULT 0,
+    TotalCarbs FLOAT CHECK (TotalCarbs >= 0) DEFAULT 0,
+    TotalFat FLOAT CHECK (TotalFat >= 0) DEFAULT 0,
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
@@ -258,6 +262,10 @@ CREATE TABLE MealLogDetail (
     FoodID INT NOT NULL,
     Quantity FLOAT CHECK (Quantity > 0),
     Calories FLOAT CHECK (Calories >= 0),
+    ServingSize NVARCHAR(50),
+    Protein FLOAT CHECK (Protein >= 0),
+    Carbs FLOAT CHECK (Carbs >= 0),
+    Fat FLOAT CHECK (Fat >= 0),
     FOREIGN KEY (MealLogID) REFERENCES MealLog(MealLogID) ON DELETE CASCADE,
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
 );
