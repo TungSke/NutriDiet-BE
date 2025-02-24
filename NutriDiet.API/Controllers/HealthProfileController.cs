@@ -43,10 +43,16 @@ namespace NutriDiet.API.Controllers
 
         [HttpGet("reports")]
         [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> Tracking()
+        public async Task<IActionResult> Tracking([FromQuery] string field)
         {
-            var result = await _healthprofileService.TrackingHealthProfile();
+            if (string.IsNullOrEmpty(field))
+            {
+                return BadRequest(new { message = "Field parameter is required." });
+            }
+
+            var result = await _healthprofileService.TrackingHealthProfile(field);
             return StatusCode(result.StatusCode, result);
         }
+
     }
 }

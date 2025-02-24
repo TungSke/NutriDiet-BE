@@ -13,6 +13,6 @@ namespace NutriDiet.Service.Interface
         Task CreateHealthProfileRecord(HealthProfileRequest request);
         Task<IBusinessResult> GetHealthProfile();
         Task<IBusinessResult> DeleteHealthProfile(int userId);
-        Task<IBusinessResult> TrackingHealthProfile();
+        Task<IBusinessResult> TrackingHealthProfile(string field);
     }
 }

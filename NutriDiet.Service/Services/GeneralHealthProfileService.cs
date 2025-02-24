@@ -226,53 +226,34 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
 
-        public async Task<IBusinessResult> TrackingHealthProfile()
+        public async Task<IBusinessResult> TrackingHealthProfile(string field)
         {
             var userId = int.Parse(_userIdClaim);
-
-            var existingUser = await _unitOfWork.UserRepository
-                .GetByWhere(u => u.UserId == userId)
-                .Include(u => u.Allergies)
-                .Include(u => u.Diseases)
-                .Include(u => u.HealthcareIndicators)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (existingUser == null)
-            {
-                throw new Exception("User does not exist.");
-            }
 
             var healthProfiles = await _unitOfWork.HealthProfileRepository
                 .GetByWhere(hp => hp.UserId == userId)
                 .OrderBy(hp => hp.CreatedAt)
+                .Select(hp => new
+                {
+                    hp.CreatedAt,
+                    Value = EF.Property<object>(hp, field)
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
             if (healthProfiles == null || !healthProfiles.Any())
             {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No health history found.");
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No health history found for the requested field.");
             }
 
-            List<HealthProfileResponse> responseList = new();
-
-            foreach (var healthProfile in healthProfiles)
+            var response = healthProfiles.Select(hp => new
             {
-                try
-                {
-                    var response = existingUser.Adapt<HealthProfileResponse>();
-                    healthProfile.Adapt(response);
-                    responseList.Add(response);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error mapping HealthProfile to HealthProfileResponse: " + ex.Message, ex);
-                }
-            }
+                Date = hp.CreatedAt,
+                Value = hp.Value
+            }).ToList();
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, responseList);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
-
 
     }
 }
