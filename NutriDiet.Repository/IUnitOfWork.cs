@@ -21,5 +21,6 @@ namespace NutriDiet.Repository.Interface
         IPersonalGoalRepository PersonalGoalRepository { get; }
         ICuisineRepository CuisineRepository { get; }
         IHealthcareIndicatorRepository HealthcareIndicatorRepository { get; }
+        IMealLogRepository MealLogRepository { get; }
     }
 }

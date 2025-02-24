@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NutriDiet.Common.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class PersonalGoalRequest
     {
-        public string GoalType { get; set; } = null!;
+        public GoalType GoalType { get; set; } 
         public double? TargetWeight { get; set; }
 
         public string GoalDescription { get; set; } = null!;

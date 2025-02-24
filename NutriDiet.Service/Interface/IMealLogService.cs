@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NutriDiet.Common.Enums
+namespace NutriDiet.Service.Interface
 {
-    public enum GoalType
+    public interface IMealLogService
     {
-        GainWeight,
-        LoseWeight,
-        Maintain
     }
 }

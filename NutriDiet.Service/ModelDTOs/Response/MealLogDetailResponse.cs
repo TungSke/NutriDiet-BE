@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NutriDiet.Common.Enums
+namespace NutriDiet.Service.ModelDTOs.Response
 {
-    public enum GoalType
+    public class MealLogDetailResponse
     {
-        GainWeight,
-        LoseWeight,
-        Maintain
     }
 }

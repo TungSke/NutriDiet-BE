@@ -34,7 +34,7 @@ namespace NutriDiet.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            //await _personalGoalService.CreatePersonalGoal(request);
+            await _personalGoalService.CreatePersonalGoal(request);
             return StatusCode(201); // HTTP 201 for resource creation
         }
 

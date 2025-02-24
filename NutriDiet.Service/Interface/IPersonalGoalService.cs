@@ -10,7 +10,7 @@ namespace NutriDiet.Service.Interface
 {
     public interface IPersonalGoalService
     {
-        //Task CreatePersonalGoal(PersonalGoalRequest request);
+        Task CreatePersonalGoal(PersonalGoalRequest request);
         Task<IBusinessResult> GetPersonalGoal();
         Task<IBusinessResult> UpdatePersonalGoal(PersonalGoalRequest request);
     }

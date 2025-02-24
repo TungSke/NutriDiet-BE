@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Common.Enums
 {
-    public enum GoalType
+    public enum MealType
     {
-        GainWeight,
-        LoseWeight,
-        Maintain
+        Breakfast,
+        Lunch,
+        Dinner,
+        Snack
     }
 }

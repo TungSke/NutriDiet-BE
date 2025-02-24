@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using NutriDiet.Common.Enums;
 
 namespace NutriDiet.Service.Services
 {
@@ -36,34 +37,52 @@ namespace NutriDiet.Service.Services
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
 
-        //public async Task CreatePersonalGoal(PersonalGoalRequest request)
-        //{
-        //    var userid = int.Parse(_userIdClaim);
-        //    var existingUser = await _unitOfWork.UserRepository
-        //        .GetByWhere(u => u.UserId == userid)
-        //        //.Include(u => u.HealthProfiles)
-        //        .AsNoTracking()
-        //        .FirstOrDefaultAsync();
+        public async Task CreatePersonalGoal(PersonalGoalRequest request)
+        {
+            var userid = int.Parse(_userIdClaim);
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userid)
+                .Include(u => u.GeneralHealthProfiles)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
-        //    if (existingUser == null)
-        //    {
-        //        throw new Exception("User not exist.");
-        //    }
-        //    var ProgressRate = Convert.ToInt32(existingUser.HealthProfiles
-        //                                .OrderBy(h => h.CreatedAt)
-        //                                .FirstOrDefault()?.Weight - existingUser.HealthProfiles
-        //                                .OrderBy(h => h.CreatedAt)
-        //                                .FirstOrDefault()?.TargetWeight ?? 0);
+            if (existingUser == null)
+            {
+                throw new Exception("User not exist.");
+            }
 
-        //    var personalGoal = request.Adapt<PersonalGoal>();
-        //    personalGoal.UserId = userid;
-        //    personalGoal.StartDate = DateTime.Now;
-        //    personalGoal.Status = "Active";
-        //    personalGoal.ProgressPercentage = 0;
-        //    personalGoal.ProgressRate = ProgressRate;
-        //    await _unitOfWork.PersonalGoalRepository.AddAsync(personalGoal);
-        //    await _unitOfWork.SaveChangesAsync();
-        //}
+            var latestProfile = existingUser.GeneralHealthProfiles
+                                            .OrderByDescending(h => h.CreatedAt)
+                                            .FirstOrDefault();
+
+            if (latestProfile == null)
+            {
+                throw new Exception("No health profile found.");
+            }
+
+            var currentWeight = latestProfile.Weight;
+            var ProgressRate = Convert.ToInt32(currentWeight - request.TargetWeight);
+            if (request.GoalType == GoalType.GainWeight && request.TargetWeight <= currentWeight)
+            {
+                throw new Exception("Mục tiêu cân nặng không phù hợp với mục tiêu tăng cân.");
+            }
+
+            if (request.GoalType == GoalType.LoseWeight && request.TargetWeight >= currentWeight)
+            {
+                throw new Exception("Mục tiêu cân nặng không phù hợp với mục tiêu giảm cân.");
+            }
+
+            var personalGoal = request.Adapt<PersonalGoal>();
+            personalGoal.UserId = userid;
+            personalGoal.StartDate = DateTime.Now;
+            personalGoal.Status = "Active";
+            personalGoal.ProgressPercentage = 0;
+            personalGoal.ProgressRate = ProgressRate;
+
+            await _unitOfWork.PersonalGoalRepository.AddAsync(personalGoal);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
 
 
         public async Task<IBusinessResult> GetPersonalGoal()
@@ -89,7 +108,6 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> UpdatePersonalGoal(PersonalGoalRequest request)
         {
             var userId = int.Parse(_userIdClaim);
-
             var existingGoal = await _unitOfWork.PersonalGoalRepository
                 .GetByWhere(pg => pg.UserId == userId)
                 .FirstOrDefaultAsync();
