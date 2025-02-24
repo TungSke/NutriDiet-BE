@@ -40,26 +40,26 @@ namespace NutriDiet.API.Controllers
             return Ok("Tạo thực đơn thành công");
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteMealPlan(int id)
+        [HttpDelete("{mealPlanId}")]
+        public async Task<IActionResult> DeleteMealPlan(int mealPlanId)
         {
-            await _mealPlanService.DeleteMealPlan(id);
+            await _mealPlanService.DeleteMealPlan(mealPlanId);
             return Ok("Xóa thành công");
         }
 
         [HttpPut()]
         [Authorize]
-        public async Task<IActionResult> UpdateMealPlan(int id, [Required] UpdateMealPlanRequest mealPlanRequest)
+        public async Task<IActionResult> UpdateMealPlan(int mealPlanId, [Required] UpdateMealPlanRequest mealPlanRequest)
         {
-            await _mealPlanService.UpdateMealPlan(id, mealPlanRequest);
+            await _mealPlanService.UpdateMealPlan(mealPlanId, mealPlanRequest);
             return Ok("Cập nhật thực đơn thành công");
         }
 
         [HttpPut("status")]
         [Authorize]
-        public async Task<IActionResult> ChangStatusMealPlan(int id,[Required] MealplanStatus status)
+        public async Task<IActionResult> ChangStatusMealPlan(int mealPlanId, [Required] MealplanStatus status)
         {
-            await _mealPlanService.ChangStatusMealPlan(id, status.ToString());
+            await _mealPlanService.ChangStatusMealPlan(mealPlanId, status.ToString());
             return Ok("Cập nhật trạng thái thành công");
         }
 
@@ -72,9 +72,9 @@ namespace NutriDiet.API.Controllers
 
         [HttpPost("clone")]
         [Authorize]
-        public async Task<IActionResult> CloneSampleMealPlan(int mealPlanID)
+        public async Task<IActionResult> CloneSampleMealPlan(int mealPlanId)
         {
-            var mealPlan = await _mealPlanService.CloneSampleMealPlan(mealPlanID);
+            var mealPlan = await _mealPlanService.CloneSampleMealPlan(mealPlanId);
             return Ok("Clone thực đơn thành công");
         }
 
