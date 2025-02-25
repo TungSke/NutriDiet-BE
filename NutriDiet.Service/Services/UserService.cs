@@ -207,10 +207,8 @@ namespace NutriDiet.Service.Services
             try
             {
                 // Kiểm tra token với Facebook
-                var urlConnect = $"https://graph.facebook.com/v21.0/me?fields=id,name,email&access_token={accessToken}";
-                var userAvatar = $"https://graph.facebook.com/v21.0/me/picture?type=large&access_token={accessToken}"; // Dùng link này là xem luôn dc avatar 
+                var urlConnect = $"https://graph.facebook.com/v21.0/me?fields=id,name,email,picture.width(200).height(200)&access_token={accessToken}";
                 var response = await _httpClient.GetAsync(urlConnect);
-                var response2 = await _httpClient.GetAsync(userAvatar);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -224,6 +222,7 @@ namespace NutriDiet.Service.Services
                 // Kiểm tra sự tồn tại của các trường trước khi truy cập
                 var name = userData?["name"]?.ToString();
                 var email = userData?["email"]?.ToString();
+                var userAvatar = userData["picture"]?["data"]?["url"]?.ToString();
 
                 var account = await findUserByEmail(email);
                 if (account == null)
@@ -256,13 +255,19 @@ namespace NutriDiet.Service.Services
                         RefreshToken = refreshToken
                     };
                     return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
-                }
-                else if (account.Status == "INACTIVE")
+                } else if (account.Status == "INACTIVE")
                 {
                     throw new Exception("Account is deleted, please contact admin to restore");
                 }
 
-                return null;
+                var responseSuccess = new LoginResponse
+                {
+                    Role = account.Role.RoleName,
+                    AccessToken = await _tokenHandler.GenerateJwtToken(account),
+                    RefreshToken = account.RefreshToken
+                };
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, responseSuccess);
             }
             catch (Exception ex)
             {
@@ -354,7 +359,7 @@ namespace NutriDiet.Service.Services
 
                 return new BusinessResult(Const.HTTP_STATUS_UNAUTHORIZED, "Refresh token is expired, please login again");
             }
-            
+
             var newAccessToken = await _tokenHandler.GenerateJwtToken(user);
             var newRefreshToken = await _tokenHandler.GenerateRefreshToken();
 
