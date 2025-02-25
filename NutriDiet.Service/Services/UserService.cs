@@ -207,7 +207,7 @@ namespace NutriDiet.Service.Services
             try
             {
                 // Kiểm tra token với Facebook
-                var urlConnect = $"https://graph.facebook.com/v21.0/me?fields=id,name,email,phone&access_token={accessToken}";
+                var urlConnect = $"https://graph.facebook.com/v21.0/me?fields=id,name,email&access_token={accessToken}";
                 var userAvatar = $"https://graph.facebook.com/v21.0/me/picture?type=large&access_token={accessToken}"; // Dùng link này là xem luôn dc avatar 
                 var response = await _httpClient.GetAsync(urlConnect);
                 var response2 = await _httpClient.GetAsync(userAvatar);
