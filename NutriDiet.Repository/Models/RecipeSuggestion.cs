@@ -19,6 +19,8 @@ public partial class RecipeSuggestion
 
     public string Aimodel { get; set; } = null!;
 
+    public string? RejectionReason { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public virtual CuisineType Cuisine { get; set; } = null!;

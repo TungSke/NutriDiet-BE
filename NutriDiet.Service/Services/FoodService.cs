@@ -233,6 +233,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
             }
+
             var allergyNames = userError?.AllergyNames ?? new List<string>();
             var diseaseNames = userError?.DiseaseNames ?? new List<string>();
 
@@ -247,15 +248,26 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"{(food == null ? "food" : "cuisine")} not found");
             }
 
-            var input = $"Tôi có các bệnh này: {formattedDiseases} \n" +
-                         $"và dị ứng này: {formattedAllergies} \n" +
-                         $"Hãy gợi ý cho tôi công thức để nấu món {food.FoodName}, nấu theo phong cách {cuisineType.CuisineName}.\n" +
-                         $"Trả lời dưới dạng như này: Công thức của bạn là...";
+            var existingRecipe = await _unitOfWork.RecipeSuggestionRepository
+                .GetByWhere(x => x.UserId == userid && x.FoodId == foodId)
+                .FirstOrDefaultAsync();
+
+            string rejectionReason = existingRecipe?.RejectionReason ?? "";
+
+            string input = $"Tôi có các bệnh này: {formattedDiseases} \n" +
+                           $"và dị ứng này: {formattedAllergies} \n" +
+                           $"Hãy gợi ý cho tôi công thức để nấu món {food.FoodName}, nấu theo phong cách {cuisineType.CuisineName}.\n";
+
+            if (!string.IsNullOrEmpty(rejectionReason))
+            {
+                input += $"Lưu ý: Trước đó tôi đã không thích một công thức vì lý do '{rejectionReason}', hãy điều chỉnh lại công thức cho phù hợp.\n";
+            }
+
+            input += "Trả lời dưới dạng như này: Công thức của bạn là...";
 
             var airesponse = await _aIGeneratorService.AIResponseText(input);
 
-            var foodRecipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.UserId == userid && x.FoodId == foodId).FirstOrDefaultAsync();
-            if (foodRecipe == null)
+            if (existingRecipe == null)
             {
                 var recipeSuggestion = new RecipeSuggestion
                 {
@@ -264,19 +276,40 @@ namespace NutriDiet.Service.Services
                     FoodId = foodId,
                     Airequest = input,
                     Airesponse = airesponse,
-                    Aimodel = "Gemini AI"
+                    Aimodel = "Gemini AI",
+                    RejectionReason = null
                 };
+
                 await _unitOfWork.RecipeSuggestionRepository.AddAsync(recipeSuggestion);
-                await _unitOfWork.SaveChangesAsync();
             }
             else
             {
-                foodRecipe.Airesponse = airesponse;
-                await _unitOfWork.RecipeSuggestionRepository.UpdateAsync(foodRecipe);
-                await _unitOfWork.SaveChangesAsync();
+                existingRecipe.Airesponse = airesponse;
+                existingRecipe.RejectionReason = null;
+                await _unitOfWork.RecipeSuggestionRepository.UpdateAsync(existingRecipe);
             }
+
+            await _unitOfWork.SaveChangesAsync();
+
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, airesponse);
         }
+
+        public async Task<IBusinessResult> RejectRecipe(RejectRecipeRequest request)
+        {
+            int userid = int.Parse(_userIdClaim);
+            var recipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.RecipeId == request.RecipeId).FirstOrDefaultAsync();
+            if (recipe == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Recipe not found");
+            }
+
+            recipe.RejectionReason = request.RejectionReason;
+            await _unitOfWork.RecipeSuggestionRepository.UpdateAsync(recipe);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
+        }
+
 
         public async Task<IBusinessResult> GetFoodRecipe(int foodId)
         {

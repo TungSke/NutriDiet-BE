@@ -24,6 +24,8 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> CreateFoodRecipeByAI(int foodId, int cuisineId);
 
+        Task<IBusinessResult> RejectRecipe(RejectRecipeRequest request);
+
         Task<IBusinessResult> GetFoodRecipe(int foodId);
     }
 }

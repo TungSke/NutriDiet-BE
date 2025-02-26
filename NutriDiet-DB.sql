@@ -119,14 +119,15 @@ CREATE TABLE RecipeSuggestion (
     RecipeID INT IDENTITY(1,1) PRIMARY KEY, -- ID của công thức
     UserID INT NOT NULL,
     FoodID INT NOT NULL,                    -- Món ăn được gợi ý công thức
-	CuisineID INT NOT NULL,    
+    CuisineID INT NOT NULL,    
     AIRequest NVARCHAR(MAX),       -- Đầu vào cho AI xử lý
-	AIResponse NVARCHAR(MAX),		--Đầu ra của AI
-    AIModel NVARCHAR(255) NOT NULL, -- call api dùng model nào của AI
+    AIResponse NVARCHAR(MAX),      -- Đầu ra của AI
+    AIModel NVARCHAR(255) NOT NULL, -- Model AI sử dụng
+    RejectionReason NVARCHAR(MAX) NULL, -- 🔹 Lý do công thức không phù hợp
     CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
-	FOREIGN KEY (CuisineID) REFERENCES CuisineType(CuisineID) ON DELETE CASCADE
+    FOREIGN KEY (CuisineID) REFERENCES CuisineType(CuisineID) ON DELETE CASCADE
 );
 
 -- Bảng UserFoodPreferences

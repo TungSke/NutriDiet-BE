@@ -88,8 +88,8 @@ GO
 -- Bật IDENTITY_INSERT cho GeneralHealthProfile
 SET IDENTITY_INSERT [dbo].[GeneralHealthProfile] ON;
 
-INSERT INTO [dbo].[GeneralHealthProfile] ([ProfileID], [UserID], [Height], [Weight], [ActivityLevel], HealthGoal, [Status], [CreatedAt], [UpdatedAt])  
-VALUES (1, 1, 170, 70, 'ModeratelyActive', 'LoseWeight', 'Active', GETDATE(), GETDATE());
+INSERT INTO [dbo].[GeneralHealthProfile] ([ProfileID], [UserID], [Height], [Weight], [ActivityLevel], [Status], [CreatedAt], [UpdatedAt])  
+VALUES (1, 1, 170, 70, 'ModeratelyActive', 'Active', GETDATE(), GETDATE());
 
 -- Tắt IDENTITY_INSERT
 SET IDENTITY_INSERT [dbo].[GeneralHealthProfile] OFF;

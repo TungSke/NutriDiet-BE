@@ -72,7 +72,14 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("recipe/{foodId}")]
+        [HttpPost("reject-recipe")]
+        public async Task<IActionResult> RejectRecipe([FromBody] RejectRecipeRequest request)
+        {
+            var result = await _foodService.RejectRecipe(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
+            [HttpGet("recipe/{foodId}")]
         [Authorize]
         public async Task<IActionResult> GetFoodByType(int foodId) 
         {
