@@ -18,7 +18,6 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public ActivityLevel? ActivityLevel { get; set; }
 
-        public GoalType? GoalType { get; set; }
         public string? Aisuggestion { get; set; }
 
         public List<string> AllergyNames { get; set; } = new List<string>();

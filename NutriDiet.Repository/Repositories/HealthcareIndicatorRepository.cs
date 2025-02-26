@@ -19,18 +19,18 @@ namespace NutriDiet.Repository.Repositories
 
             if (gender.ToLower() == "male")
             {
-                bmr = 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+                bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
             }
             else if (gender.ToLower() == "female")
             {
-                bmr = 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
+                bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
             }
             else
             {
                 throw new ArgumentException("Invalid gender. Please use 'Male' or 'Female'.");
             }
 
-            return bmr * activityLevel;
+            return  bmr * ((double)activityLevel / 1000);
         }
 
         public double CalculateBMI(double weightKg, double heightCm)

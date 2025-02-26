@@ -11,19 +11,8 @@ namespace NutriDiet.Service.ModelDTOs.Request
     {
         public GoalType GoalType { get; set; } 
         public double? TargetWeight { get; set; }
-
+        public WeightChangeRate? WeightChangeRate { get; set; }
         public string GoalDescription { get; set; } = null!;
-
-        public DateTime TargetDate { get; set; }
-
         public string? Notes { get; set; }
-
-        public double? DailyCalories { get; set; }
-
-        public double? DailyCarb { get; set; }
-
-        public double? DailyFat { get; set; }
-
-        public double? DailyProtein { get; set; }
     }
 }

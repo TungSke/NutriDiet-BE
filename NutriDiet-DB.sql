@@ -65,7 +65,6 @@ CREATE TABLE GeneralHealthProfile (
     Height FLOAT CHECK (Height > 0),
     Weight FLOAT CHECK (Weight > 0),
     ActivityLevel NVARCHAR(50),
-    HealthGoal NVARCHAR(50),
 	AISuggestion NVARCHAR(255),
 	Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')), 
     CreatedAt DATETIME DEFAULT GETDATE(),
@@ -246,7 +245,6 @@ CREATE TABLE AIRecommendation (
 CREATE TABLE MealLog (
     MealLogID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
-    MealType NVARCHAR(50),
     LogDate DATETIME DEFAULT GETDATE(),
     TotalCalories FLOAT CHECK (TotalCalories >= 0),
     TotalProtein FLOAT CHECK (TotalProtein >= 0) DEFAULT 0,
@@ -260,6 +258,7 @@ CREATE TABLE MealLogDetail (
     DetailID INT IDENTITY(1,1) PRIMARY KEY,
     MealLogID INT NOT NULL,
     FoodID INT NOT NULL,
+	MealType NVARCHAR(50),  -- Bữa ăn(Breakfast, lunch, dinner)
     Quantity FLOAT CHECK (Quantity > 0),
     Calories FLOAT CHECK (Calories >= 0),
     ServingSize NVARCHAR(50),
@@ -276,6 +275,7 @@ CREATE TABLE PersonalGoal (
     UserID INT NOT NULL,                                
     GoalType NVARCHAR(50) NOT NULL,                     -- Loại mục tiêu (ví dụ: Sức khỏe, Thể hình, Dinh dưỡng)
 	TargetWeight FLOAT CHECK (TargetWeight > 0),
+	WeightChangeRate FLOAT,								-- Tốc độ tăng giảm cân nặng
     GoalDescription NVARCHAR(255) NOT NULL,             -- Mô tả chi tiết về mục tiêu
     StartDate DATETIME DEFAULT GETDATE(),               -- Ngày bắt đầu
     TargetDate DATETIME NOT NULL,                       -- Ngày hoàn thành dự kiến

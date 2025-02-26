@@ -8,10 +8,10 @@ namespace NutriDiet.Common.Enums
 {
     public enum ActivityLevel
     {
-        Sedentary = 1,        // Little or no exercise
-        LightlyActive = 2,    // Light exercise/sports 1-3 days/week
-        ModeratelyActive = 3, // Moderate exercise/sports 3-5 days/week
-        VeryActive = 4,       // Hard exercise/sports 6-7 days a week
-        ExtraActive = 5       // Very hard exercise/physical job & training
+        Sedentary = 1200,         // Ít hoặc không tập luyện (1.2)
+        LightlyActive = 1375,     // Tập nhẹ 1-3 lần/tuần (1.375)
+        ModeratelyActive = 1550,  // Tập vừa 3-5 lần/tuần (1.55)
+        VeryActive = 1725,        // Tập nặng 6-7 lần/tuần (1.725)
+        ExtraActive = 1900        // Rất nặng, vận động viên chuyên nghiệp (1.9)
     }
 }

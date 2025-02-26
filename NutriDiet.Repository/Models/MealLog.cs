@@ -9,8 +9,6 @@ public partial class MealLog
 
     public int UserId { get; set; }
 
-    public string? MealType { get; set; }
-
     public DateTime? LogDate { get; set; }
 
     public double? TotalCalories { get; set; }

@@ -13,6 +13,8 @@ public partial class PersonalGoal
 
     public double? TargetWeight { get; set; }
 
+    public double? WeightChangeRate { get; set; }
+
     public string GoalDescription { get; set; } = null!;
 
     public DateTime? StartDate { get; set; }

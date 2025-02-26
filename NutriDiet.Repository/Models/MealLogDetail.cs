@@ -11,6 +11,8 @@ public partial class MealLogDetail
 
     public int FoodId { get; set; }
 
+    public string? MealType { get; set; }
+
     public double? Quantity { get; set; }
 
     public double? Calories { get; set; }

@@ -39,16 +39,17 @@ namespace NutriDiet.Service.Services
 
         public async Task CreatePersonalGoal(PersonalGoalRequest request)
         {
-            var userid = int.Parse(_userIdClaim);
+            var userId = int.Parse(_userIdClaim);
             var existingUser = await _unitOfWork.UserRepository
-                .GetByWhere(u => u.UserId == userid)
+                .GetByWhere(u => u.UserId == userId)
                 .Include(u => u.GeneralHealthProfiles)
+                .Include(u => u.HealthcareIndicators)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
             if (existingUser == null)
             {
-                throw new Exception("User not exist.");
+                throw new Exception("User does not exist.");
             }
 
             var latestProfile = existingUser.GeneralHealthProfiles
@@ -61,27 +62,149 @@ namespace NutriDiet.Service.Services
             }
 
             var currentWeight = latestProfile.Weight;
-            var ProgressRate = Convert.ToInt32(currentWeight - request.TargetWeight);
-            if (request.GoalType == GoalType.GainWeight && request.TargetWeight <= currentWeight)
+            var tdee = existingUser.HealthcareIndicators
+                .Where(h => h.Code.Equals("TDEE"))
+                .OrderByDescending(h => h.CreatedAt)
+                .FirstOrDefault()?.CurrentValue ?? 0;
+
+            if (tdee == 0)
             {
-                throw new Exception("Mục tiêu cân nặng không phù hợp với mục tiêu tăng cân.");
+                throw new Exception("TDEE data is missing.");
             }
 
-            if (request.GoalType == GoalType.LoseWeight && request.TargetWeight >= currentWeight)
-            {
-                throw new Exception("Mục tiêu cân nặng không phù hợp với mục tiêu giảm cân.");
-            }
+            // 🆕 Tách ra hàm riêng để kiểm tra hợp lệ của mục tiêu
+            ValidatePersonalGoal(request, currentWeight);
+
+            // Tính toán lượng calo hàng ngày và thời gian cần đạt mục tiêu
+            var (dailyCalories, targetDate) = CalculateDailyCaloriesAndTargetDate(request, tdee, currentWeight);
+
+            // 🆕 Tính toán Macronutrient Ratios (%) dựa trên mục tiêu
+            var macronutrients = CalculateMacronutrientRatios(request.GoalType);
 
             var personalGoal = request.Adapt<PersonalGoal>();
-            personalGoal.UserId = userid;
+            personalGoal.UserId = userId;
             personalGoal.StartDate = DateTime.Now;
             personalGoal.Status = "Active";
             personalGoal.ProgressPercentage = 0;
-            personalGoal.ProgressRate = ProgressRate;
+            personalGoal.ProgressRate = (int)(currentWeight - request.TargetWeight);
+            personalGoal.DailyCalories = (int)dailyCalories;
+            personalGoal.TargetDate = targetDate ?? DateTime.Now;
+
+            // 🆕 Lưu Macronutrient Ratios (%)
+            personalGoal.DailyCarb = macronutrients.CarbRatio;
+            personalGoal.DailyProtein = macronutrients.ProteinRatio;
+            personalGoal.DailyFat = macronutrients.FatRatio;
 
             await _unitOfWork.PersonalGoalRepository.AddAsync(personalGoal);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        private void ValidatePersonalGoal(PersonalGoalRequest request, double? currentWeight)
+        {
+            if (request.TargetWeight == null || request.WeightChangeRate == null)
+            {
+                throw new Exception("Target weight and weight change rate must be provided.");
+            }
+
+            switch (request.GoalType)
+            {
+                case GoalType.GainWeight:
+                    if (request.TargetWeight <= currentWeight)
+                    {
+                        throw new Exception($"Mục tiêu tăng cân không hợp lệ. Cân nặng hiện tại: {currentWeight} kg, mục tiêu: {request.TargetWeight} kg.");
+                    }
+                    break;
+
+                case GoalType.LoseWeight:
+                    if (request.TargetWeight >= currentWeight)
+                    {
+                        throw new Exception($"Mục tiêu giảm cân không hợp lệ. Cân nặng hiện tại: {currentWeight} kg, mục tiêu: {request.TargetWeight} kg.");
+                    }
+                    break;
+
+                case GoalType.Maintain:
+                    if (request.TargetWeight != currentWeight)
+                    {
+                        throw new Exception($"Mục tiêu duy trì cân nặng không hợp lệ. Cân nặng hiện tại: {currentWeight} kg, mục tiêu phải là {currentWeight} kg.");
+                    }
+                    if (request.WeightChangeRate != 0)
+                    {
+                        throw new Exception("WeightChangeRate phải là 0 khi duy trì cân nặng.");
+                    }
+                    break;
+
+                default:
+                    throw new Exception("Mục tiêu không hợp lệ.");
+            }
+        }
+
+        private (double dailyCalories, DateTime? targetDate) CalculateDailyCaloriesAndTargetDate(PersonalGoalRequest request, double tdee, double? currentWeight)
+        {
+            double dailyCalories;
+            DateTime? targetDate = null;
+
+            switch (request.GoalType)
+            {
+                case GoalType.Maintain:
+                    dailyCalories = tdee;
+                    break;
+
+                case GoalType.GainWeight:
+                case GoalType.LoseWeight:
+                    double weightChangePerWeek = (int)request.WeightChangeRate / 1000.0; // kg/tuần
+                    double dailyCalorieAdjustment = (weightChangePerWeek * 7700) / 7;
+                    dailyCalories = tdee + dailyCalorieAdjustment;
+
+                    double weightDifference = Math.Abs((double)(currentWeight - request.TargetWeight.Value));
+                    if (weightChangePerWeek == 0)
+                    {
+                        throw new Exception("Tốc độ thay đổi cân nặng không hợp lệ.");
+                    }
+
+                    int totalDays = (int)Math.Ceiling((weightDifference / Math.Abs(weightChangePerWeek)) * 7);
+                    targetDate = DateTime.Now.AddDays(totalDays);
+                    break;
+
+                default:
+                    throw new Exception("Mục tiêu không hợp lệ.");
+            }
+
+            return (dailyCalories, targetDate);
+        }
+
+
+
+
+        private (double CarbRatio, double ProteinRatio, double FatRatio) CalculateMacronutrientRatios(GoalType goalType)
+        {
+            double carbRatio, proteinRatio, fatRatio;
+
+            switch (goalType)
+            {
+                case GoalType.GainWeight:
+                    carbRatio = 50;   // 50% từ Carb
+                    proteinRatio = 25; // 25% từ Protein
+                    fatRatio = 25;    // 25% từ Fat
+                    break;
+
+                case GoalType.LoseWeight:
+                    carbRatio = 40;   // 40% từ Carb
+                    proteinRatio = 35; // 35% từ Protein
+                    fatRatio = 25;    // 25% từ Fat
+                    break;
+
+                case GoalType.Maintain:
+                default:
+                    carbRatio = 50;   // 50% từ Carb
+                    proteinRatio = 30; // 30% từ Protein
+                    fatRatio = 20;    // 20% từ Fat
+                    break;
+            }
+
+            return (carbRatio, proteinRatio, fatRatio);
+        }
+
+
 
 
 
@@ -108,6 +231,7 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> UpdatePersonalGoal(PersonalGoalRequest request)
         {
             var userId = int.Parse(_userIdClaim);
+
             var existingGoal = await _unitOfWork.PersonalGoalRepository
                 .GetByWhere(pg => pg.UserId == userId)
                 .FirstOrDefaultAsync();
@@ -117,15 +241,68 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Personal goal not found.", null);
             }
 
-            request.Adapt(existingGoal);
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.GeneralHealthProfiles)
+                .Include(u => u.HealthcareIndicators)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
-            await _unitOfWork.PersonalGoalRepository.UpdateAsync(existingGoal);
-            await _unitOfWork.SaveChangesAsync();
+            if (existingUser == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User does not exist.", null);
+            }
 
-            var response = existingGoal.Adapt<PersonalGoalResponse>();
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Personal goal updated successfully.", response);
+            var latestProfile = existingUser.GeneralHealthProfiles
+                                            .OrderByDescending(h => h.CreatedAt)
+                                            .FirstOrDefault();
+
+            if (latestProfile == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No health profile found.", null);
+            }
+
+            var currentWeight = latestProfile.Weight;
+            var tdee = existingUser.HealthcareIndicators
+                .Where(h => h.Code.Equals("TDEE"))
+                .OrderByDescending(h => h.CreatedAt)
+                .FirstOrDefault()?.CurrentValue ?? 0;
+
+            if (tdee == 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "TDEE data is missing.", null);
+            }
+
+            try
+            {
+                // 🆕 Kiểm tra hợp lệ của mục tiêu
+                ValidatePersonalGoal(request, currentWeight);
+
+                // 🆕 Tính toán lượng calo hàng ngày và ngày đạt mục tiêu
+                var (dailyCalories, targetDate) = CalculateDailyCaloriesAndTargetDate(request, tdee, currentWeight);
+
+                // 🆕 Tính toán Macronutrient Ratios (%)
+                var macronutrients = CalculateMacronutrientRatios(request.GoalType);
+
+                // Cập nhật thông tin mục tiêu
+                request.Adapt(existingGoal);
+                existingGoal.DailyCalories = (int)dailyCalories;
+                existingGoal.TargetDate = targetDate ?? DateTime.Now;
+                existingGoal.DailyCarb = macronutrients.CarbRatio;
+                existingGoal.DailyProtein = macronutrients.ProteinRatio;
+                existingGoal.DailyFat = macronutrients.FatRatio;
+
+                await _unitOfWork.PersonalGoalRepository.UpdateAsync(existingGoal);
+                await _unitOfWork.SaveChangesAsync();
+
+                var response = existingGoal.Adapt<PersonalGoalResponse>();
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Personal goal updated successfully.", response);
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, ex.Message, null);
+            }
         }
-
 
 
     }

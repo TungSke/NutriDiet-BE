@@ -10,6 +10,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
     {
         public string GoalType { get; set; } = null!;
         public double? TargetWeight { get; set; }
+        public double? WeightChangeRate { get; set; }
 
         public string GoalDescription { get; set; } = null!;
 

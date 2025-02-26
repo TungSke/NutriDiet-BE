@@ -15,8 +15,6 @@ public partial class GeneralHealthProfile
 
     public string? ActivityLevel { get; set; }
 
-    public string? HealthGoal { get; set; }
-
     public string? Aisuggestion { get; set; }
 
     public string? Status { get; set; }

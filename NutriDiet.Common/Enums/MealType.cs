@@ -11,6 +11,6 @@ namespace NutriDiet.Common.Enums
         Breakfast,
         Lunch,
         Dinner,
-        Snack
+        Snacks
     }
 }
