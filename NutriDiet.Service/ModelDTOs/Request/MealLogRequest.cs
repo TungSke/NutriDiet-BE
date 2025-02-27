@@ -10,14 +10,14 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class MealLogRequest
     {
-        public int UserId { get; set; }
+        public DateTime? LogDate { get; set; }
+
+        public string? ServingSize { get; set; }
 
         public MealType MealType { get; set; }
 
-        public DateTime? LogDate { get; set; }
+        public int FoodId { get; set; }
+        public double? Quantity { get; set; }
 
-        public double? TotalCalories { get; set; }
-
-        public virtual ICollection<MealLogDetailRequest> MealLogDetailRequest { get; set; } = new List<MealLogDetailRequest>();
     }
 }
