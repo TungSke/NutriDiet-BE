@@ -1,9 +1,7 @@
-﻿using Google.Apis.Drive.v3.Data;
-using Mapster;
+﻿using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Common.Enums;
@@ -12,12 +10,8 @@ using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using NutriDiet.Service.Utilities;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Services
 {
@@ -25,12 +19,14 @@ namespace NutriDiet.Service.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly AIGeneratorService _aIGeneratorService;
         private readonly string _userIdClaim;
 
-        public MealPlanService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
+        public MealPlanService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
+            _aIGeneratorService = aIGeneratorService;
             _userIdClaim = GetUserIdClaim();
         }
 
@@ -209,7 +205,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CloneSampleMealPlan(int mealPlanID)
         {
-            var userID = int.Parse("1");
+            var userID = int.Parse(_userIdClaim);
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userID);
             var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByWhere(x => x.MealPlanId == mealPlanID).Include(x => x.MealPlanDetails).FirstOrDefaultAsync();
 
@@ -399,6 +395,8 @@ namespace NutriDiet.Service.Services
                                                        .Include(x => x.HealthcareIndicators)
                                                        .Include(x => x.PersonalGoals)
                                                        .Include(x => x.UserFoodPreferences)
+                                                       .Include(x => x.Allergies)
+                                                       .Include(x => x.Diseases)
                                                        .FirstOrDefaultAsync();
 
             var userAllergyDisease = new
@@ -422,21 +420,36 @@ namespace NutriDiet.Service.Services
 
             var foods = await _unitOfWork.FoodRepository
             .GetByWhere(x =>
-            likedFoodIds.Contains(x.FoodId) && // Chỉ lấy món thích
             !x.Allergies.Any(a => allergyIds.Contains(a.AllergyId)) &&
             !x.Diseases.Any(d => diseaseIds.Contains(d.DiseaseId)))
             .ToListAsync();
 
-            var foodResponse = foods.Adapt<List<FoodResponse>>();
+            var allergyNames = userInfo?.Allergies.Select(x => x.AllergyName) ?? new List<string>();
+            var diseaseNames = userInfo?.Diseases.Select(x => x.DiseaseName) ?? new List<string>();
 
-            var input = "Tôi cần một kế hoạch bữa ăn cá nhân hóa theo các thông tin sau: \n" +
+            var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
+            var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
+
+            var foodListText = JsonConvert.SerializeObject(foods);
+            var jsonOuputSample = "{\r\n  \"planName\": \"string\",\r\n  \"healthGoal\": \"string\",\r\n  \"mealPlanDetails\": [\r\n    {\r\n      \"foodId\": 0,\r\n      \"quantity\": 1,\r\n      \"mealType\": \"string\",\r\n      \"dayNumber\": 0\r\n    }\r\n  ]\r\n}";
+
+            var input = "Bạn là một chuyên gia dinh dưỡng, nhiệm vụ của bạn là tạo một kế hoạch bữa ăn (MealPlan) phù hợp với mục tiêu và điều kiện sức khỏe của người dùng \n" +
+                "Tôi cần một kế hoạch bữa ăn cá nhân hóa theo các thông tin sau: \n" +
                 $"- **Người dùng**: {userInfo.Gender}, {userInfo.Age} tuổi, cao {userInfo.GeneralHealthProfiles.Select(x => x.Height).FirstOrDefault()}cm, nặng {userInfo.GeneralHealthProfiles.Select(x => x.Weight).FirstOrDefault()}kg \n" +
-                $"- **Mục tiêu**: {userInfo.PersonalGoals.Select(x => x.GoalType).FirstOrDefault()} ({userInfo.PersonalGoals.Select(x => x.GoalType).FirstOrDefault()} từ {userInfo.PersonalGoals.Select(x => x.StartDate).FirstOrDefault()} đền {userInfo.PersonalGoals.Select(x => x.TargetDate).FirstOrDefault()}) \n" +
-                $"- **Mức độ vận động**: {userInfo.GeneralHealthProfiles.Select(x => x.ActivityLevel).FirstOrDefault()} \n"  
-                ;
+                $"- **Mức độ vận động**: {userInfo.GeneralHealthProfiles.Select(x => x.ActivityLevel).FirstOrDefault()} \n" + 
+                $"- **Mục tiêu**: ({userInfo.PersonalGoals.Select(x => x.GoalType).FirstOrDefault()}) từ {userInfo.PersonalGoals.Select(x => x.StartDate.Value.Date).FirstOrDefault()} đền {userInfo.PersonalGoals.Select(x => x.TargetDate.Date).FirstOrDefault()} \n" +
+                "Yêu cầu cụ thể:\n" +
+                "- Mỗi ngày bao gồm **3 bữa chính (sáng, trưa, tối).\n" +
+                $"- Chỉ chọn thực phẩm từ danh sách sau: {foodListText} \n" +
+                $"- Tôi bị các loại dị ứng: {formattedAllergies}\n" +
+                $"- Thực đơn phù hợp với các bệnh lý: {formattedDiseases} \n"+
+                "- **Giá trị dinh dưỡng mỗi ngày:** "+
+                $"- DailyCalories: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()},DailyCarb: {userInfo.PersonalGoals.Select(x => x.DailyCarb).FirstOrDefault()}, DailyFat: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()}, DailyProtein: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()}.\n" +
+                "Lưu ý: Chỉ trả về JSON, không kèm theo giải thích.\r\nMỗi ngày có 3 bữa chính, không thêm bữa phụ." +
+                $"\r\nTrả về đúng JSON với format sau: {jsonOuputSample}";
 
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, input);
+            var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOuputSample);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, airesponse);
         }
     }
 }
