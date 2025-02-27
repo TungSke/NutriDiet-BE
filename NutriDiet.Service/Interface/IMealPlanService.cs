@@ -19,7 +19,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetMealPlanDetailByMealPlanID(int mealPlanID);
         Task<IBusinessResult> CloneSampleMealPlan(int mealPlanID);
 
-
         Task<IBusinessResult> CreateSuitableMealPlanByAI();
         Task<IBusinessResult> GetMealPlanByID(int mealPlanId);
 

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Logging;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
@@ -201,49 +202,49 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetMealPlanDetailByMealPlanID(int mealPlanId)
         {
-            var mealPlanDetail = _unitOfWork.MealPlanDetailRepository
-                .GetAll()
-                .Where(x=>x.MealPlanId == mealPlanId)
-                .ToList();
+            var mealPlanDetail = await _unitOfWork.MealPlanDetailRepository.GetByWhere(x=>x.MealPlanId == mealPlanId).ToListAsync();
             var response = mealPlanDetail.Adapt<List<MealPlanDetailResponse>>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
         public async Task<IBusinessResult> CloneSampleMealPlan(int mealPlanID)
         {
-            var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanID);
-            var mealPlanDetailExisted = await GetMealPlanDetailByMealPlanID(mealPlanExisted.MealPlanId);
-            var userID = int.Parse(_userIdClaim);
+            var userID = int.Parse("1");
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userID);
+            var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByWhere(x => x.MealPlanId == mealPlanID).Include(x => x.MealPlanDetails).FirstOrDefaultAsync();
+
             var mealPlan = new MealPlan
             {
-                PlanName = mealPlanExisted.PlanName,
+                PlanName = mealPlanExisted.PlanName + $" - Clone by {user.Email}",
                 HealthGoal = mealPlanExisted.HealthGoal,
-                Status = "Chưa sử dụng",
-                CreatedBy = mealPlanExisted.CreatedBy,
-                CreatedAt = mealPlanExisted.CreatedAt,
-                UpdatedBy = mealPlanExisted.UpdatedBy,
-                UpdatedAt = mealPlanExisted.UpdatedAt
+                Duration = mealPlanExisted.Duration,
+                Status = MealplanStatus.Inactive.ToString(),
+                CreatedBy = user.FullName,
+                CreatedAt = DateTime.Now,
+                UpdatedBy = user.FullName,
+                UpdatedAt = DateTime.Now,
+                MealPlanDetails = new List<MealPlanDetail>()
             };
-            await _unitOfWork.BeginTransaction();
-            try
-            {
-                await _unitOfWork.MealPlanRepository.AddAsync(mealPlan);
-                await _unitOfWork.SaveChangesAsync();
 
-                var mealPlanDetail = mealPlanDetailExisted.Adapt<List<MealPlanDetail>>();
-                foreach (var detail in mealPlanDetail)
-                {
-                    detail.MealPlanId = mealPlan.MealPlanId;
-                }
-                await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(mealPlanDetail);
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransaction();
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
-            }catch (Exception ex)
+            foreach (var detail in mealPlanExisted.MealPlanDetails)
             {
-                await _unitOfWork.RollbackTransaction();
-                throw ex;
+                mealPlan.MealPlanDetails.Add(new MealPlanDetail
+                {
+                    FoodId = detail.FoodId,
+                    FoodName = detail.FoodName,
+                    Quantity = detail.Quantity,
+                    MealType = detail.MealType,
+                    DayNumber = detail.DayNumber,
+                    TotalCalories = detail.TotalCalories,
+                    TotalCarbs = detail.TotalCarbs,
+                    TotalFat = detail.TotalFat,
+                    TotalProtein = detail.TotalProtein
+                });
             }
+
+            await _unitOfWork.MealPlanRepository.AddAsync(mealPlan);
+            await _unitOfWork.SaveChangesAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
 
         public async Task<IBusinessResult> UpdateMealPlan(int mealPlanID, UpdateMealPlanRequest mealPlanRequest)

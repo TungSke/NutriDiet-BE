@@ -74,8 +74,8 @@ namespace NutriDiet.API.Controllers
         [Authorize]
         public async Task<IActionResult> CloneSampleMealPlan(int mealPlanId)
         {
-            var mealPlan = await _mealPlanService.CloneSampleMealPlan(mealPlanId);
-            return Ok("Clone thực đơn thành công");
+            var result = await _mealPlanService.CloneSampleMealPlan(mealPlanId);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         [HttpPost("create-suitable-meal-plan")]
