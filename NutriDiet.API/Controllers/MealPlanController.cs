@@ -78,8 +78,8 @@ namespace NutriDiet.API.Controllers
             return StatusCode(StatusCodes.Status201Created, result);
         }
 
-        [HttpPost("create-suitable-meal-plan")]
-        //[Authorize]
+        [HttpPost("suitable-meal-plan-by-AI")]
+        [Authorize]
         public async Task<IActionResult> CreateSuitableMealPlanByAI()
         {
             var mealPlan = await _mealPlanService.CreateSuitableMealPlanByAI();

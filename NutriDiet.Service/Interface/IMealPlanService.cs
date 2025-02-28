@@ -21,6 +21,5 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> CreateSuitableMealPlanByAI();
         Task<IBusinessResult> GetMealPlanByID(int mealPlanId);
-
     }
 }

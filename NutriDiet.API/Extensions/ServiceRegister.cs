@@ -63,7 +63,7 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<IPersonalGoalService, PersonalGoalService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IMealLogService, MealLogService>();
-
+            services.AddScoped<ICuisineTypeService, CuisineTypeService>();
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)
@@ -165,7 +165,5 @@ namespace NutriDiet.API.Extensions
         {
             
         }
-
-
     }
 }

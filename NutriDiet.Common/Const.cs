@@ -10,6 +10,7 @@
 
         // Mapping HTTP Status Codes
         public static int HTTP_STATUS_OK = 200; // Success
+        public static int HTTP_STATUS_CREATED = 201; // Created
         public static int HTTP_STATUS_BAD_REQUEST = 400; // Failure
         public static int HTTP_STATUS_INTERNAL_ERROR = 500; // Exception
         public static int HTTP_STATUS_UNAUTHORIZED = 401; // Unauthorized

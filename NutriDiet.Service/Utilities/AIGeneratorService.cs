@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace NutriDiet.Service.Utilities
 {
@@ -82,7 +84,8 @@ namespace NutriDiet.Service.Utilities
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadAsStringAsync();
-            return ExtractTextFromAIResponse(result);
+            var resultText = ExtractTextFromAIResponse(result);
+            return ExtractJsonFromText(resultText);
         }
 
         private static string ExtractTextFromAIResponse(string jsonResponse)
@@ -109,6 +112,12 @@ namespace NutriDiet.Service.Utilities
             {
                 return $"Lỗi khi xử lý phản hồi từ AI: {ex.Message}";
             }
+        }
+
+        private static string ExtractJsonFromText(string text)
+        {
+            var match = Regex.Match(text, @"```json\s*(\{[\s\S]*?\})\s*```", RegexOptions.Multiline);
+            return match.Success ? match.Groups[1].Value.Trim() : string.Empty;
         }
     }
 }
