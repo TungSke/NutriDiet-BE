@@ -95,26 +95,24 @@ namespace NutriDiet.Service.Services
                 .Select(d => d.DiseaseId)
                 .ToListAsync();
 
-            if (validAllergyIds == null || validDiseaseIds == null)
+            if (validAllergyIds != null)
             {
-                string missingItems = (validAllergyIds == null ? "Allergy" : "") +
-                                      (validDiseaseIds == null ? (validAllergyIds == null ? " & " : "") + "Disease" : "");
-
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"{missingItems} not found");
+                foreach (var allergyId in validAllergyIds)
+                {
+                    var allergy = new Allergy { AllergyId = allergyId };
+                    await _unitOfWork.AllergyRepository.Attach(allergy);
+                    food.Allergies.Add(allergy);
+                }
             }
 
-            foreach (var allergyId in validAllergyIds)
+            if (validDiseaseIds != null)
             {
-                var allergy = new Allergy { AllergyId = allergyId };
-                await _unitOfWork.AllergyRepository.Attach(allergy);
-                food.Allergies.Add(allergy);
-            }
-
-            foreach (var diseaseId in validDiseaseIds)
-            {
-                var disease = new Disease { DiseaseId = diseaseId };
-                await _unitOfWork.DiseaseRepository.Attach(disease);
-                food.Diseases.Add(disease);
+                foreach (var diseaseId in validDiseaseIds)
+                {
+                    var disease = new Disease { DiseaseId = diseaseId };
+                    await _unitOfWork.DiseaseRepository.Attach(disease);
+                    food.Diseases.Add(disease);
+                }
             }
 
             if (request.FoodImageUrl != null)
@@ -129,9 +127,9 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
 
-        public async Task<IBusinessResult> UpdateFood(UpdateFoodRequest request)
+        public async Task<IBusinessResult> UpdateFood(int foodId, FoodRequest request)
         {
-            var existedFood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == request.FoodId).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
+            var existedFood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
             if (existedFood == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -147,22 +145,30 @@ namespace NutriDiet.Service.Services
                 .GetByWhere(d => request.DiseaseId.Contains(d.DiseaseId))
                 .ToListAsync();
 
-            if (!validAllergies.Any() || !validDiseases.Any())
-            {
-                var missingItems = new List<string>();
-                if (!validAllergies.Any()) missingItems.Add("Allergy");
-                if (!validDiseases.Any()) missingItems.Add("Disease");
+            var validAllergyIds = await _unitOfWork.AllergyRepository
+                .GetByWhere(a => request.AllergyId.Contains(a.AllergyId)).AsNoTracking()
+                .Select(a => a.AllergyId)
+                .ToListAsync();
 
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"{string.Join(" & ", missingItems)} not found");
+            var validDiseaseIds = await _unitOfWork.DiseaseRepository
+                .GetByWhere(d => request.DiseaseId.Contains(d.DiseaseId)).AsNoTracking()
+                .Select(d => d.DiseaseId)
+                .ToListAsync();
+
+            if (validAllergyIds != null)
+            {
+                existedFood.Allergies = validAllergies;
             }
 
-            existedFood.Allergies = validAllergies;
-            existedFood.Diseases = validDiseases;
+            if (validDiseaseIds != null)
+            {
+                existedFood.Diseases = validDiseases;
+            }
 
             if (request.FoodImageUrl != null)
             {
                 var cloudinaryHelper = new CloudinaryHelper();
-                existedFood.ImageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl) ;
+                existedFood.ImageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
             }
 
             await _unitOfWork.FoodRepository.UpdateAsync(existedFood);

@@ -18,7 +18,7 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> DeleteFood(int foodId);
 
-        Task<IBusinessResult> UpdateFood(UpdateFoodRequest request);
+        Task<IBusinessResult> UpdateFood(int foodId, FoodRequest request);
 
         Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName);
 

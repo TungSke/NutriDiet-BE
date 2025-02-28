@@ -224,12 +224,12 @@ namespace NutriDiet.Service.Services
             mealPlan.UpdatedBy = _userIdClaim;
             mealPlan.UpdatedAt = DateTime.Now;
 
-                await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
-                await _unitOfWork.SaveChangesAsync();
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
-            }
+            await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+            await _unitOfWork.SaveChangesAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
+        }
 
-        
+
         public async Task<IBusinessResult> CreateSuitableMealPlanByAI()
         {
             var userid = int.Parse(_userIdClaim);
