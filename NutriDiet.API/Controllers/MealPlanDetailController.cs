@@ -24,6 +24,13 @@ namespace NutriDiet.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("meal-plan-detail-total/{mealPlanId}")]
+        public async Task<IActionResult> GetMealPlanTotals(int mealPlanId)
+        {
+            var mealPlan = await _mealPlanDetailService.GetMealPlanDetailTotals(mealPlanId);
+            return Ok(mealPlan);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateMealPlanDetail(int mealPlanId, [FromBody] MealPlanDetailRequest mealPlanDetailRequest)
         {
@@ -39,9 +46,9 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateMealPlan([Required] List<UpdateMealPlanDetailRequest> mealPlanDetailRequest)
+        public async Task<IActionResult> UpdateMealPlan(int mealPlanDetailId, [Required] UpdateMealPlanDetailRequest mealPlanDetailRequest)
         {
-            await _mealPlanDetailService.UpdateMealPlanDetail(mealPlanDetailRequest);
+            await _mealPlanDetailService.UpdateMealPlanDetail(mealPlanDetailId, mealPlanDetailRequest);
             return Ok("Cập nhật thành công");
         }
     }

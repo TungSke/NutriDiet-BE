@@ -9,7 +9,6 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class UpdateMealPlanDetailRequest
     {
-        public int MealPlanDetailId { get; set; }
         public int FoodId { get; set; }
 
         [Range(1, double.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
