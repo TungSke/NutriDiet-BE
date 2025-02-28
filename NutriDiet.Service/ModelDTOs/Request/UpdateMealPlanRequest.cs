@@ -10,6 +10,5 @@ namespace NutriDiet.Service.ModelDTOs.Request
     {
         public string PlanName { get; set; } = null!;
         public string? HealthGoal { get; set; }
-        public List<UpdateMealPlanDetailRequest> MealPlanDetails { get; set; } = new();
     }
 }
