@@ -46,5 +46,19 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.GetMealLogsByDateRange(logDate, fromDate, toDate);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpPost("quick-add")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> QuickAddMealLogDetail([FromForm] QuickMealLogRequest request)
+        {
+            var result = await _mealLogService.QuickAddMealLogDetail(request);
+            return StatusCode(result.StatusCode, result);
+        }
+        [HttpPost("copy-meal-log")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> CopyMealLogDetails([FromForm] CopyMealLogRequest request)
+        {
+            var result = await _mealLogService.CopyMealLogDetails(request);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

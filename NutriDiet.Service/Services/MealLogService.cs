@@ -9,12 +9,7 @@ using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Services
 {
@@ -102,8 +97,8 @@ namespace NutriDiet.Service.Services
                 {
                     FoodId = request.FoodId,
                     MealType = request.MealType.ToString(),
-                    Quantity = quantity,
                     ServingSize = request.ServingSize,
+                    Quantity = quantity,
                     Calories = quantity * food.Calories,
                     Protein = quantity * food.Protein,
                     Carbs = quantity * food.Carbs,
@@ -207,10 +202,10 @@ namespace NutriDiet.Service.Services
                 TotalFat = mealLog.TotalFat.Value,
                 MealLogDetails = mealLog.MealLogDetails.Select(d => new MealLogDetailResponse
                 {
-                    FoodName = d.Food.FoodName, 
+                    FoodName = d.Food.FoodName ?? "Quick Add", 
                     MealType = d.MealType,
-                    Quantity = d.Quantity,
                     ServingSize = d.ServingSize,
+                    Quantity = d.Quantity,
                     Calories = d.Calories.Value,
                     Protein = d.Protein.Value,
                     Carbs = d.Carbs.Value,
@@ -261,10 +256,10 @@ namespace NutriDiet.Service.Services
                 TotalFat = mealLog.TotalFat ?? 0,
                 MealLogDetails = mealLog.MealLogDetails.Select(d => new MealLogDetailResponse
                 {
-                    FoodName = d.Food?.FoodName ?? "Unknown",
+                    FoodName = d.Food?.FoodName ?? "Quick Add",
                     MealType = d.MealType,
-                    Quantity = d.Quantity,
                     ServingSize = d.ServingSize,
+                    Quantity = d.Quantity,
                     Calories = d.Calories ?? 0,
                     Protein = d.Protein ?? 0,
                     Carbs = d.Carbs ?? 0,
@@ -274,6 +269,172 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal logs retrieved successfully.", response);
         }
+
+        public async Task<IBusinessResult> QuickAddMealLogDetail(QuickMealLogRequest request)
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            if (request.LogDate == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "LogDate is required.", null);
+            }
+
+            var logDate = request.LogDate.Value.Date;
+
+            // Lấy MealLog theo ngày, nếu chưa có thì tạo mới
+            var mealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.LogDate == logDate)
+                .Include(m => m.MealLogDetails)
+                .FirstOrDefaultAsync();
+
+            if (mealLog == null)
+            {
+                mealLog = new MealLog
+                {
+                    UserId = userId,
+                    LogDate = logDate,
+                    TotalCalories = 0,
+                    TotalCarbs = 0,
+                    TotalFat = 0,
+                    TotalProtein = 0,
+                    MealLogDetails = new List<MealLogDetail>()
+                };
+                await _unitOfWork.MealLogRepository.AddAsync(mealLog);
+            }
+
+            // Thêm nhanh một MealLogDetail mà không cần chọn món ăn
+            var mealLogDetail = new MealLogDetail
+            {
+                FoodId = null, 
+                MealType = request.MealType.ToString(),
+                Quantity = 1,
+                Calories = request.Calories ?? 0,
+                Protein = request.Protein ?? 0,
+                Carbs = request.Carbohydrates ?? 0,
+                Fat = request.Fats ?? 0
+            };
+
+            mealLog.MealLogDetails.Add(mealLogDetail);
+
+            // Cập nhật tổng giá trị dinh dưỡng của MealLog
+            mealLog.TotalCalories += mealLogDetail.Calories;
+            mealLog.TotalProtein += mealLogDetail.Protein;
+            mealLog.TotalCarbs += mealLogDetail.Carbs;
+            mealLog.TotalFat += mealLogDetail.Fat;
+
+            await _unitOfWork.MealLogRepository.UpdateAsync(mealLog);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Quick meal log added successfully.");
+        }
+
+        public async Task<IBusinessResult> CopyMealLogDetails(CopyMealLogRequest request)
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            // Kiểm tra ngày hợp lệ
+            if (request.SourceDate == null || request.TargetDate == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "SourceDate and TargetDate are required.", null);
+            }
+
+            var sourceDate = request.SourceDate.Value.Date;
+            var targetDate = request.TargetDate.Value.Date;
+
+            if (sourceDate == targetDate)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Cannot copy to the same date.", null);
+            }
+
+            // Lấy MealLog của ngày nguồn
+            var sourceMealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.LogDate == sourceDate)
+                .Include(m => m.MealLogDetails)
+                .FirstOrDefaultAsync();
+
+            if (sourceMealLog == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No meal log found for the source date.", null);
+            }
+
+            // Lọc danh sách MealLogDetails theo bữa ăn
+            var sourceDetails = sourceMealLog.MealLogDetails
+                .Where(d => d.MealType == request.MealType.ToString())
+                .ToList();
+
+            if (!sourceDetails.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"No meal log details found for {request.MealType} on source date.", null);
+            }
+
+            // Lấy hoặc tạo MealLog của ngày đích
+            var targetMealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.LogDate == targetDate)
+                .Include(m => m.MealLogDetails)
+                .FirstOrDefaultAsync();
+
+            bool isNewMealLog = false;
+
+            if (targetMealLog == null)
+            {
+                // Không tạo mới MealLog trong quá khứ nếu không tồn tại
+                if (targetDate < DateTime.UtcNow.Date)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_OK, "No existing meal log found on the target date. Nothing to copy.");
+                }
+
+                targetMealLog = new MealLog
+                {
+                    UserId = userId,
+                    LogDate = targetDate,
+                    TotalCalories = 0,
+                    TotalProtein = 0,
+                    TotalCarbs = 0,
+                    TotalFat = 0,
+                    MealLogDetails = new List<MealLogDetail>()
+                };
+
+                await _unitOfWork.MealLogRepository.AddAsync(targetMealLog);
+                await _unitOfWork.SaveChangesAsync(); // Cần lưu ngay để lấy `MealLogId`
+                isNewMealLog = true;
+            }
+
+            // Sao chép các chi tiết bữa ăn từ ngày nguồn sang ngày đích
+            foreach (var detail in sourceDetails)
+            {
+                var copiedDetail = new MealLogDetail
+                {
+                    MealLogId = targetMealLog.MealLogId, // Đảm bảo có MealLogId hợp lệ
+                    FoodId = detail.FoodId,
+                    MealType = detail.MealType,
+                    ServingSize = detail.ServingSize,
+                    Quantity = detail.Quantity,
+                    Calories = detail.Calories,
+                    Protein = detail.Protein,
+                    Carbs = detail.Carbs,
+                    Fat = detail.Fat
+                };
+
+                targetMealLog.MealLogDetails.Add(copiedDetail);
+            }
+
+            // Cập nhật lại tổng giá trị dinh dưỡng cho ngày đích
+            targetMealLog.TotalCalories += sourceDetails.Sum(d => d.Calories);
+            targetMealLog.TotalProtein += sourceDetails.Sum(d => d.Protein);
+            targetMealLog.TotalCarbs += sourceDetails.Sum(d => d.Carbs);
+            targetMealLog.TotalFat += sourceDetails.Sum(d => d.Fat);
+
+            if (!isNewMealLog) // Nếu MealLog đã tồn tại, chỉ cần cập nhật
+            {
+                await _unitOfWork.MealLogRepository.Attach(targetMealLog);
+                await _unitOfWork.MealLogRepository.UpdateAsync(targetMealLog);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log details copied successfully.");
+        }
+
 
     }
 }

@@ -258,7 +258,7 @@ CREATE TABLE MealLog (
 CREATE TABLE MealLogDetail (
     DetailID INT IDENTITY(1,1) PRIMARY KEY,
     MealLogID INT NOT NULL,
-    FoodID INT NOT NULL,
+    FoodID INT,
 	MealType NVARCHAR(50),  -- Bữa ăn(Breakfast, lunch, dinner)
     Quantity FLOAT CHECK (Quantity > 0),
     Calories FLOAT CHECK (Calories >= 0),

@@ -1,5 +1,4 @@
 ﻿using NutriDiet.Common.Enums;
-using NutriDiet.Repository.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Service.ModelDTOs.Request
 {
-    public class MealLogRequest
+    public class QuickMealLogRequest
     {
         public DateTime? LogDate { get; set; }
-
         public MealType MealType { get; set; }
-        public string? ServingSize { get; set; }
-        public int? FoodId { get; set; }
-        public double? Quantity { get; set; }
-
+        public double? Calories { get; set; }
+        public double? Carbohydrates { get; set; }
+        public double? Fats { get; set; }
+        public double? Protein { get; set; }
     }
+
 }

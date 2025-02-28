@@ -9,7 +9,7 @@ public partial class MealLogDetail
 
     public int MealLogId { get; set; }
 
-    public int FoodId { get; set; }
+    public int? FoodId { get; set; }
 
     public string? MealType { get; set; }
 
@@ -25,7 +25,7 @@ public partial class MealLogDetail
 
     public double? Fat { get; set; }
 
-    public virtual Food Food { get; set; } = null!;
+    public virtual Food? Food { get; set; }
 
     public virtual MealLog MealLog { get; set; } = null!;
 }
