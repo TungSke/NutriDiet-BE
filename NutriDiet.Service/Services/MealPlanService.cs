@@ -430,7 +430,24 @@ namespace NutriDiet.Service.Services
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
             var foodListText = JsonSerializer.Serialize(foods);
-            var jsonOuputSample = "{\r\n  \"planName\": \"kế hoạch ăn (bệnh lý user) của (userEmail) \",\r\n  \"healthGoal\": \"string\",\r\n  \"mealPlanDetails\": [\r\n    {\r\n      \"foodId\": 0,\r\n      \"quantity\": 1,\r\n      \"mealType\": \"string\",\r\n      \"dayNumber\": 0\r\n    }\r\n  ]\r\n}";
+
+            var mealPlanRequesttest = new MealPlanRequest
+            {
+                PlanName = "kế hoạch ăn (bệnh lý user) của (userEmail)",
+                HealthGoal = "string",
+                MealPlanDetails = new List<MealPlanDetailRequest>
+                {
+                    new MealPlanDetailRequest
+                    {
+                        FoodId = 0,
+                        Quantity = 1,
+                        MealType = "string",
+                        DayNumber = 0
+                    }
+                }
+            };
+
+            string jsonOutputSample = JsonSerializer.Serialize(mealPlanRequesttest);
 
             var input = "Bạn là một chuyên gia dinh dưỡng, nhiệm vụ của bạn là tạo một kế hoạch bữa ăn (MealPlan) phù hợp với mục tiêu và điều kiện sức khỏe của người dùng \n" +
                 "Tôi cần một kế hoạch bữa ăn cá nhân hóa theo các thông tin sau: \n" +
@@ -447,9 +464,7 @@ namespace NutriDiet.Service.Services
                 $"- DailyCalories: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()},DailyCarb: {userInfo.PersonalGoals.Select(x => x.DailyCarb).FirstOrDefault()}, DailyFat: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()}, DailyProtein: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()}.\n" +
                 "Lưu ý: Chỉ trả về JSON, không kèm theo giải thích.\r\nMỗi ngày có 3 bữa chính, không thêm bữa phụ.";
 
-            var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOuputSample);
-
-            var AIjsonSampleOuput = "```json\n{\n  \"planName\": \"Kế hoạch ăn kiêng giảm cân cho người tiểu đường\",\n  \"healthGoal\": \"LoseWeight\",\n  \"mealPlanDetails\": [\n    {\n      \"foodId\": 22,\n      \"quantity\": 1,\n      \"mealType\": \"Breakfast\",\n      \"dayNumber\": 1\n    },\n    {\n      \"foodId\": 30,\n      \"quantity\": 1,\n      \"mealType\": \"Lunch\",\n      \"dayNumber\": 1\n    },\n    {\n      \"foodId\": 24,\n      \"quantity\": 1,\n      \"mealType\": \"Dinner\",\n      \"dayNumber\": 1\n    },\n    {\n      \"foodId\": 22,\n      \"quantity\": 1,\n      \"mealType\": \"Breakfast\",\n      \"dayNumber\": 2\n    },\n    {\n      \"foodId\": 21,\n      \"quantity\": 1,\n      \"mealType\": \"Lunch\",\n      \"dayNumber\": 2\n    },\n    {\n      \"foodId\": 10,\n      \"quantity\": 1,\n      \"mealType\": \"Dinner\",\n      \"dayNumber\": 2\n    },\n    {\n      \"foodId\": 26,\n      \"quantity\": 2,\n      \"mealType\": \"Breakfast\",\n      \"dayNumber\": 3\n    },\n    {\n      \"foodId\": 30,\n      \"quantity\": 1,\n      \"mealType\": \"Lunch\",\n      \"dayNumber\": 3\n    },\n    {\n      \"foodId\": 24,\n      \"quantity\": 1,\n      \"mealType\": \"Dinner\",\n      \"dayNumber\": 3\n    },\n    {\n      \"foodId\": 22,\n      \"quantity\": 1,\n      \"mealType\": \"Breakfast\",\n      \"dayNumber\": 4\n    },\n    {\n      \"foodId\": 21,\n      \"quantity\": 1,\n      \"mealType\": \"Lunch\",\n      \"dayNumber\": 4\n    },\n    {\n      \"foodId\": 10,\n      \"quantity\": 1,\n      \"mealType\": \"Dinner\",\n      \"dayNumber\": 4\n    },\n    {\n      \"foodId\": 26,\n      \"quantity\": 2,\n      \"mealType\": \"Breakfast\",\n      \"dayNumber\": 5\n    },\n    {\n      \"foodId\": 30,\n      \"quantity\": 1,\n      \"mealType\": \"Lunch\",\n      \"dayNumber\": 5\n    },\n    {\n      \"foodId\": 24,\n      \"quantity\": 1,\n      \"mealType\": \"Dinner\",\n      \"dayNumber\": 5\n    },\n    {\n      \"foodId\": 22,\n      \"quantity\": 1,\n      \"mealType\": \"Breakfast\",\n      \"dayNumber\": 6\n    },\n    {\n      \"foodId\": 21,\n      \"quantity\": 1,\n      \"mealType\": \"Lunch\",\n      \"dayNumber\": 6\n    },\n    {\n      \"foodId\": 10,\n      \"quantity\": 1,\n      \"mealType\": \"Dinner\",\n      \"dayNumber\": 6\n    },\n    {\n      \"foodId\": 26,\n      \"quantity\": 2,\n      \"mealType\": \"Breakfast\",\n      \"dayNumber\": 7\n    },\n    {\n      \"foodId\": 30,\n      \"quantity\": 1,\n      \"mealType\": \"Lunch\",\n      \"dayNumber\": 7\n    },\n    {\n      \"foodId\": 24,\n      \"quantity\": 1,\n      \"mealType\": \"Dinner\",\n      \"dayNumber\": 7\n    }\n  ]\n}\n```";
+            var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOutputSample);
 
             if (string.IsNullOrEmpty(airesponse))
             {
