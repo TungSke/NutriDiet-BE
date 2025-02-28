@@ -71,7 +71,7 @@ namespace NutriDiet.Service.Services
             {
                 PlanName = mealPlanRequest.PlanName,
                 HealthGoal = mealPlanRequest.HealthGoal,
-                Status = "Chưa sử dụng",
+                Status = MealplanStatus.Inactive.ToString(),
                 CreatedBy = existedUser.FullName,
                 CreatedAt = DateTime.Now,
                 UpdatedBy = existedUser.FullName,
@@ -462,7 +462,7 @@ namespace NutriDiet.Service.Services
 
                 await CreateMealPlan(mealPlanRequest);
 
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, mealPlanRequest);
+                return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, mealPlanRequest);
             }
             catch (Exception ex)
             {
