@@ -25,7 +25,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMealPlanDetail(int mealPlanId, [FromBody] List<MealPlanDetailRequest> mealPlanDetailRequest)
+        public async Task<IActionResult> CreateMealPlanDetail(int mealPlanId, [FromBody] MealPlanDetailRequest mealPlanDetailRequest)
         {
             var mealPlan = await _mealPlanDetailService.CreateMealPlanDetail(mealPlanId, mealPlanDetailRequest);
             return Ok("Tạo thực đơn thành công");

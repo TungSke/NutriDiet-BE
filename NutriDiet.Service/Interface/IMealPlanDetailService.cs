@@ -12,7 +12,7 @@ namespace NutriDiet.Service.Interface
     {
         Task<IBusinessResult> GetAllMealPlanDetail();
         Task DeleteMealPlanDetail(int id);
-        Task<IBusinessResult> CreateMealPlanDetail(int mealPlanId, List<MealPlanDetailRequest> mealPlanDetailRequest);
+        Task<IBusinessResult> CreateMealPlanDetail(int mealPlanId, MealPlanDetailRequest mealPlanDetailRequest);
         Task<IBusinessResult> UpdateMealPlanDetail(List<UpdateMealPlanDetailRequest> updateRequest);
     }
 }

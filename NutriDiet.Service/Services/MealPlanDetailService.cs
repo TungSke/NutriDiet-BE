@@ -40,7 +40,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<IBusinessResult> CreateMealPlanDetail(int mealPlanId, List<MealPlanDetailRequest> mealPlanDetailRequest)
+        public async Task<IBusinessResult> CreateMealPlanDetail(int mealPlanId, MealPlanDetailRequest mealPlanDetailRequest)
         {
             await _unitOfWork.BeginTransaction();
             try
@@ -51,30 +51,25 @@ namespace NutriDiet.Service.Services
                     return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "MealPlan not found.");
                 }
 
-                var mealPlanDetails = new List<MealPlanDetail>();
                 var dayNumberSet = new HashSet<int>();
 
-                foreach (var detailRequest in mealPlanDetailRequest)
-                {
-                    var foodExist = await _unitOfWork.FoodRepository.GetByIdAsync(detailRequest.FoodId);
+                    var foodExist = await _unitOfWork.FoodRepository.GetByIdAsync(mealPlanDetailRequest.FoodId);
                     if (foodExist == null)
                     {
                         return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"Food not found.");
                     }
 
-                    var mealPlanDetail = detailRequest.Adapt<MealPlanDetail>();
-                    mealPlanDetail.MealPlanId = mealPlanId;
+                    var mealPlanDetail = mealPlanDetailRequest.Adapt<MealPlanDetail>();
+
                     mealPlanDetail.FoodName = foodExist.FoodName;
-                    mealPlanDetail.TotalCalories = (foodExist.Calories) * (detailRequest.Quantity ?? 1);
-                    mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (detailRequest.Quantity ?? 1);
-                    mealPlanDetail.TotalFat = (foodExist.Fat) * (detailRequest.Quantity ?? 1);
-                    mealPlanDetail.TotalProtein = (foodExist.Protein) * (detailRequest.Quantity ?? 1);
+                    mealPlanDetail.TotalCalories = (foodExist.Calories) * (mealPlanDetailRequest.Quantity ?? 1);
+                    mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (mealPlanDetailRequest.Quantity ?? 1);
+                    mealPlanDetail.TotalFat = (foodExist.Fat) * (mealPlanDetailRequest.Quantity ?? 1);
+                    mealPlanDetail.TotalProtein = (foodExist.Protein) * (mealPlanDetailRequest.Quantity ?? 1);
 
-                    mealPlanDetails.Add(mealPlanDetail);
-                    dayNumberSet.Add(detailRequest.DayNumber);
-                }
+                    dayNumberSet.Add(mealPlanDetailRequest.DayNumber);
 
-                await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(mealPlanDetails);
+                await _unitOfWork.MealPlanDetailRepository.AddAsync(mealPlanDetail);
 
                 mealPlan.Duration = dayNumberSet.Count;
                 await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
