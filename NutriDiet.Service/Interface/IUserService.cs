@@ -27,5 +27,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetUserById(int id);
 
         Task<IBusinessResult> RefreshToken(RefreshTokenRequest request);
+        Task<IBusinessResult> UpdateUser(UpdateUserRequest request);
     }
 }
