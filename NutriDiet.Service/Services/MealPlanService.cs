@@ -1,6 +1,7 @@
 ﻿using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Common.Enums;
@@ -257,16 +258,12 @@ namespace NutriDiet.Service.Services
             var allergyIds = new List<int>(userAllergyDisease.AllergyIds);
             var diseaseIds = new List<int>(userAllergyDisease.DiseaseIds);
 
-            var likedFoodIds = userInfo.UserFoodPreferences
-                            .Where(x => x.Preference.ToLower() == "like")
-                            .Select(x => x.FoodId)
-                            .ToList();
+            //var likedFoodIds = userInfo.UserFoodPreferences
+            //                .Where(x => x.Preference.ToLower() == "like")
+            //                .Select(x => x.FoodId)
+            //                .ToList();
 
-            var foods = await _unitOfWork.FoodRepository
-            .GetByWhere(x =>
-            !x.Allergies.Any(a => allergyIds.Contains(a.AllergyId)) &&
-            !x.Diseases.Any(d => diseaseIds.Contains(d.DiseaseId)))
-            .ToListAsync();
+            var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
 
             var allergyNames = userInfo?.Allergies.Select(x => x.AllergyName) ?? new List<string>();
             var diseaseNames = userInfo?.Diseases.Select(x => x.DiseaseName) ?? new List<string>();
@@ -275,6 +272,26 @@ namespace NutriDiet.Service.Services
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
             var foodListText = JsonSerializer.Serialize(foods);
+
+            var airecommendationResponse = await _unitOfWork.AIRecommendationRepository
+                        .GetByWhere(x => x.UserId == userid && x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower())
+                        .FirstOrDefaultAsync();
+
+            var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
+            var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
+            var height = userProfile?.Height ?? 0;
+            var weight = userProfile?.Weight ?? 0;
+            var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
+            var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
+            var startDate = personalGoal?.StartDate?.ToString("yyyy-MM-dd") ?? "Chưa đặt";
+            var targetDate = personalGoal?.TargetDate.ToString("yyyy-MM-dd") ?? "Chưa đặt";
+            var dailyCalories = personalGoal?.DailyCalories ?? 0;
+            var dailyCarb = personalGoal?.DailyCarb ?? 0;
+            var dailyFat = personalGoal?.DailyFat ?? 0;
+            var dailyProtein = personalGoal?.DailyProtein ?? 0;
+
+            var rejectionReason = airecommendationResponse?.RejectionReason;
+            var rejectionText = string.IsNullOrEmpty(rejectionReason) ? "không có" : rejectionReason;
 
             var mealPlanRequesttest = new MealPlanRequest
             {
@@ -294,20 +311,51 @@ namespace NutriDiet.Service.Services
 
             string jsonOutputSample = JsonSerializer.Serialize(mealPlanRequesttest);
 
-            var input = "Bạn là một chuyên gia dinh dưỡng, nhiệm vụ của bạn là tạo một kế hoạch bữa ăn (MealPlan) phù hợp với mục tiêu và điều kiện sức khỏe của người dùng \n" +
-                "Tôi cần một kế hoạch bữa ăn cá nhân hóa theo các thông tin sau: \n" +
-                $"- **Người dùng**:{userInfo.FullName}, {userInfo.Email}, giới tính: {userInfo.Gender}, {userInfo.Age} tuổi, cao {userInfo.GeneralHealthProfiles.Select(x => x.Height).FirstOrDefault()}cm, nặng {userInfo.GeneralHealthProfiles.Select(x => x.Weight).FirstOrDefault()}kg \n" +
-                $"- **Mức độ vận động**: {userInfo.GeneralHealthProfiles.Select(x => x.ActivityLevel).FirstOrDefault()} \n" +
-                $"- **Mục tiêu**: ({userInfo.PersonalGoals.Select(x => x.GoalType).FirstOrDefault()}) từ {userInfo.PersonalGoals.Select(x => x.StartDate.Value.Date).FirstOrDefault()} đền {userInfo.PersonalGoals.Select(x => x.TargetDate.Date).FirstOrDefault()} \n" +
-                "Yêu cầu cụ thể:\n" +
-                "- Tạo thực đơn 7 ngày" +
-                "- Mỗi ngày bao gồm **3 bữa chính (Breakfast, Lunch, Dinner).\n" +
-                $"- Chỉ chọn thực phẩm từ danh sách sau: {foodListText} \n" +
-                $"- Tôi bị các loại dị ứng: {formattedAllergies}\n" +
-                $"- Thực đơn phù hợp với các bệnh lý: {formattedDiseases} \n"+
-                "- **Giá trị dinh dưỡng mỗi ngày:** "+
-                $"- DailyCalories: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()},DailyCarb: {userInfo.PersonalGoals.Select(x => x.DailyCarb).FirstOrDefault()}, DailyFat: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()}, DailyProtein: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()}.\n" +
-                "Lưu ý: Chỉ trả về JSON, không kèm theo giải thích.\r\nMỗi ngày có 3 bữa chính, không thêm bữa phụ.";
+            //var input = "Bạn là một chuyên gia dinh dưỡng, nhiệm vụ của bạn là tạo một kế hoạch bữa ăn (MealPlan) phù hợp với mục tiêu và điều kiện sức khỏe của người dùng \n" +
+            //    "Tôi cần một kế hoạch bữa ăn cá nhân hóa theo các thông tin sau: \n" +
+            //    $"- **Người dùng**:{userInfo.FullName}, {userInfo.Email}, giới tính: {userInfo.Gender}, {userInfo.Age} tuổi, cao {userInfo.GeneralHealthProfiles.Select(x => x.Height).FirstOrDefault()}cm, nặng {userInfo.GeneralHealthProfiles.Select(x => x.Weight).FirstOrDefault()}kg \n" +
+            //    $"- **Mức độ vận động**: {userInfo.GeneralHealthProfiles.Select(x => x.ActivityLevel).FirstOrDefault()} \n" +
+            //    $"- **Mục tiêu**: ({userInfo.PersonalGoals.Select(x => x.GoalType).FirstOrDefault()}) từ {userInfo.PersonalGoals.Select(x => x.StartDate.Value.Date).FirstOrDefault()} đền {userInfo.PersonalGoals.Select(x => x.TargetDate.Date).FirstOrDefault()} \n" +
+            //    "Yêu cầu cụ thể:\n" +
+            //    "- Tạo thực đơn 7 ngày" +
+            //    "- Mỗi ngày bao gồm **3 bữa chính (Breakfast, Lunch, Dinner).\n" +
+            //    $"- Chỉ chọn thực phẩm từ danh sách sau: {foodListText} \n" +
+            //    $"- Tôi bị các loại dị ứng: {formattedAllergies}\n" +
+            //    $"- Thực đơn phù hợp với các bệnh lý: {formattedDiseases} \n"+
+            //    "- **Giá trị dinh dưỡng mỗi ngày:** "+
+            //    $"- DailyCalories: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()},DailyCarb: {userInfo.PersonalGoals.Select(x => x.DailyCarb).FirstOrDefault()}, DailyFat: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()}, DailyProtein: {userInfo.PersonalGoals.Select(x => x.DailyCalories).FirstOrDefault()}.\n" +
+            //    "Lưu ý: Chỉ trả về JSON, không kèm theo giải thích.\r\nMỗi ngày có 3 bữa chính, không thêm bữa phụ.";
+            //    //$"Lưu ý: trước đó tôi đã từ chối mealplan với lý do: {rejectMealplanReason.RejectionReason.IsNullOrEmpty() ?? "không có"}";
+
+            var input = $@"
+                        Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Plan phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
+
+                        Thông tin người dùng:
+                        - **Họ tên:** {userInfo.FullName}
+                        - **Email:** {userInfo.Email}
+                        - **Giới tính:** {userInfo.Gender}
+                        - **Tuổi:** {userInfo.Age}
+                        - **Chiều cao:** {height} cm
+                        - **Cân nặng:** {weight} kg
+                        - **Mức độ vận động:** {activityLevel}
+                        - **Mục tiêu:** {goalType} ({startDate} - {targetDate})
+
+                        Yêu cầu cho Meal Plan:
+                        - **Thực đơn 7 ngày** với 3 bữa chính mỗi ngày (Breakfast, Lunch, Dinner)
+                        - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
+                        - **Dị ứng thực phẩm:** {formattedAllergies}
+                        - **Bệnh lý cần lưu ý:** {formattedDiseases}
+
+                        Giá trị dinh dưỡng mỗi ngày:
+                        - **Calories:** {dailyCalories}
+                        - **Carb:** {dailyCarb}
+                        - **Fat:** {dailyFat}
+                        - **Protein:** {dailyProtein}
+
+                        Lưu ý:
+                        - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}
+                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
+                        ";
 
             var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOutputSample);
 
@@ -317,10 +365,27 @@ namespace NutriDiet.Service.Services
             }
             try
             {
-                // Deserialize JSON thành đối tượng MealPlanRequest
                 var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(airesponse);
 
-                await CreateMealPlan(mealPlanRequest);
+                if (airecommendationResponse == null)
+                {
+                    await _unitOfWork.AIRecommendationRepository.AddAsync(new Airecommendation
+                    {
+                        UserId = userid,
+                        AirecommendationResponse = airesponse,
+                        RecommendedAt = DateTime.Now,
+                        Status = AIRecommendStatus.Pending.ToString()
+                    });
+                }
+                else
+                {
+                    airecommendationResponse.AirecommendationResponse = airesponse;
+                    airecommendationResponse.RecommendedAt = DateTime.Now;
+                    airecommendationResponse.Status = AIRecommendStatus.Pending.ToString();
+                    await _unitOfWork.AIRecommendationRepository.UpdateAsync(airecommendationResponse);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
 
                 return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, mealPlanRequest);
             }
@@ -328,6 +393,41 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Failed: " + ex.Message);
             }
+        }
+
+        public async Task<IBusinessResult> RejectMealplan(string rejectReason)
+        {
+            int userid = int.Parse(_userIdClaim);
+            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.UserId == userid && x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower()).FirstOrDefaultAsync();
+            if (recommendResponse == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
+            }
+            recommendResponse.RejectionReason = rejectReason;
+            await _unitOfWork.SaveChangesAsync();
+
+            var response = await CreateSuitableMealPlanByAI();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response.Data);
+        }
+
+        public async Task<IBusinessResult> SaveMealPlanAI()
+        {
+            int userid = int.Parse(_userIdClaim);
+            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.UserId == userid && x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower()).FirstOrDefaultAsync();
+            if (recommendResponse == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
+            }
+            recommendResponse.Status = AIRecommendStatus.Accepted.ToString();
+            recommendResponse.RejectionReason = null;
+            await _unitOfWork.SaveChangesAsync();
+
+            var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(recommendResponse.AirecommendationResponse.ToString());
+
+            var response = await CreateMealPlan(mealPlanRequest);
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response.Data);
         }
     }
 }

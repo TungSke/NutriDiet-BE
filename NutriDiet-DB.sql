@@ -143,7 +143,7 @@ CREATE TABLE UserFoodPreference (
 -- Bảng MealPlan
 CREATE TABLE MealPlan (
     MealPlanID INT IDENTITY(1,1) PRIMARY KEY,
-    PlanName NVARCHAR(100) UNIQUE NOT NULL,
+    PlanName NVARCHAR(100) NOT NULL,
     HealthGoal NVARCHAR(50),
     Duration INT CHECK (Duration > 0),
     Status NVARCHAR(20) DEFAULT 'Active',
@@ -177,6 +177,7 @@ CREATE TABLE UserMealPlan (
     UserID INT NOT NULL,
     MealPlanID INT NOT NULL,
     AppliedAt DATETIME DEFAULT GETDATE(),
+	IsActive BIT DEFAULT 0, -- Đánh dấu meal plan nào đang được áp dụng (0 = không, 1 = có)
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
     FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE CASCADE
 );
@@ -238,7 +239,9 @@ CREATE TABLE AIRecommendation (
     RecommendationID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
     RecommendedAt DATETIME DEFAULT GETDATE(),
-    RecommendationText NVARCHAR(MAX),
+    AIRecommendationResponse NVARCHAR(MAX),
+	Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
+    RejectionReason NVARCHAR(255) NULL,
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 

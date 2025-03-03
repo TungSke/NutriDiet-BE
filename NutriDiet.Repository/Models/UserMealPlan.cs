@@ -13,6 +13,8 @@ public partial class UserMealPlan
 
     public DateTime? AppliedAt { get; set; }
 
+    public bool? IsActive { get; set; }
+
     public virtual MealPlan MealPlan { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

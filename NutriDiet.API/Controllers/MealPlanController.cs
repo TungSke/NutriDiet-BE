@@ -82,9 +82,24 @@ namespace NutriDiet.API.Controllers
         [Authorize]
         public async Task<IActionResult> CreateSuitableMealPlanByAI()
         {
-            var mealPlan = await _mealPlanService.CreateSuitableMealPlanByAI();
-            return Ok(mealPlan);
+            var result = await _mealPlanService.CreateSuitableMealPlanByAI();
+            return StatusCode(result.StatusCode, result);
+        }
 
+        [HttpPut("reject-mealplan-AI")]
+        [Authorize]
+        public async Task<IActionResult> RejectMealplan([FromForm][Required] string rejectReason)
+        {
+            var result = await _mealPlanService.RejectMealplan(rejectReason);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPut("save-mealplan-AI")]
+        [Authorize]
+        public async Task<IActionResult> SaveMealPlanAI()
+        {
+            var result = await _mealPlanService.SaveMealPlanAI();
+            return StatusCode(result.StatusCode, result);
         }
     }
 }

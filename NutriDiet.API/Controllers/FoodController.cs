@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NutriDiet.Common.BusinessResult;
-using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 
