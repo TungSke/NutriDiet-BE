@@ -27,16 +27,24 @@ namespace NutriDiet.Service.Services
         private readonly PasswordHasher<string> _passwordHasher;
         private readonly TokenHandlerHelper _tokenHandler;
         private readonly GoogleService _googleService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _userIdClaim;
         private readonly HttpClient _httpClient = new HttpClient();
 
-        public UserService(IUnitOfWork unitOfWork, GoogleService googleService, TokenHandlerHelper tokenHandlerHelper)
+        public UserService(IUnitOfWork unitOfWork, GoogleService googleService, TokenHandlerHelper tokenHandlerHelper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork ??= unitOfWork;
             _passwordHasher = new PasswordHasher<string>();
             _tokenHandler = tokenHandlerHelper;
             _googleService = googleService;
+            _httpContextAccessor = httpContextAccessor;
+            _userIdClaim = GetUserIdClaim();
         }
-
+        private string GetUserIdClaim()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        }
         private string HashPassword(string password)
         {
             return _passwordHasher.HashPassword(null, password);
@@ -379,6 +387,22 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Refresh token success", response);
         }
 
+        public async Task<IBusinessResult> UpdateUser(UpdateUserRequest request)
+        {
+            var userID = int.Parse(_userIdClaim);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userID);
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+            user.FullName = request.FullName;
+            user.Age = request.Age;
+            user.Gender = request.Gender.ToString();
+            user.Location = request.Location;
 
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
+        }
     }
 }
