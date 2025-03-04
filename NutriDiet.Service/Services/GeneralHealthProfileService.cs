@@ -183,7 +183,7 @@ namespace NutriDiet.Service.Services
 
             var healthProfile = await _unitOfWork.HealthProfileRepository
                 .GetByWhere(hp => hp.UserId == userid)
-                .OrderBy(hp => hp.CreatedAt)
+                .OrderByDescending(hp => hp.CreatedAt)
                 .AsNoTracking() 
                 .FirstOrDefaultAsync();
 
