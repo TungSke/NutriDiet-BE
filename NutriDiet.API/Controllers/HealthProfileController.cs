@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Common.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.Services;
@@ -43,9 +44,9 @@ namespace NutriDiet.API.Controllers
 
         [HttpGet("reports")]
         [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> Tracking([FromQuery] string field)
+        public async Task<IActionResult> Tracking([FromQuery] HealProfileFields field)
         {
-            if (string.IsNullOrEmpty(field))
+            if (string.IsNullOrEmpty(field.ToString()))
             {
                 return BadRequest(new { message = "Field parameter is required." });
             }

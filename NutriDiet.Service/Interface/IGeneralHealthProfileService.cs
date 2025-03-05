@@ -1,4 +1,5 @@
 ﻿using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Service.ModelDTOs.Request;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,6 @@ namespace NutriDiet.Service.Interface
         Task CreateHealthProfileRecord(HealthProfileRequest request);
         Task<IBusinessResult> GetHealthProfile();
         Task<IBusinessResult> DeleteHealthProfile(int userId);
-        Task<IBusinessResult> TrackingHealthProfile(string field);
+        Task<IBusinessResult> TrackingHealthProfile(HealProfileFields field);
     }
 }
