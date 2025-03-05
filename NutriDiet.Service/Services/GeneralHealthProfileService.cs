@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
@@ -172,7 +173,7 @@ namespace NutriDiet.Service.Services
                 .GetByWhere(u => u.UserId == userid)
                 .Include(u => u.Allergies)
                 .Include(u => u.Diseases)
-                .Include(u => u.HealthcareIndicators)
+                .Include(u => u.HealthcareIndicators.OrderByDescending(hi => hi.CreatedAt))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -180,6 +181,11 @@ namespace NutriDiet.Service.Services
             {
                 throw new Exception("User not exist.");
             }
+            existingUser.HealthcareIndicators = existingUser.HealthcareIndicators
+                                                .Where(hi => hi.Code == "BMI" || hi.Code == "TDEE")
+                                                .OrderByDescending(hi => hi.CreatedAt)
+                                                .Take(2)
+                                                .ToList();
 
             var healthProfile = await _unitOfWork.HealthProfileRepository
                 .GetByWhere(hp => hp.UserId == userid)
@@ -226,7 +232,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
 
-        public async Task<IBusinessResult> TrackingHealthProfile(string field)
+        public async Task<IBusinessResult> TrackingHealthProfile(HealProfileFields field)
         {
             var userId = int.Parse(_userIdClaim);
 
@@ -236,7 +242,7 @@ namespace NutriDiet.Service.Services
                 .Select(hp => new
                 {
                     hp.CreatedAt,
-                    Value = EF.Property<object>(hp, field)
+                    Value = EF.Property<object>(hp, field.ToString())
                 })
                 .AsNoTracking()
                 .ToListAsync();
