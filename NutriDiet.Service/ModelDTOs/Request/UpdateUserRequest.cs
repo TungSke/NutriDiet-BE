@@ -11,10 +11,10 @@ namespace NutriDiet.Service.ModelDTOs.Request
     {
         public string FullName { get; set; } = null!;
 
-        public int? Age { get; set; }
+        public int Age { get; set; }
 
         public Gender Gender { get; set; }
 
-        public string? Location { get; set; }
+        public string Location { get; set; }
     }
 }
