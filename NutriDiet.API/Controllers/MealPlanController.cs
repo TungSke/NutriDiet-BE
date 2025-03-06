@@ -32,6 +32,13 @@ namespace NutriDiet.API.Controllers
             return Ok(mealPlan);
         }
 
+        [HttpGet("sample-mealplan")]
+        public async Task<IActionResult> GetSampleMealPlan(int pageIndex, int pageSize, string? search)
+        {
+            var mealPlans = await _mealPlanService.GetSampleMealPlan(pageIndex, pageSize, search);
+            return Ok(mealPlans);
+        }
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> CreateMealPlan([FromBody] MealPlanRequest mealPlanRequest)
@@ -100,6 +107,14 @@ namespace NutriDiet.API.Controllers
         {
             var result = await _mealPlanService.SaveMealPlanAI();
             return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPut("apply-mealplan")]
+        [Authorize]
+        public async Task<IActionResult> UseMealPlan(int mealPlanId)
+        {
+            await _mealPlanService.ApplyMealPlan(mealPlanId);
+            return Ok("Áp dụng thực đơn thành công");
         }
     }
 }

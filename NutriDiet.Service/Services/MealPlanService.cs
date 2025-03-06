@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using Google.Apis.Drive.v3.Data;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -428,6 +429,39 @@ namespace NutriDiet.Service.Services
             var response = await CreateMealPlan(mealPlanRequest);
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response.Data);
+        }
+
+        public async Task<IBusinessResult> ApplyMealPlan(int mealPlanId)
+        {
+            var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanId);
+            if (mealPlan == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
+            }
+            mealPlan.StartAt = DateTime.Now;
+            await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+            await _unitOfWork.SaveChangesAsync();
+            return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_UPDATE_MSG);
+        }
+        public async Task<IBusinessResult> GetSampleMealPlan(int pageIndex, int pageSize, string? search)
+        {
+            search = search?.ToLower() ?? string.Empty;
+
+            var mealPlans = await _unitOfWork.MealPlanRepository.GetPagedAsync(
+                pageIndex,
+            pageSize,
+            x => x.CreatedBy.ToLower() == "admin" &&
+                      (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
+                                                   || x.HealthGoal.ToLower().Contains(search)));
+
+            if (mealPlans == null || !mealPlans.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+
+            var response = mealPlans.Adapt<List<MealPlanResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
     }
 }
