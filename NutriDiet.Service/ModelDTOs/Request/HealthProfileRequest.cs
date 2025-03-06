@@ -20,7 +20,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public string? Aisuggestion { get; set; }
 
-        public List<string> AllergyNames { get; set; } = new List<string>();
-        public List<string> DiseaseNames { get; set; } = new List<string>();
+        public List<int> AllergyIds { get; set; } = new();
+        public List<int> DiseaseIds { get; set; } = new();
     }
 }

@@ -38,7 +38,12 @@ namespace NutriDiet.Service.Services
         public async Task CreateHealthProfileRecord(HealthProfileRequest request)
         {
             var userId = int.Parse(_userIdClaim);
-            var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(x => x.UserId == userId)
+                .Include(u => u.Allergies)
+                .Include(u => u.Diseases)
+                .FirstOrDefaultAsync();
+
             if (existingUser == null)
             {
                 throw new Exception("User does not exist.");
@@ -64,10 +69,8 @@ namespace NutriDiet.Service.Services
                 // Lưu hồ sơ sức khỏe
                 healthProfile.UserId = existingUser.UserId;
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
-
-                // Thêm dị ứng và bệnh lý
-                await AddUserAllergiesAsync(existingUser, request.AllergyNames);
-                await AddUserDiseasesAsync(existingUser, request.DiseaseNames);
+                await UpdateUserAllergiesAsync(existingUser, request.AllergyIds);
+                await UpdateUserDiseasesAsync(existingUser, request.DiseaseIds);
 
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransaction();
@@ -76,6 +79,51 @@ namespace NutriDiet.Service.Services
             {
                 await _unitOfWork.RollbackTransaction();
                 throw;
+            }
+        }
+
+
+
+        private async Task UpdateUserAllergiesAsync(User existingUser, List<int> allergyIds)
+        {
+            // Nếu danh sách mới rỗng, xóa toàn bộ dị ứng cũ
+            if (allergyIds == null || !allergyIds.Any())
+            {
+                existingUser.Allergies.Clear();
+                return;
+            }
+
+            // Xóa toàn bộ danh sách dị ứng cũ
+            existingUser.Allergies.Clear();
+
+            // Lấy danh sách dị ứng mới từ database
+            var allergies = await _unitOfWork.AllergyRepository
+                .GetByWhere(a => allergyIds.Contains(a.AllergyId))
+                .ToListAsync();
+
+            // Thêm từng dị ứng vào danh sách
+            foreach (var allergy in allergies)
+            {
+                existingUser.Allergies.Add(allergy);
+            }
+        }
+        private async Task UpdateUserDiseasesAsync(User existingUser, List<int> diseaseIds)
+        {
+            if (diseaseIds == null || !diseaseIds.Any())
+            {
+                existingUser.Diseases.Clear();
+                return;
+            }
+
+            existingUser.Diseases.Clear();
+
+            var diseases = await _unitOfWork.DiseaseRepository
+                .GetByWhere(d => diseaseIds.Contains(d.DiseaseId))
+                .ToListAsync();
+
+            foreach (var disease in diseases)
+            {
+                existingUser.Diseases.Add(disease);
             }
         }
 
@@ -119,51 +167,6 @@ namespace NutriDiet.Service.Services
                 CurrentValue = value
             }.Adapt<HealthcareIndicator>();
         }
-
-        private async Task AddUserAllergiesAsync(User existingUser, List<string> allergyNames)
-        {
-            if (allergyNames == null || !allergyNames.Any()) return;
-
-            foreach (var allergyName in allergyNames)
-            {
-                var existingAllergy = await _unitOfWork.AllergyRepository
-                    .GetByWhere(a => a.AllergyName.ToLower() == allergyName.ToLower())
-                    .FirstOrDefaultAsync();
-
-                if (existingAllergy == null)
-                {
-                    throw new Exception($"Allergy '{allergyName}' does not exist in the system.");
-                }
-
-                if (!existingUser.Allergies.Any(a => a.AllergyId == existingAllergy.AllergyId))
-                {
-                    existingUser.Allergies.Add(existingAllergy);
-                }
-            }
-        }
-
-        private async Task AddUserDiseasesAsync(User existingUser, List<string> diseaseNames)
-        {
-            if (diseaseNames == null || !diseaseNames.Any()) return;
-
-            foreach (var diseaseName in diseaseNames)
-            {
-                var existingDisease = await _unitOfWork.DiseaseRepository
-                    .GetByWhere(d => d.DiseaseName.ToLower() == diseaseName.ToLower())
-                    .FirstOrDefaultAsync();
-
-                if (existingDisease == null)
-                {
-                    throw new Exception($"Disease '{diseaseName}' does not exist in the system.");
-                }
-
-                if (!existingUser.Diseases.Any(d => d.DiseaseId == existingDisease.DiseaseId))
-                {
-                    existingUser.Diseases.Add(existingDisease);
-                }
-            }
-        }
-
 
         public async Task<IBusinessResult> GetHealthProfile()
         {
