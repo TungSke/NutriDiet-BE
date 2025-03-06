@@ -1,4 +1,4 @@
-﻿USE master;
+USE master;
 IF EXISTS (SELECT name FROM sys.databases WHERE name = 'NutriDiet')
 BEGIN
     ALTER DATABASE NutriDiet SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
@@ -67,6 +67,7 @@ CREATE TABLE GeneralHealthProfile (
     ActivityLevel NVARCHAR(50),
 	AISuggestion NVARCHAR(255),
 	Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')), 
+	IsActive BIT,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
@@ -147,6 +148,7 @@ CREATE TABLE MealPlan (
     HealthGoal NVARCHAR(50),
     Duration INT CHECK (Duration > 0),
     Status NVARCHAR(20) DEFAULT 'Active',
+	StartAt DATETIME, -- ngày áp dụng mealplan
     CreatedBy NVARCHAR(50), --Admin, System, UserName, AI
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedBy NVARCHAR(50),
@@ -168,18 +170,6 @@ CREATE TABLE MealPlanDetail (
 	TotalProtein FLOAT CHECK (TotalProtein >= 0) DEFAULT 0, -- theo bữa
     FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE CASCADE,
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
-);
-
--- Bảng UserMealPlan
--- Nếu User áp dụng kế hoạch của người khác, hệ thống chỉ cần thêm một dòng trong UserMealPlan
-CREATE TABLE UserMealPlan (
-    UserMealPlanID INT IDENTITY(1,1) PRIMARY KEY,
-    UserID INT NOT NULL,
-    MealPlanID INT NOT NULL,
-    AppliedAt DATETIME DEFAULT GETDATE(),
-	IsActive BIT DEFAULT 0, -- Đánh dấu meal plan nào đang được áp dụng (0 = không, 1 = có)
-    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
-    FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE CASCADE
 );
 
 -- Bảng Feedback
@@ -238,11 +228,13 @@ CREATE TABLE HealthcareIndicator (
 CREATE TABLE AIRecommendation (
     RecommendationID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
+	MealPlanID INT NULL,
     RecommendedAt DATETIME DEFAULT GETDATE(),
     AIRecommendationResponse NVARCHAR(MAX),
 	Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
     RejectionReason NVARCHAR(255) NULL,
-    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
+    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
+	FOREIGN KEY (MealPlanID) REFERENCES [MealPlan](MealPlanID) ON DELETE CASCADE
 );
 
 -- Bảng MealLog
