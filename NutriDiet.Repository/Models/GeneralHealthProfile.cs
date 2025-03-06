@@ -17,6 +17,8 @@ public partial class GeneralHealthProfile
 
     public string? Aisuggestion { get; set; }
 
+    public bool? IsActive { get; set; }
+
     public string? Status { get; set; }
 
     public DateTime? CreatedAt { get; set; }

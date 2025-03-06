@@ -15,6 +15,8 @@ public partial class MealPlan
 
     public string? Status { get; set; }
 
+    public DateTime? StartAt { get; set; }
+
     public string? CreatedBy { get; set; }
 
     public DateTime? CreatedAt { get; set; }
@@ -23,9 +25,9 @@ public partial class MealPlan
 
     public DateTime? UpdatedAt { get; set; }
 
+    public virtual ICollection<Airecommendation> Airecommendations { get; set; } = new List<Airecommendation>();
+
     public virtual ICollection<FeedbackMealPlan> FeedbackMealPlans { get; set; } = new List<FeedbackMealPlan>();
 
     public virtual ICollection<MealPlanDetail> MealPlanDetails { get; set; } = new List<MealPlanDetail>();
-
-    public virtual ICollection<UserMealPlan> UserMealPlans { get; set; } = new List<UserMealPlan>();
 }
