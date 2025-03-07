@@ -46,9 +46,9 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateMealPlan(int mealPlanDetailId, [Required] UpdateMealPlanDetailRequest mealPlanDetailRequest)
+        public async Task<IActionResult> UpdateMealPlan([Required] UpdateMealPlanDetailRequest mealPlanDetailRequest)
         {
-            await _mealPlanDetailService.UpdateMealPlanDetail(mealPlanDetailId, mealPlanDetailRequest);
+            await _mealPlanDetailService.UpdateMealPlanDetail(mealPlanDetailRequest);
             return Ok("Cập nhật thành công");
         }
     }

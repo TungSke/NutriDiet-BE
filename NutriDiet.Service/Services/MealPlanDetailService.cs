@@ -37,9 +37,39 @@ namespace NutriDiet.Service.Services
         public async Task DeleteMealPlanDetail(int id)
         {
             var mealPlanDetailExisted = await _unitOfWork.MealPlanDetailRepository.GetByIdAsync(id);
-            await _unitOfWork.MealPlanDetailRepository.DeleteAsync(mealPlanDetailExisted);
-            await _unitOfWork.SaveChangesAsync();
+            if (mealPlanDetailExisted == null)
+            {
+                throw new Exception("MealPlanDetail not found");
+            }
+            await _unitOfWork.BeginTransaction();
+            try
+            {
+
+                var mealPlanId = mealPlanDetailExisted.MealPlanId;
+
+                await _unitOfWork.MealPlanDetailRepository.DeleteAsync(mealPlanDetailExisted);
+                await _unitOfWork.SaveChangesAsync();
+
+                var remainingDetails = await _unitOfWork.MealPlanDetailRepository
+                                    .GetAll()
+                                    .Where(d => d.MealPlanId == mealPlanId)
+                                    .ToListAsync();
+
+                var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanId);
+                if (mealPlan != null)
+                {
+                    mealPlan.Duration = remainingDetails.Select(d => d.DayNumber).Distinct().Count();
+                    await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitTransaction();
+                }
+            }catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransaction();
+                throw ex;
+            }
         }
+
 
         public async Task<IBusinessResult> CreateMealPlanDetail(int mealPlanId, MealPlanDetailRequest mealPlanDetailRequest)
         {
@@ -90,12 +120,12 @@ namespace NutriDiet.Service.Services
             }
         }
 
-        public async Task<IBusinessResult> UpdateMealPlanDetail(int mealPlanDetailId, UpdateMealPlanDetailRequest updateRequest)
+        public async Task<IBusinessResult> UpdateMealPlanDetail(UpdateMealPlanDetailRequest updateRequest)
         {
             await _unitOfWork.BeginTransaction();
             try
             {
-                    var mealPlanDetail = await _unitOfWork.MealPlanDetailRepository.GetByIdAsync(mealPlanDetailId);
+                    var mealPlanDetail = await _unitOfWork.MealPlanDetailRepository.GetByIdAsync(updateRequest.MealPlanDetailId);
                     if (mealPlanDetail == null)
                     {
                         return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "MealPlanDetail not found.");
