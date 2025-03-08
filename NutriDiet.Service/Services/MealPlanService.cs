@@ -515,6 +515,19 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response.Data);
         }
 
+        public async Task<IBusinessResult> GetMeaLPlanByUserId()
+        {
+            int userid = int.Parse(_userIdClaim);
+            var mealPlans = await _unitOfWork.MealPlanRepository.GetByWhere(x=>x.UserId == userid).ToListAsync();
+            if (mealPlans == null || !mealPlans.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+
+            var response = mealPlans.Adapt<List<MealPlanResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
         public async Task<IBusinessResult> ApplyMealPlan(int mealPlanId)
         {
             var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanId);
@@ -522,17 +535,16 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
             }
-            mealPlan.StartAt = DateTime.Now;
-            mealPlan.Airecommendations = new List<Airecommendation>
+            if(mealPlan.Status == MealplanStatus.Inactive.ToString() && mealPlan.StartAt == null)
             {
-                new Airecommendation
-                {
-                    UserId = int.Parse(_userIdClaim),
-                    AirecommendationResponse = null,
-                    RecommendedAt = DateTime.Now,
-                    Status = AIRecommendStatus.Accepted.ToString()
-                }
-            };
+            mealPlan.StartAt = DateTime.Now;
+            mealPlan.Status = MealplanStatus.Active.ToString();
+            }
+            else 
+            {
+                mealPlan.StartAt = null;
+                mealPlan.Status = MealplanStatus.Inactive.ToString();
+            }
             await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_UPDATE_MSG);
