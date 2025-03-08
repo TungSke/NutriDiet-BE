@@ -303,7 +303,7 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> RejectRecipe(RejectRecipeRequest request)
         {
             int userid = int.Parse(_userIdClaim);
-            var recipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.RecipeId == request.RecipeId).FirstOrDefaultAsync();
+            var recipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.FoodId == request.FoodId && x.UserId == userid).FirstOrDefaultAsync();
             if (recipe == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Recipe not found");

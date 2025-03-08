@@ -8,7 +8,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class RejectRecipeRequest
     {
-        public int RecipeId { get; set; }
+        public int FoodId { get; set; }
         public string RejectionReason { get; set; }
     }
 }

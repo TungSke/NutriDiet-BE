@@ -516,6 +516,16 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
             }
             mealPlan.StartAt = DateTime.Now;
+            mealPlan.Airecommendations = new List<Airecommendation>
+            {
+                new Airecommendation
+                {
+                    UserId = int.Parse(_userIdClaim),
+                    AirecommendationResponse = null,
+                    RecommendedAt = DateTime.Now,
+                    Status = AIRecommendStatus.Accepted.ToString()
+                }
+            };
             await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_UPDATE_MSG);
@@ -527,7 +537,7 @@ namespace NutriDiet.Service.Services
             var mealPlans = await _unitOfWork.MealPlanRepository.GetPagedAsync(
                 pageIndex,
             pageSize,
-            x => x.CreatedBy.ToLower() == "admin" &&
+            x => x.CreatedBy.ToLower() == "admin" && x.Status.ToLower() == MealplanStatus.Active.ToString().ToLower() &&
                       (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
                                                    || x.HealthGoal.ToLower().Contains(search)));
 

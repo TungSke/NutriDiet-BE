@@ -71,6 +71,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("reject-recipe")]
+        [Authorize]
         public async Task<IActionResult> RejectRecipe([FromBody] RejectRecipeRequest request)
         {
             var result = await _foodService.RejectRecipe(request);

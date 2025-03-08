@@ -10,6 +10,6 @@ namespace NutriDiet.Common.Enums
     {
         Active,
         Inactive,
-        Deleted
+        
     }
 }
