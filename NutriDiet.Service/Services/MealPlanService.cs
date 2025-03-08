@@ -73,6 +73,7 @@ namespace NutriDiet.Service.Services
             }
             var mealPlan = new MealPlan
             {
+                UserId = userid,
                 PlanName = mealPlanRequest.PlanName,
                 HealthGoal = mealPlanRequest.HealthGoal,
                 Status = MealplanStatus.Inactive.ToString(),
@@ -183,6 +184,7 @@ namespace NutriDiet.Service.Services
 
             var mealPlan = new MealPlan
             {
+                UserId = userID,
                 PlanName = mealPlanExisted.PlanName + $" - Clone by {user.Email}",
                 HealthGoal = mealPlanExisted.HealthGoal,
                 Duration = mealPlanExisted.Duration,
@@ -352,7 +354,7 @@ namespace NutriDiet.Service.Services
             var foodListText = JsonSerializer.Serialize(foods);
 
             var airecommendationResponse = await _unitOfWork.AIRecommendationRepository
-                        .GetByWhere(x => x.UserId == userid && x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower())
+                        .GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower())
                         .FirstOrDefaultAsync();
 
             var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
@@ -449,7 +451,6 @@ namespace NutriDiet.Service.Services
                 {
                     await _unitOfWork.AIRecommendationRepository.AddAsync(new Airecommendation
                     {
-                        UserId = userid,
                         AirecommendationResponse = airesponse,
                         RecommendedAt = DateTime.Now,
                         Status = AIRecommendStatus.Pending.ToString()
@@ -476,7 +477,7 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> RejectMealplan(string rejectReason)
         {
             int userid = int.Parse(_userIdClaim);
-            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.UserId == userid && x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower()).FirstOrDefaultAsync();
+            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower()).FirstOrDefaultAsync();
             if (recommendResponse == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
@@ -492,7 +493,7 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> SaveMealPlanAI()
         {
             int userid = int.Parse(_userIdClaim);
-            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.UserId == userid && x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower()).FirstOrDefaultAsync();
+            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x=>x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower()).FirstOrDefaultAsync();
             if (recommendResponse == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
@@ -504,6 +505,12 @@ namespace NutriDiet.Service.Services
             var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(recommendResponse.AirecommendationResponse.ToString());
 
             var response = await CreateMealPlan(mealPlanRequest);
+
+            if (response.Data is MealPlan createdMealPlan)
+            {
+                recommendResponse.MealPlanId = createdMealPlan.MealPlanId;
+                await _unitOfWork.SaveChangesAsync();
+            }
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response.Data);
         }

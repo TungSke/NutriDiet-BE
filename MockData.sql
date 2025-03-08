@@ -9,7 +9,6 @@ ALTER TABLE GeneralHealthProfile NOCHECK CONSTRAINT ALL;
 ALTER TABLE RecipeSuggestion NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserFoodPreference NOCHECK CONSTRAINT ALL;
 ALTER TABLE MealPlanDetail NOCHECK CONSTRAINT ALL;
-ALTER TABLE FeedbackMealplan NOCHECK CONSTRAINT ALL;
 ALTER TABLE FoodSubstitution NOCHECK CONSTRAINT ALL;
 ALTER TABLE Notification NOCHECK CONSTRAINT ALL;
 ALTER TABLE HealthcareIndicator NOCHECK CONSTRAINT ALL;
@@ -27,7 +26,6 @@ DELETE FROM RecipeSuggestion;
 DELETE FROM UserFoodPreference;
 DELETE FROM MealPlanDetail;
 DELETE FROM MealPlan;
-DELETE FROM FeedbackMealPlan;
 DELETE FROM FoodSubstitution;
 DELETE FROM Notification;
 DELETE FROM HealthcareIndicator;
@@ -51,7 +49,6 @@ ALTER TABLE GeneralHealthProfile CHECK CONSTRAINT ALL;
 ALTER TABLE RecipeSuggestion CHECK CONSTRAINT ALL;
 ALTER TABLE UserFoodPreference CHECK CONSTRAINT ALL;
 ALTER TABLE MealPlanDetail CHECK CONSTRAINT ALL;
-ALTER TABLE FeedbackMealPlan CHECK CONSTRAINT ALL;
 ALTER TABLE FoodSubstitution CHECK CONSTRAINT ALL;
 ALTER TABLE Notification CHECK CONSTRAINT ALL;
 ALTER TABLE HealthcareIndicator CHECK CONSTRAINT ALL;
@@ -381,14 +378,14 @@ INSERT INTO CuisineType (CuisineName) VALUES
 -- Thêm 3 MealPlan
 SET IDENTITY_INSERT MealPlan ON;
 
-INSERT INTO MealPlan (MealPlanID, PlanName, HealthGoal, Duration, CreatedBy, UpdatedBy)
+INSERT INTO MealPlan (MealPlanID, UserID, PlanName, HealthGoal, Duration, CreatedBy, UpdatedBy)
 VALUES
-    (1, N'Kế hoạch ăn uống giảm cân', N'Giảm cân', 7, N'Admin', N'Admin'),
-    (2, N'Kế hoạch ăn uống tăng cân', N'Tăng cơ bắp', 7, N'Admin', N'Admin'),
-    (3, N'Kế hoạch ăn uống cân bằng', N'Cân bằng dinh dưỡng', 7, N'Admin', N'Admin'),
-	(4, N'Kế hoạch ăn uống HealThy', N'HealThy', 7, N'Admin', N'Admin'),
-	(5, N'Kế hoạch ăn uống cho người tiểu đường', N'Cải thiện tiểu đường', 7, N'Admin', N'Admin'),
-	(6, N'Kế hoạch ăn uống cho người gan nhiễm mỡ', N'Cải thiện gan nhiễm mỡ', 7, N'Admin', N'Admin');
+    (1, 2, N'Kế hoạch ăn uống giảm cân', N'Giảm cân', 7, N'Admin', N'Admin'),
+    (2, 2, N'Kế hoạch ăn uống tăng cân', N'Tăng cơ bắp', 7, N'Admin', N'Admin'),
+    (3, 2, N'Kế hoạch ăn uống cân bằng', N'Cân bằng dinh dưỡng', 7, N'Admin', N'Admin'),
+	(4, 2, N'Kế hoạch ăn uống HealThy', N'HealThy', 7, N'Admin', N'Admin'),
+	(5, 2, N'Kế hoạch ăn uống cho người tiểu đường', N'Cải thiện tiểu đường', 7, N'Admin', N'Admin'),
+	(6, 2, N'Kế hoạch ăn uống cho người gan nhiễm mỡ', N'Cải thiện gan nhiễm mỡ', 7, N'Admin', N'Admin');
 
 SET IDENTITY_INSERT MealPlan OFF;
 
