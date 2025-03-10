@@ -26,7 +26,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet("{mealPlanId}")]
-        public async Task<IActionResult> GetMealPlanByID(int mealPlanId)
+        public async Task<IActionResult> GetMealPlanById(int mealPlanId)
         {
             var mealPlan = await _mealPlanService.GetMealPlanByID(mealPlanId);
             return Ok(mealPlan);
@@ -36,6 +36,14 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> GetSampleMealPlan(int pageIndex, int pageSize, string? search)
         {
             var mealPlans = await _mealPlanService.GetSampleMealPlan(pageIndex, pageSize, search);
+            return Ok(mealPlans);
+        }
+
+        [HttpGet("my-mealplan")]
+        [Authorize]
+        public async Task<IActionResult> GetMyMealPlan()
+        {
+            var mealPlans = await _mealPlanService.GetMyMealPlan();
             return Ok(mealPlans);
         }
 

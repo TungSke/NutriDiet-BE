@@ -175,18 +175,6 @@ CREATE TABLE MealPlanDetail (
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
 );
 
--- Bảng Feedback
-CREATE TABLE FeedbackMealPlan (
-    FeedbackID INT IDENTITY(1,1) PRIMARY KEY,
-    MealPlanID INT NOT NULL,
-    UserID INT NOT NULL,
-    Rating INT CHECK (Rating BETWEEN 1 AND 5),
-    Message NVARCHAR(MAX) NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    UpdatedAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE CASCADE,
-    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE NO ACTION
-);
 
 -- Bảng FoodSubstitution
 CREATE TABLE FoodSubstitution (
