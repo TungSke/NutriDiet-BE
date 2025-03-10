@@ -72,13 +72,13 @@ namespace NutriDiet.Service.Services
                 throw new Exception("TDEE data is missing.");
             }
 
-            // 🆕 Tách ra hàm riêng để kiểm tra hợp lệ của mục tiêu
+            // Tách ra hàm riêng để kiểm tra hợp lệ của mục tiêu
             ValidatePersonalGoal(request, currentWeight);
 
             // Tính toán lượng calo hàng ngày và thời gian cần đạt mục tiêu
             var (dailyCalories, targetDate) = CalculateDailyCaloriesAndTargetDate(request, tdee, currentWeight);
 
-            // 🆕 Tính toán Macronutrient Ratios (%) dựa trên mục tiêu
+            // Tính toán Macronutrient Ratios (%) dựa trên mục tiêu
             var macronutrients = CalculateMacronutrientRatios(request.GoalType);
 
             var personalGoal = request.Adapt<PersonalGoal>();
@@ -89,8 +89,6 @@ namespace NutriDiet.Service.Services
             personalGoal.ProgressRate = (int)(currentWeight - request.TargetWeight);
             personalGoal.DailyCalories = (int)dailyCalories;
             personalGoal.TargetDate = targetDate ?? DateTime.Now;
-
-            // 🆕 Lưu Macronutrient Ratios (%)
             personalGoal.DailyCarb = macronutrients.CarbRatio;
             personalGoal.DailyProtein = macronutrients.ProteinRatio;
             personalGoal.DailyFat = macronutrients.FatRatio;
@@ -172,9 +170,6 @@ namespace NutriDiet.Service.Services
             return (dailyCalories, targetDate);
         }
 
-
-
-
         private (double CarbRatio, double ProteinRatio, double FatRatio) CalculateMacronutrientRatios(GoalType goalType)
         {
             double carbRatio, proteinRatio, fatRatio;
@@ -203,10 +198,6 @@ namespace NutriDiet.Service.Services
 
             return (carbRatio, proteinRatio, fatRatio);
         }
-
-
-
-
 
         public async Task<IBusinessResult> GetPersonalGoal()
         {
@@ -275,13 +266,13 @@ namespace NutriDiet.Service.Services
 
             try
             {
-                // 🆕 Kiểm tra hợp lệ của mục tiêu
+                //  Kiểm tra hợp lệ của mục tiêu
                 ValidatePersonalGoal(request, currentWeight);
 
-                // 🆕 Tính toán lượng calo hàng ngày và ngày đạt mục tiêu
+                //  Tính toán lượng calo hàng ngày và ngày đạt mục tiêu
                 var (dailyCalories, targetDate) = CalculateDailyCaloriesAndTargetDate(request, tdee, currentWeight);
 
-                // 🆕 Tính toán Macronutrient Ratios (%)
+                //  Tính toán Macronutrient Ratios (%)
                 var macronutrients = CalculateMacronutrientRatios(request.GoalType);
 
                 // Cập nhật thông tin mục tiêu
@@ -291,7 +282,8 @@ namespace NutriDiet.Service.Services
                 existingGoal.DailyCarb = macronutrients.CarbRatio;
                 existingGoal.DailyProtein = macronutrients.ProteinRatio;
                 existingGoal.DailyFat = macronutrients.FatRatio;
-
+                existingGoal.ProgressRate = (int)(currentWeight - request.TargetWeight);
+                existingGoal.ProgressPercentage = 0; 
                 await _unitOfWork.PersonalGoalRepository.UpdateAsync(existingGoal);
                 await _unitOfWork.SaveChangesAsync();
 

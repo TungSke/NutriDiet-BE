@@ -65,7 +65,8 @@ namespace NutriDiet.Service.Services
             {
                 // Cập nhật thông tin người dùng
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
-
+                // Cập nhật tiến trình giảm cân
+                await UpdateGoalProgress(request.Weight, userId);
                 // Lưu hồ sơ sức khỏe
                 healthProfile.UserId = existingUser.UserId;
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
@@ -82,7 +83,24 @@ namespace NutriDiet.Service.Services
             }
         }
 
-
+        private async Task UpdateGoalProgress(double? weight, int userId)
+        {
+            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).FirstOrDefaultAsync();
+            if (existgoal == null)
+            {
+                return;
+            }
+            var newrate = weight - existgoal.TargetWeight.Value;
+            var percentage = 100 - (int)((newrate / existgoal.ProgressRate) * 100);
+            if(percentage < 0)
+            {
+                return;
+            }else if(percentage > 100)
+            {
+                percentage = 100;
+            }
+            existgoal.ProgressPercentage = percentage;
+        }
 
         private async Task UpdateUserAllergiesAsync(User existingUser, List<int> allergyIds)
         {
@@ -127,6 +145,7 @@ namespace NutriDiet.Service.Services
             }
         }
 
+
         /// <summary>
         /// Kiểm tra xem request có đủ dữ liệu để tính toán chỉ số sức khỏe hay không.
         /// </summary>
@@ -149,11 +168,27 @@ namespace NutriDiet.Service.Services
             var bmi = _unitOfWork.HealthcareIndicatorRepository.CalculateBMI(
                 request.Weight.Value, request.Height.Value);
 
-            var bmiIndicator = CreateHealthIndicator(userId, "Body mass index", "Mass", "BMI", bmi);
+            // Phân loại BMI
+            var bmiCategory = GetBMICategory(bmi);
+
+            var bmiIndicator = CreateHealthIndicator(userId, "Body mass index", bmiCategory, "BMI", bmi);
             var tdeeIndicator = CreateHealthIndicator(userId, "Total daily energy expenditure", "Energy", "TDEE", tdee);
 
             await _unitOfWork.HealthcareIndicatorRepository.AddAsync(bmiIndicator);
             await _unitOfWork.HealthcareIndicatorRepository.AddAsync(tdeeIndicator);
+        }
+
+        private string GetBMICategory(double bmi)
+        {
+            return bmi switch
+            {
+                < 18.5 => "Gầy",
+                >= 18.5 and < 24.9 => "Bình thường",
+                >= 25 and < 29.9 => "Thừa cân",
+                >= 30 and < 34.9 => "Béo phì độ 1",
+                >= 35 and < 39.9 => "Béo phì độ 2",
+                _ => "Béo phì độ 3"
+            };
         }
 
         private HealthcareIndicator CreateHealthIndicator(int userId, string name, string type, string code, double value)
@@ -167,6 +202,7 @@ namespace NutriDiet.Service.Services
                 CurrentValue = value
             }.Adapt<HealthcareIndicator>();
         }
+
 
         public async Task<IBusinessResult> GetHealthProfile()
         {
