@@ -41,9 +41,9 @@ namespace NutriDiet.API.Controllers
 
         [HttpGet("my-mealplan")]
         [Authorize]
-        public async Task<IActionResult> GetMyMealPlan()
+        public async Task<IActionResult> GetMyMealPlan(int pageIndex, int pageSize, string? search)
         {
-            var mealPlans = await _mealPlanService.GetMyMealPlan();
+            var mealPlans = await _mealPlanService.GetMyMealPlan(pageIndex, pageSize, search);
             return Ok(mealPlans);
         }
 
@@ -118,12 +118,12 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPut("apply-mealplan")]
+        [HttpPut("apply-mealplan/{mealPlanId}")]
         [Authorize]
-        public async Task<IActionResult> UseMealPlan(int mealPlanId)
+        public async Task<IActionResult> ApplyMealPlan(int mealPlanId)
         {
-            await _mealPlanService.ApplyMealPlan(mealPlanId);
-            return Ok("Áp dụng thực đơn thành công");
+            var result = await _mealPlanService.ApplyMealPlan(mealPlanId);
+            return StatusCode(result.StatusCode, new { message = result.Message });
         }
     }
 }
