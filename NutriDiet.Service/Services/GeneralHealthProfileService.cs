@@ -66,7 +66,10 @@ namespace NutriDiet.Service.Services
                 // Cập nhật thông tin người dùng
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
                 // Cập nhật tiến trình giảm cân
-                await UpdateGoalProgress(request.Weight, userId);
+                if(request.Weight != null)
+                {
+                    await UpdateGoalProgress(request.Weight, userId);
+                }
                 // Lưu hồ sơ sức khỏe
                 healthProfile.UserId = existingUser.UserId;
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
