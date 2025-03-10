@@ -51,11 +51,12 @@ namespace NutriDiet.API.Controllers
         [Authorize]
         public async Task<IActionResult> CreateMealPlan([FromBody] MealPlanRequest mealPlanRequest)
         {
-            var mealPlan = await _mealPlanService.CreateMealPlan(mealPlanRequest);
-            return Ok("Tạo thực đơn thành công");
+            var result = await _mealPlanService.CreateMealPlan(mealPlanRequest);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpDelete("{mealPlanId}")]
+        [Authorize]
         public async Task<IActionResult> DeleteMealPlan(int mealPlanId)
         {
             await _mealPlanService.DeleteMealPlan(mealPlanId);

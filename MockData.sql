@@ -378,14 +378,14 @@ INSERT INTO CuisineType (CuisineName) VALUES
 -- Thêm 3 MealPlan
 SET IDENTITY_INSERT MealPlan ON;
 
-INSERT INTO MealPlan (MealPlanID, UserID, PlanName, HealthGoal, Duration, CreatedBy, UpdatedBy)
+INSERT INTO MealPlan (MealPlanID, UserID, PlanName, HealthGoal, Duration, CreatedBy, UpdatedBy, Status)
 VALUES
-    (1, 2, N'Kế hoạch ăn uống giảm cân', N'Giảm cân', 7, N'Admin', N'Admin'),
-    (2, 2, N'Kế hoạch ăn uống tăng cân', N'Tăng cơ bắp', 7, N'Admin', N'Admin'),
-    (3, 2, N'Kế hoạch ăn uống cân bằng', N'Cân bằng dinh dưỡng', 7, N'Admin', N'Admin'),
-	(4, 2, N'Kế hoạch ăn uống HealThy', N'HealThy', 7, N'Admin', N'Admin'),
-	(5, 2, N'Kế hoạch ăn uống cho người tiểu đường', N'Cải thiện tiểu đường', 7, N'Admin', N'Admin'),
-	(6, 2, N'Kế hoạch ăn uống cho người gan nhiễm mỡ', N'Cải thiện gan nhiễm mỡ', 7, N'Admin', N'Admin');
+    (1, 2, N'Kế hoạch ăn uống giảm cân', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
+    (2, 2, N'Kế hoạch ăn uống tăng cân', N'Tăng cơ bắp', 7, N'Admin', N'Admin', 'Active'),
+    (3, 2, N'Kế hoạch ăn uống cân bằng', N'Cân bằng dinh dưỡng', 7, N'Admin', N'Admin', 'Active'),
+    (4, 2, N'Kế hoạch ăn uống Healthy', N'Cải thiện sức khỏe', 7, N'Admin', N'Admin', 'Active'),
+    (5, 2, N'Kế hoạch ăn uống cho người tiểu đường', N'Cải thiện tiểu đường', 7, N'Admin', N'Admin', 'Active'),
+    (6, 2, N'Kế hoạch ăn uống cho người gan nhiễm mỡ', N'Cải thiện gan nhiễm mỡ', 7, N'Admin', N'Admin', 'Active');
 
 SET IDENTITY_INSERT MealPlan OFF;
 

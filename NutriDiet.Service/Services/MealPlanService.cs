@@ -122,7 +122,10 @@ namespace NutriDiet.Service.Services
                     await _unitOfWork.SaveChangesAsync();
                     await _unitOfWork.CommitTransaction();
                 }
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
+
+                var mealplanResponse = mealPlan.Adapt<MealPlanResponse>();
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, mealplanResponse);
             }
             catch (Exception ex)
             {
@@ -360,11 +363,6 @@ namespace NutriDiet.Service.Services
             var allergyIds = new List<int>(userAllergyDisease.AllergyIds);
             var diseaseIds = new List<int>(userAllergyDisease.DiseaseIds);
 
-            //var likedFoodIds = userInfo.UserFoodPreferences
-            //                .Where(x => x.Preference.ToLower() == "like")
-            //                .Select(x => x.FoodId)
-            //                .ToList();
-
             var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
 
             var allergyNames = userInfo?.Allergies.Select(x => x.AllergyName) ?? new List<string>();
@@ -521,20 +519,20 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
             }
             recommendResponse.Status = AIRecommendStatus.Accepted.ToString();
-            recommendResponse.RejectionReason = null;
+            recommendResponse.RejectionReason = null; 
             await _unitOfWork.SaveChangesAsync();
 
             var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(recommendResponse.AirecommendationResponse.ToString());
 
             var response = await CreateMealPlan(mealPlanRequest);
 
-            if (response.Data is MealPlan createdMealPlan)
+            if (response.Data is MealPlanResponse createdMealPlan)
             {
                 recommendResponse.MealPlanId = createdMealPlan.MealPlanId;
                 await _unitOfWork.SaveChangesAsync();
             }
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response.Data);
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Save mealplan by AI Success");
         }
 
         public async Task<IBusinessResult> GetMyMealPlan(int pageIndex, int pageSize, string? search)
@@ -558,6 +556,7 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+
         public async Task<IBusinessResult> ApplyMealPlan(int mealPlanId)
         {
             var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanId);
@@ -593,6 +592,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_UPDATE_MSG);
         }
+
         public async Task<IBusinessResult> GetSampleMealPlan(int pageIndex, int pageSize, string? search)
         {
             search = search?.ToLower() ?? string.Empty;
@@ -610,6 +610,26 @@ namespace NutriDiet.Service.Services
             }
 
             var response = mealPlans.Adapt<List<MealPlanResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+
+        public async Task<IBusinessResult> GetMyCurrentMealPlan()
+        {
+            int userid = int.Parse(_userIdClaim);
+
+            var currentMealPlan = await _unitOfWork.MealPlanRepository
+                .GetByWhere(x => x.UserId == userid && x.Status == MealplanStatus.Active.ToString() && x.StartAt != null)
+                .Include(x => x.MealPlanDetails)
+                .ThenInclude(x => x.Food)
+                .FirstOrDefaultAsync();
+
+            if (currentMealPlan == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No active meal plan found.");
+            }
+
+            var response = currentMealPlan.Adapt<MealPlanResponse>();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
