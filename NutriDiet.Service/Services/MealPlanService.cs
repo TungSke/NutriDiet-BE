@@ -282,6 +282,13 @@ namespace NutriDiet.Service.Services
                     }
                 }
 
+                var requestDetailIds = mealPlanRequest.MealPlanDetails
+                    .Select(d => d.MealPlanDetailId)
+                    .ToList();
+
+                var detailsToDelete = existingDetails
+                    .Where(d => !requestDetailIds.Contains(d.MealPlanDetailId))
+                    .ToList();
                 if (newDetails.Any())
                 {
                     await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(newDetails);
@@ -292,7 +299,17 @@ namespace NutriDiet.Service.Services
                     await _unitOfWork.MealPlanDetailRepository.UpdateRangeAsync(updatedDetails);
                 }
 
-                var allDetails = existingDetails.Concat(newDetails).ToList();
+                if (detailsToDelete.Any())
+                {
+                    await _unitOfWork.MealPlanDetailRepository.RemoveRange(detailsToDelete);
+                }
+                await _unitOfWork.SaveChangesAsync();
+
+                var allDetails = await _unitOfWork.MealPlanDetailRepository
+                    .GetAll()
+                    .Where(d => d.MealPlanId == mealPlanID)
+                    .ToListAsync();
+
                 mealPlan.Duration = allDetails.Select(d => d.DayNumber).Distinct().Count();
 
 
@@ -515,7 +532,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response.Data);
         }
 
-        public async Task<IBusinessResult> GetMeaLPlanByUserId()
+        public async Task<IBusinessResult> GetMyMealPlan()
         {
             int userid = int.Parse(_userIdClaim);
             var mealPlans = await _unitOfWork.MealPlanRepository.GetByWhere(x=>x.UserId == userid).ToListAsync();
