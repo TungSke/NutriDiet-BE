@@ -1,4 +1,5 @@
-﻿using Google.Apis.Drive.v3.Data;
+﻿using CloudinaryDotNet;
+using Google.Apis.Drive.v3.Data;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using NutriDiet.Common.Enums;
 using NutriDiet.Repository;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
@@ -219,6 +221,9 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> UpdateMealPlan(int mealPlanID, UpdateMealPlanRequest mealPlanRequest)
         {
+            var userID = int.Parse(_userIdClaim);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userID);
+
             var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanID);
             if (mealPlan == null)
             {
@@ -229,7 +234,7 @@ namespace NutriDiet.Service.Services
             {
                 mealPlan.PlanName = mealPlanRequest.PlanName;
                 mealPlan.HealthGoal = mealPlanRequest.HealthGoal;
-                mealPlan.UpdatedBy = _userIdClaim;
+                mealPlan.UpdatedBy = user.FullName;
                 mealPlan.UpdatedAt = DateTime.Now;
 
                 var existingDetails = await _unitOfWork.MealPlanDetailRepository
@@ -532,10 +537,18 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response.Data);
         }
 
-        public async Task<IBusinessResult> GetMyMealPlan()
+        public async Task<IBusinessResult> GetMyMealPlan(int pageIndex, int pageSize, string? search)
         {
             int userid = int.Parse(_userIdClaim);
-            var mealPlans = await _unitOfWork.MealPlanRepository.GetByWhere(x=>x.UserId == userid).ToListAsync();
+
+            search = search?.ToLower() ?? string.Empty;
+
+            var mealPlans = await _unitOfWork.MealPlanRepository.GetPagedAsync(
+                pageIndex,
+                pageSize,
+                x => x.UserId == userid && (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
+                                                   || x.HealthGoal.ToLower().Contains(search)));
+
             if (mealPlans == null || !mealPlans.Any())
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
@@ -548,11 +561,25 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> ApplyMealPlan(int mealPlanId)
         {
             var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanId);
+
             if (mealPlan == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
             }
-            if(mealPlan.Status == MealplanStatus.Inactive.ToString() && mealPlan.StartAt == null)
+
+            int userId = int.Parse(_userIdClaim);
+
+            var existingActiveMealPlan =  _unitOfWork.MealPlanRepository.GetAll()
+                .Any(x => x.UserId == userId // any: check true false
+                    && x.Status == MealplanStatus.Active.ToString()
+                    && x.StartAt != null);
+
+            if (existingActiveMealPlan && mealPlan.Status == MealplanStatus.Inactive.ToString())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đã có một thực đơn đang được áp dụng");
+            }
+
+            if (mealPlan.Status == MealplanStatus.Inactive.ToString() && mealPlan.StartAt == null)
             {
             mealPlan.StartAt = DateTime.Now;
             mealPlan.Status = MealplanStatus.Active.ToString();
@@ -573,7 +600,7 @@ namespace NutriDiet.Service.Services
             var mealPlans = await _unitOfWork.MealPlanRepository.GetPagedAsync(
                 pageIndex,
             pageSize,
-            x => x.CreatedBy.ToLower() == "admin" && x.Status.ToLower() == MealplanStatus.Active.ToString().ToLower() &&
+            x => x.UserId == 2 && x.CreatedBy.ToLower() == "admin" && x.Status.ToLower() == MealplanStatus.Active.ToString().ToLower() &&
                       (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
                                                    || x.HealthGoal.ToLower().Contains(search)));
 
