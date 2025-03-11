@@ -48,8 +48,6 @@ namespace NutriDiet.Service.Services
             {
                 throw new Exception("User does not exist.");
             }
-
-            request.Adapt(existingUser);
             var healthProfile = request.Adapt<GeneralHealthProfile>();
             healthProfile.CreatedAt = DateTime.Now;
             healthProfile.UpdatedAt = DateTime.Now;
@@ -57,14 +55,12 @@ namespace NutriDiet.Service.Services
             // Tính toán và lưu các chỉ số sức khỏe nếu đủ dữ liệu
             if (IsValidHealthData(request))
             {
-                await SaveHealthIndicatorsAsync(userId, request);
+                await SaveHealthIndicatorsAsync(userId, request,existingUser);
             }
 
             await _unitOfWork.BeginTransaction();
             try
-            {
-                // Cập nhật thông tin người dùng
-                await _unitOfWork.UserRepository.UpdateAsync(existingUser);
+                {
                 // Cập nhật tiến trình giảm cân
                 if(request.Weight != null)
                 {
@@ -155,18 +151,17 @@ namespace NutriDiet.Service.Services
         private bool IsValidHealthData(HealthProfileRequest request)
         {
             return request.Weight.HasValue && request.Height.HasValue &&
-                   request.Age.HasValue && request.Gender.HasValue &&
                    request.ActivityLevel.HasValue;
         }
 
         /// <summary>
         /// Tính toán và lưu các chỉ số sức khỏe (BMI, TDEE)
         /// </summary>
-        private async Task SaveHealthIndicatorsAsync(int userId, HealthProfileRequest request)
+        private async Task SaveHealthIndicatorsAsync(int userId, HealthProfileRequest request, User user)
         {
             var tdee = _unitOfWork.HealthcareIndicatorRepository.CalculateTDEE(
-                request.Weight.Value, request.Height.Value, request.Age.Value,
-                request.Gender.ToString().ToLower(), (double)request.ActivityLevel);
+                request.Weight.Value, request.Height.Value, user.Age.Value,
+                user.Gender.ToString().ToLower(), (double)request.ActivityLevel);
 
             var bmi = _unitOfWork.HealthcareIndicatorRepository.CalculateBMI(
                 request.Weight.Value, request.Height.Value);
