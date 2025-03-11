@@ -225,6 +225,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateFoodRecipeByAI(int foodId, int cuisineId)
         {
+            //lấy thông tin tình trạng sức khỏe của user
             int userid = int.Parse(_userIdClaim);
             var userError = await _unitOfWork.UserRepository
                             .GetByWhere(x => x.UserId == userid)
@@ -254,6 +255,7 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"{(food == null ? "food" : "cuisine")} not found");
             }
 
+            // kiểm tra xem đã có công thức nấu món ăn này chưa
             var existingRecipe = await _unitOfWork.RecipeSuggestionRepository
                 .GetByWhere(x => x.UserId == userid && x.FoodId == foodId)
                 .FirstOrDefaultAsync();
