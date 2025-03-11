@@ -10,7 +10,6 @@ namespace NutriDiet.Service.Interface
 {
     public interface IMealPlanDetailService
     {
-        Task<IBusinessResult> GetAllMealPlanDetail();
         Task DeleteMealPlanDetail(int id);
         Task<IBusinessResult> CreateMealPlanDetail(int mealPlanId, MealPlanDetailRequest mealPlanDetailRequest);
         Task<IBusinessResult> UpdateMealPlanDetail(UpdateMealPlanDetailRequest updateRequest);

@@ -28,5 +28,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> ApplyMealPlan(int mealPlanId);
         Task<IBusinessResult> GetSampleMealPlan(int pageIndex, int pageSize, string? search);
         Task<IBusinessResult> GetMyMealPlan(int pageIndex, int pageSize, string? search);
+
+        Task<IBusinessResult> GetMyCurrentMealPlan();
     }
 }
