@@ -18,20 +18,10 @@ namespace NutriDiet.Service.Services
     public class MealPlanDetailService : IMealPlanDetailService
     {
         private readonly IUnitOfWork _unitOfWork;
+
         public MealPlanDetailService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-        }
-
-        public async Task<IBusinessResult> GetAllMealPlanDetail()
-        {
-            var detail = _unitOfWork.MealPlanDetailRepository.GetAll().ToList();
-            if(detail == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
-            }
-            var response = detail.Adapt<List<MealPlanDetailResponse>>();
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
         public async Task DeleteMealPlanDetail(int id)
