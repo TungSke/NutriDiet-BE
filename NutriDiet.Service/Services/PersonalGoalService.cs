@@ -104,6 +104,12 @@ namespace NutriDiet.Service.Services
                 throw new Exception("Target weight and weight change rate must be provided.");
             }
 
+            // Kiểm tra WeightChangeRate hợp lệ
+            if (!Enum.IsDefined(typeof(WeightChangeRate), request.WeightChangeRate))
+            {
+                throw new Exception("Tốc độ thay đổi cân nặng không hợp lệ.");
+            }
+
             switch (request.GoalType)
             {
                 case GoalType.GainWeight:
@@ -111,12 +117,20 @@ namespace NutriDiet.Service.Services
                     {
                         throw new Exception($"Mục tiêu tăng cân không hợp lệ. Cân nặng hiện tại: {currentWeight} kg, mục tiêu: {request.TargetWeight} kg.");
                     }
+                    if (request.WeightChangeRate <= 0)
+                    {
+                        throw new Exception("Tốc độ thay đổi cân nặng phải lớn hơn 0 khi mục tiêu là tăng cân.");
+                    }
                     break;
 
                 case GoalType.LoseWeight:
                     if (request.TargetWeight >= currentWeight)
                     {
                         throw new Exception($"Mục tiêu giảm cân không hợp lệ. Cân nặng hiện tại: {currentWeight} kg, mục tiêu: {request.TargetWeight} kg.");
+                    }
+                    if (request.WeightChangeRate >= 0)
+                    {
+                        throw new Exception("Tốc độ thay đổi cân nặng phải nhỏ hơn 0 khi mục tiêu là giảm cân.");
                     }
                     break;
 
@@ -127,7 +141,7 @@ namespace NutriDiet.Service.Services
                     }
                     if (request.WeightChangeRate != 0)
                     {
-                        throw new Exception("WeightChangeRate phải là 0 khi duy trì cân nặng.");
+                        throw new Exception("Tốc độ thay đổi cân nặng phải là 0 khi duy trì cân nặng.");
                     }
                     break;
 
@@ -135,6 +149,7 @@ namespace NutriDiet.Service.Services
                     throw new Exception("Mục tiêu không hợp lệ.");
             }
         }
+
 
         private (double dailyCalories, DateTime? targetDate) CalculateDailyCaloriesAndTargetDate(PersonalGoalRequest request, double tdee, double? currentWeight)
         {
