@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NutriDiet.Common.BusinessResult;
 
 namespace NutriDiet.Service.Interface
 {
     public interface IDashboardService
     {
-        Task<int> CountUser();
+        Task<IBusinessResult> Dashboard();
     }
 }

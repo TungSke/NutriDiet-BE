@@ -8,6 +8,10 @@ namespace NutriDiet.Service.ModelDTOs.Response
 {
     public class DashboardResponse
     {
-        public int CountUser { get; set; }
+        public int TotalUser { get; set; }
+
+        public int MealPlanNumber { get; set; }
+
+        public int PackageNumber { get; set; }
     }
 }
