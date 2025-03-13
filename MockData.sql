@@ -12,7 +12,7 @@ ALTER TABLE MealPlanDetail NOCHECK CONSTRAINT ALL;
 ALTER TABLE FoodSubstitution NOCHECK CONSTRAINT ALL;
 ALTER TABLE Notification NOCHECK CONSTRAINT ALL;
 ALTER TABLE HealthcareIndicator NOCHECK CONSTRAINT ALL;
-ALTER TABLE AIRecommendation NOCHECK CONSTRAINT ALL;
+ALTER TABLE AIRecommendMealPlan NOCHECK CONSTRAINT ALL;
 ALTER TABLE MealLogDetail NOCHECK CONSTRAINT ALL;
 ALTER TABLE MealLog NOCHECK CONSTRAINT ALL;
 ALTER TABLE PersonalGoal NOCHECK CONSTRAINT ALL;
@@ -29,7 +29,7 @@ DELETE FROM MealPlan;
 DELETE FROM FoodSubstitution;
 DELETE FROM Notification;
 DELETE FROM HealthcareIndicator;
-DELETE FROM AIRecommendation;
+DELETE FROM AIRecommendMealPlan;
 DELETE FROM MealLogDetail;
 DELETE FROM MealLog;
 DELETE FROM PersonalGoal;
@@ -53,7 +53,7 @@ ALTER TABLE MealPlanDetail CHECK CONSTRAINT ALL;
 ALTER TABLE FoodSubstitution CHECK CONSTRAINT ALL;
 ALTER TABLE Notification CHECK CONSTRAINT ALL;
 ALTER TABLE HealthcareIndicator CHECK CONSTRAINT ALL;
-ALTER TABLE AIRecommendation CHECK CONSTRAINT ALL;
+ALTER TABLE AIRecommendMealPlan CHECK CONSTRAINT ALL;
 ALTER TABLE MealLogDetail CHECK CONSTRAINT ALL;
 ALTER TABLE MealLog CHECK CONSTRAINT ALL;
 ALTER TABLE PersonalGoal CHECK CONSTRAINT ALL;
@@ -229,163 +229,6 @@ VALUES
     (50, N'Gỏi ngó sen tôm thịt', 'Appetizer', 'Salad', N'Gỏi ngó sen tôm thịt chua ngọt, ăn kèm bánh phồng tôm', N'1 đĩa', 220, 15, 20, 8, 4, 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Ph%E1%BB%93ng_t%C3%B4m.jpg/640px-Ph%E1%BB%93ng_t%C3%B4m.jpg');
 
 SET IDENTITY_INSERT Food OFF;
-
--- Insert data into FoodAllergy table based on common allergies
-INSERT INTO FoodAllergy (FoodID, AllergyID) VALUES
--- Phở bò (1) - Contains beef
-(1, 2), -- seafood allergy (some broths may contain seafood)
-
--- Bánh mì thịt (2) - Contains wheat, meat
-(2, 9), -- wheat allergy
-(2, 3), -- dairy allergy (may contain butter)
-
--- Cơm tấm sườn (3) - Contains pork
-(3, 2), -- seafood allergy (fish sauce)
-
--- Bún chả (4) - Contains pork, fish sauce
-(4, 2), -- seafood allergy (fish sauce)
-
--- Gỏi cuốn (5) - Contains shrimp, pork
-(5, 2), -- seafood allergy
-(5, 10), -- shellfish allergy
-
--- Bánh xèo (6) - Contains shrimp, pork, wheat
-(6, 2), -- seafood allergy
-(6, 9), -- wheat allergy
-(6, 10), -- shellfish allergy
-
--- Chả giò (7) - Contains pork, shrimp
-(7, 2), -- seafood allergy
-(7, 10), -- shellfish allergy
-
--- Canh chua cá lóc (8) - Contains fish
-(8, 2), -- seafood allergy
-(8, 11), -- fish allergy
-
--- Bún riêu (9) - Contains crab, shrimp
-(9, 2), -- seafood allergy
-(9, 10), -- shellfish allergy
-
--- Cá kho tộ (10) - Contains fish
-(10, 2), -- seafood allergy
-(10, 11), -- fish allergy
-
--- Bánh cuốn (11) - Contains pork, wheat
-(11, 9), -- wheat allergy
-
--- Chè đậu đen (12) - Contains beans, coconut milk
-(12, 6), -- soy allergy
-
--- Bánh bèo (13) - Contains shrimp, rice flour
-(13, 2), -- seafood allergy
-(13, 10), -- shellfish allergy
-
--- Bánh ướt (14) - Contains rice flour, pork
-(14, 2), -- seafood allergy (fish sauce)
-
--- Bánh canh cua (15) - Contains crab, wheat flour
-(15, 2), -- seafood allergy
-(15, 9), -- wheat allergy
-(15, 10), -- shellfish allergy
-
--- Bánh tét (16) - Contains pork, mung beans
-(16, 6), -- soy allergy
-
--- Bánh chưng (17) - Contains pork, mung beans
-(17, 6), -- soy allergy
-
--- Bánh đúc (18) - Contains rice flour, coconut milk
-(18, 3), -- dairy allergy (coconut milk)
-
--- Bánh khọt (19) - Contains shrimp, rice flour
-(19, 2), -- seafood allergy
-(19, 10), -- shellfish allergy
-
--- Bánh tráng trộn (20) - Contains eggs
-(20, 4); -- egg allergy
-
--- Insert data into FoodDisease table based on nutritional content and disease restrictions
-INSERT INTO FoodDisease (FoodID, DiseaseID) VALUES
--- Phở bò (1) - High in sodium, protein
-(1, 2), -- heart disease
-(1, 3), -- high blood pressure
-(1, 4), -- kidney disease
-
--- Bánh mì thịt (2) - High in carbs
-(2, 1), -- diabetes
-(2, 8), -- obesity
-
--- Cơm tấm sườn (3) - High in calories, fat
-(3, 1), -- diabetes
-(3, 2), -- heart disease
-(3, 8), -- obesity
-
--- Bún chả (4) - High in sodium
-(4, 2), -- heart disease
-(4, 3), -- high blood pressure
-
--- Gỏi cuốn (5) - Generally healthy but contains shrimp
-(5, 5), -- gout
-
--- Bánh xèo (6) - High in fat, calories
-(6, 1), -- diabetes
-(6, 2), -- heart disease
-(6, 8), -- obesity
-
--- Chả giò (7) - High in fat, calories
-(7, 1), -- diabetes
-(7, 2), -- heart disease
-(7, 8), -- obesity
-
--- Canh chua cá lóc (8) - Generally healthy
-(8, 5), -- gout (fish)
-
--- Bún riêu (9) - High in sodium, contains seafood
-(9, 3), -- high blood pressure
-(9, 5), -- gout
-
--- Cá kho tộ (10) - High in sodium
-(10, 2), -- heart disease
-(10, 3), -- high blood pressure
-(10, 5), -- gout
-
--- Bánh cuốn (11) - High in carbs
-(11, 1), -- diabetes
-(11, 8), -- obesity
-
--- Chè đậu đen (12) - High in sugar
-(12, 1), -- diabetes
-(12, 8), -- obesity
-
--- Bánh bèo (13) - Contains shrimp
-(13, 5), -- gout
-
--- Bánh ướt (14) - High in carbs
-(14, 1), -- diabetes
-(14, 8), -- obesity
-
--- Bánh canh cua (15) - High in sodium, contains seafood
-(15, 3), -- high blood pressure
-(15, 5), -- gout
-
--- Bánh tét (16) - High in carbs, calories
-(16, 1), -- diabetes
-(16, 8), -- obesity
-
--- Bánh chưng (17) - High in carbs, calories
-(17, 1), -- diabetes
-(17, 8), -- obesity
-
--- Bánh đúc (18) - High in carbs
-(18, 1), -- diabetes
-
--- Bánh khọt (19) - High in fat, contains seafood
-(19, 2), -- heart disease
-(19, 5), -- gout
-(19, 8), -- obesity
-
--- Bánh tráng trộn (20) - Generally lower in concerns
-(20, 7); -- IBS (spicy ingredients)
 
 INSERT INTO CuisineType (CuisineName) VALUES 
 (N'Ẩm thực miền Bắc'),

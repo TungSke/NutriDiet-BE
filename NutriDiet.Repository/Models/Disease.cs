@@ -15,7 +15,5 @@ public partial class Disease
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<Food> Foods { get; set; } = new List<Food>();
-
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

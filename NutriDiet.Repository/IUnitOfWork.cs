@@ -22,6 +22,6 @@ namespace NutriDiet.Repository.Interface
         ICuisineRepository CuisineRepository { get; }
         IHealthcareIndicatorRepository HealthcareIndicatorRepository { get; }
         IMealLogRepository MealLogRepository { get; }
-        IAIRecommendationRepository AIRecommendationRepository { get; }
+        IAIRecommendationMealPlanRepository AIRecommendationRepository { get; }
     }
 }

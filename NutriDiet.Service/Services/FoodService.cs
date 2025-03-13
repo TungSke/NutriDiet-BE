@@ -62,7 +62,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetFoodById(int foodId)
         {
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).FirstOrDefaultAsync();
             if (food == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -95,25 +95,7 @@ namespace NutriDiet.Service.Services
                 .Select(d => d.DiseaseId)
                 .ToListAsync();
 
-            if (validAllergyIds != null)
-            {
-                foreach (var allergyId in validAllergyIds)
-                {
-                    var allergy = new Allergy { AllergyId = allergyId };
-                    await _unitOfWork.AllergyRepository.Attach(allergy);
-                    food.Allergies.Add(allergy);
-                }
-            }
-
-            if (validDiseaseIds != null)
-            {
-                foreach (var diseaseId in validDiseaseIds)
-                {
-                    var disease = new Disease { DiseaseId = diseaseId };
-                    await _unitOfWork.DiseaseRepository.Attach(disease);
-                    food.Diseases.Add(disease);
-                }
-            }
+            
 
             if (request.FoodImageUrl != null)
             {
@@ -129,7 +111,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> UpdateFood(int foodId, FoodRequest request)
         {
-            var existedFood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Allergies).Include(x => x.Diseases).FirstOrDefaultAsync();
+            var existedFood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).FirstOrDefaultAsync();
             if (existedFood == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -137,33 +119,7 @@ namespace NutriDiet.Service.Services
 
             request.Adapt(existedFood);
 
-            var validAllergies = await _unitOfWork.AllergyRepository
-            .GetByWhere(a => request.AllergyId.Contains(a.AllergyId))
-            .ToListAsync();
-
-            var validDiseases = await _unitOfWork.DiseaseRepository
-                .GetByWhere(d => request.DiseaseId.Contains(d.DiseaseId))
-                .ToListAsync();
-
-            var validAllergyIds = await _unitOfWork.AllergyRepository
-                .GetByWhere(a => request.AllergyId.Contains(a.AllergyId)).AsNoTracking()
-                .Select(a => a.AllergyId)
-                .ToListAsync();
-
-            var validDiseaseIds = await _unitOfWork.DiseaseRepository
-                .GetByWhere(d => request.DiseaseId.Contains(d.DiseaseId)).AsNoTracking()
-                .Select(d => d.DiseaseId)
-                .ToListAsync();
-
-            if (validAllergyIds != null)
-            {
-                existedFood.Allergies = validAllergies;
-            }
-
-            if (validDiseaseIds != null)
-            {
-                existedFood.Diseases = validDiseases;
-            }
+           
 
             if (request.FoodImageUrl != null)
             {
@@ -212,8 +168,6 @@ namespace NutriDiet.Service.Services
 
             var foods = await _unitOfWork.FoodRepository
             .GetByWhere(x =>
-            !x.Allergies.Any(a => allergyIds.Contains(a.AllergyId)) &&
-            !x.Diseases.Any(d => diseaseIds.Contains(d.DiseaseId)) &&
              x.FoodName.ToLower().Contains(searchName.ToLower()))
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)

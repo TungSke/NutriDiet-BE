@@ -19,6 +19,8 @@ public partial class MealLog
 
     public double? TotalFat { get; set; }
 
+    public virtual ICollection<AirecommendMealLog> AirecommendMealLogs { get; set; } = new List<AirecommendMealLog>();
+
     public virtual ICollection<MealLogDetail> MealLogDetails { get; set; } = new List<MealLogDetail>();
 
     public virtual User User { get; set; } = null!;

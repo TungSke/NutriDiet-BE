@@ -456,16 +456,16 @@ namespace NutriDiet.Service.Services
 
                 if (airecommendationResponse == null)
                 {
-                    await _unitOfWork.AIRecommendationRepository.AddAsync(new Airecommendation
+                    await _unitOfWork.AIRecommendationRepository.AddAsync(new AirecommendMealPlan
                     {
-                        AirecommendationResponse = airesponse,
+                        AirecommendMealPlanResponse = airesponse,
                         RecommendedAt = DateTime.Now,
                         Status = AIRecommendStatus.Pending.ToString()
                     });
                 }
                 else
                 {
-                    airecommendationResponse.AirecommendationResponse = airesponse;
+                    airecommendationResponse.AirecommendMealPlanResponse = airesponse;
                     airecommendationResponse.RecommendedAt = DateTime.Now;
                     airecommendationResponse.Status = AIRecommendStatus.Pending.ToString();
                     await _unitOfWork.AIRecommendationRepository.UpdateAsync(airecommendationResponse);
@@ -509,7 +509,7 @@ namespace NutriDiet.Service.Services
             recommendResponse.RejectionReason = null; 
             await _unitOfWork.SaveChangesAsync();
 
-            var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(recommendResponse.AirecommendationResponse.ToString());
+            var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(recommendResponse.AirecommendMealPlanResponse.ToString());
 
             var response = await CreateMealPlan(mealPlanRequest);
 
