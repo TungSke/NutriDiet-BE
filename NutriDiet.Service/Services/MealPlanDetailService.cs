@@ -179,10 +179,11 @@ namespace NutriDiet.Service.Services
             var response = new MealPlanTotalResponse
             {
                 TotalByMealType = mealPlanDetails
-                    .GroupBy(x => x.MealType)
+                    .GroupBy(x => new { x.DayNumber, x.MealType })
                     .Select(g => new TotalByMealType
                     {
-                        MealType = g.Key,
+                        DayNumber = g.Key.DayNumber, 
+                        MealType = g.Key.MealType,
                         TotalCalories = g.Sum(x => x.TotalCalories),
                         TotalCarbs = g.Sum(x => x.TotalCarbs),
                         TotalFat = g.Sum(x => x.TotalFat),
@@ -203,6 +204,7 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+
 
     }
 }
