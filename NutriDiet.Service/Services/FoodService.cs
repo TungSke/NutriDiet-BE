@@ -85,18 +85,6 @@ namespace NutriDiet.Service.Services
 
             var food = request.Adapt<Food>();
 
-            var validAllergyIds = await _unitOfWork.AllergyRepository
-                .GetByWhere(a => request.AllergyId.Contains(a.AllergyId)).AsNoTracking()
-                .Select(a => a.AllergyId)
-                .ToListAsync();
-
-            var validDiseaseIds = await _unitOfWork.DiseaseRepository
-                .GetByWhere(d => request.DiseaseId.Contains(d.DiseaseId)).AsNoTracking()
-                .Select(d => d.DiseaseId)
-                .ToListAsync();
-
-            
-
             if (request.FoodImageUrl != null)
             {
                 var cloudinaryHelper = new CloudinaryHelper();
