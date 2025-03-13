@@ -34,11 +34,6 @@ namespace NutriDiet.Service.ModelDTOs.Response
 
         public double? Fiber { get; set; }
 
-        public string? Others { get; set; }
-
-        public IEnumerable<AllergyResponse>? Allergies { get; set; }
-
-        public IEnumerable<DiseaseResponse>? Diseases { get; set; }
-
+        public List<FoodIngredientResponse> FoodIngredients { get; set; } = new();
     }
 }
