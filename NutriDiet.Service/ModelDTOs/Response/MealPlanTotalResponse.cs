@@ -14,6 +14,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
 
     public class TotalByMealType
     {
+        public int DayNumber { get; set; }
         public string MealType { get; set; }
         public double? TotalCalories { get; set; }
         public double? TotalCarbs { get; set; }
