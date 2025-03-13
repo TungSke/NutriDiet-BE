@@ -58,13 +58,13 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> AddIngredient(IngredientRequest request)
         {
-            var ingre = await _unitOfWork.FoodRepository.GetByIdAsync(request.IngredientName);
-            if (ingre == null)
+            var ingre = await _unitOfWork.IngredientRepository.GetByWhere(x => x.IngredientName.ToLower() == request.IngredientName).FirstOrDefaultAsync();
+            if (ingre != null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
             }
-
-            await _unitOfWork.FoodRepository.AddAsync(ingre);
+            ingre = request.Adapt<Ingredient>();
+            await _unitOfWork.IngredientRepository.AddAsync(ingre);
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }

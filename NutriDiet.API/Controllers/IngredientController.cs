@@ -18,7 +18,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetIngredients(int pageIndex, int pageSize, string search)
+        public async Task<IActionResult> GetIngredients(int pageIndex, int pageSize, string? search)
         {
             var ingredients = await _ingredientService.GetIngreDients(pageIndex, pageSize, search);
             return Ok(ingredients);

@@ -3,7 +3,6 @@ using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Repository.Interface;
@@ -13,6 +12,7 @@ using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace NutriDiet.Service.Services
 {
@@ -62,7 +62,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetFoodById(int foodId)
         {
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.FoodIngredients).FirstOrDefaultAsync();
             if (food == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -76,9 +76,9 @@ namespace NutriDiet.Service.Services
         {
             var existedFood = await _unitOfWork.FoodRepository
                 .GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower()))
-                .FirstOrDefaultAsync();
+                .AnyAsync();
 
-            if (existedFood != null)
+            if (existedFood == true)
             {
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name already exists");
             }
@@ -106,8 +106,6 @@ namespace NutriDiet.Service.Services
             }
 
             request.Adapt(existedFood);
-
-           
 
             if (request.FoodImageUrl != null)
             {
