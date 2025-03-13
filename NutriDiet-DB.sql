@@ -105,8 +105,7 @@ CREATE TABLE Food (
     Carbs FLOAT CHECK (Carbs >= 0), -- tinh bột
     Fat FLOAT CHECK (Fat >= 0),
     Glucid FLOAT CHECK (Glucid >= 0),
-    Fiber FLOAT CHECK (Fiber >= 0),
-    Others NVARCHAR(255) NULL
+    Fiber FLOAT CHECK (Fiber >= 0)
 );
 
 -- Bảng CuisineType
@@ -114,6 +113,28 @@ CREATE TABLE CuisineType (
     CuisineID INT IDENTITY(1,1) PRIMARY KEY,
     CuisineName NVARCHAR(50) UNIQUE NOT NULL -- miền nam, miền trung, trung hoa...
 );
+
+CREATE TABLE Ingredient (
+    IngredientID INT IDENTITY(1,1) PRIMARY KEY,
+    IngredientName NVARCHAR(255) NOT NULL UNIQUE,
+    Calories FLOAT CHECK (Calories >= 0),
+    Protein FLOAT CHECK (Protein >= 0),
+    Carbs FLOAT CHECK (Carbs >= 0),
+    Fat FLOAT CHECK (Fat >= 0),
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE FoodIngredient (
+    FoodID INT NOT NULL,
+    IngredientID INT NOT NULL,
+    Quantity FLOAT CHECK (Quantity > 0), -- Lượng nguyên liệu trong món ăn (VD: 100g, 1 thìa)
+    Unit NVARCHAR(50) NOT NULL, -- Đơn vị (g, ml, thìa, cốc...)
+    PRIMARY KEY (FoodID, IngredientID),
+    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
+    FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID) ON DELETE CASCADE
+);
+
 
 -- Bảng RecipeSuggestion
 CREATE TABLE RecipeSuggestion (
@@ -140,6 +161,15 @@ CREATE TABLE UserFoodPreference (
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
 );
+
+CREATE TABLE UserIngreDientPreference(
+	UserIngreDientPreferenceID INT IDENTITY(1,1) PRIMARY KEY,
+	UserID INT NOT NULL,
+    IngredientID INT NOT NULL,
+	Level INT, -- -3 rất ghét - 3 rất thích
+    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
+    FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID) ON DELETE CASCADE
+)
 
 -- Bảng MealPlan
     CREATE TABLE MealPlan (
@@ -215,12 +245,12 @@ CREATE TABLE HealthcareIndicator (
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
--- Bảng AIRecommendation
-CREATE TABLE AIRecommendation (
-    RecommendationID INT IDENTITY(1,1) PRIMARY KEY,
+-- Bảng AIRecommendMealPlan
+CREATE TABLE AIRecommendMealPlan (
+    AIRecommendMealPlanID INT IDENTITY(1,1) PRIMARY KEY,
 	MealPlanID INT NULL,
     RecommendedAt DATETIME DEFAULT GETDATE(),
-    AIRecommendationResponse NVARCHAR(MAX),
+    AIRecommendMealPlanResponse NVARCHAR(MAX),
 	Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
     RejectionReason NVARCHAR(255) NULL,
 	FOREIGN KEY (MealPlanID) REFERENCES [MealPlan](MealPlanID) ON DELETE CASCADE
@@ -252,6 +282,17 @@ CREATE TABLE MealLogDetail (
     Fat FLOAT CHECK (Fat >= 0),
     FOREIGN KEY (MealLogID) REFERENCES MealLog(MealLogID) ON DELETE CASCADE,
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
+);
+
+-- Bảng AIRecommendMealPlan
+CREATE TABLE AIRecommendMealLog (
+    AIRecommendMealLogID INT IDENTITY(1,1) PRIMARY KEY,
+	MealLogID INT NULL,
+    RecommendedAt DATETIME DEFAULT GETDATE(),
+    AIRecommendMealPlanResponse NVARCHAR(MAX),
+	Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
+    RejectionReason NVARCHAR(255) NULL,
+	FOREIGN KEY (MealLogID) REFERENCES MealLog(MealLogID) ON DELETE CASCADE
 );
 
 -- Bảng PersonalGoal
@@ -292,24 +333,6 @@ CREATE TABLE UserDisease (
     DiseaseID INT NOT NULL,
     PRIMARY KEY (UserID, DiseaseID),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
-    FOREIGN KEY (DiseaseID) REFERENCES Disease(DiseaseID) ON DELETE CASCADE
-);
-
--- Bảng FoodAllergy (liên kết món ăn với dị ứng)
-CREATE TABLE FoodAllergy (
-    FoodID INT NOT NULL,
-    AllergyID INT NOT NULL,
-    PRIMARY KEY (FoodID, AllergyID),
-    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
-    FOREIGN KEY (AllergyID) REFERENCES Allergy(AllergyID) ON DELETE CASCADE
-);
-
--- Bảng FoodDisease (liên kết món ăn với bệnh lý)
-CREATE TABLE FoodDisease (
-    FoodID INT NOT NULL,
-    DiseaseID INT NOT NULL,
-    PRIMARY KEY (FoodID, DiseaseID),
-    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
     FOREIGN KEY (DiseaseID) REFERENCES Disease(DiseaseID) ON DELETE CASCADE
 );
 

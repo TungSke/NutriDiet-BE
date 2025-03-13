@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace NutriDiet.Repository.Models;
 
-public partial class Airecommendation
+public partial class AirecommendMealPlan
 {
-    public int RecommendationId { get; set; }
+    public int AirecommendMealPlanId { get; set; }
 
     public int? MealPlanId { get; set; }
 
     public DateTime? RecommendedAt { get; set; }
 
-    public string? AirecommendationResponse { get; set; }
+    public string? AirecommendMealPlanResponse { get; set; }
 
     public string Status { get; set; } = null!;
 

@@ -29,7 +29,7 @@ public partial class MealPlan
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<Airecommendation> Airecommendations { get; set; } = new List<Airecommendation>();
+    public virtual ICollection<AirecommendMealPlan> AirecommendMealPlans { get; set; } = new List<AirecommendMealPlan>();
 
     public virtual ICollection<MealPlanDetail> MealPlanDetails { get; set; } = new List<MealPlanDetail>();
 

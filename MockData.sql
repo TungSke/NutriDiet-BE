@@ -12,7 +12,7 @@ ALTER TABLE MealPlanDetail NOCHECK CONSTRAINT ALL;
 ALTER TABLE FoodSubstitution NOCHECK CONSTRAINT ALL;
 ALTER TABLE Notification NOCHECK CONSTRAINT ALL;
 ALTER TABLE HealthcareIndicator NOCHECK CONSTRAINT ALL;
-ALTER TABLE AIRecommendation NOCHECK CONSTRAINT ALL;
+ALTER TABLE AIRecommendMealPlan NOCHECK CONSTRAINT ALL;
 ALTER TABLE MealLogDetail NOCHECK CONSTRAINT ALL;
 ALTER TABLE MealLog NOCHECK CONSTRAINT ALL;
 ALTER TABLE PersonalGoal NOCHECK CONSTRAINT ALL;
@@ -29,7 +29,7 @@ DELETE FROM MealPlan;
 DELETE FROM FoodSubstitution;
 DELETE FROM Notification;
 DELETE FROM HealthcareIndicator;
-DELETE FROM AIRecommendation;
+DELETE FROM AIRecommendMealPlan;
 DELETE FROM MealLogDetail;
 DELETE FROM MealLog;
 DELETE FROM PersonalGoal;
@@ -37,6 +37,7 @@ DELETE FROM PersonalGoal;
 DELETE FROM Disease;
 DELETE FROM Allergy;
 DELETE FROM Food;
+DELETE FROM Ingredient; -- Thêm xóa dữ liệu bảng Ingredient
 DELETE FROM Package;
 DELETE FROM [User];
 DELETE FROM Role;
@@ -53,7 +54,7 @@ ALTER TABLE MealPlanDetail CHECK CONSTRAINT ALL;
 ALTER TABLE FoodSubstitution CHECK CONSTRAINT ALL;
 ALTER TABLE Notification CHECK CONSTRAINT ALL;
 ALTER TABLE HealthcareIndicator CHECK CONSTRAINT ALL;
-ALTER TABLE AIRecommendation CHECK CONSTRAINT ALL;
+ALTER TABLE AIRecommendMealPlan CHECK CONSTRAINT ALL;
 ALTER TABLE MealLogDetail CHECK CONSTRAINT ALL;
 ALTER TABLE MealLog CHECK CONSTRAINT ALL;
 ALTER TABLE PersonalGoal CHECK CONSTRAINT ALL;
@@ -62,12 +63,178 @@ DBCC CHECKIDENT ('User', RESEED, 0);
 DBCC CHECKIDENT ('Disease', RESEED, 0);
 DBCC CHECKIDENT ('Allergy', RESEED, 0);
 DBCC CHECKIDENT ('Food', RESEED, 0);
+DBCC CHECKIDENT ('Ingredient', RESEED, 0); -- Thêm reset IDENTITY cho Ingredient
 DBCC CHECKIDENT ('Package', RESEED, 0);
 DBCC CHECKIDENT ('MealPlan', RESEED, 0);
 DBCC CHECKIDENT ('MealLog', RESEED, 0);
 DBCC CHECKIDENT ('MealLogDetail', RESEED, 0);
 DBCC CHECKIDENT ('PersonalGoal', RESEED, 0);
 
+GO
+
+-- Thêm dữ liệu vào bảng Ingredient
+INSERT INTO Ingredient (IngredientName, Calories, Protein, Carbs, Fat)
+VALUES 
+    (N'Sốt mayonnaise', 701, 0, 0.1, 77.8),
+    (N'Xì dầu', 53, 6.3, 6.8, 0.04),
+    (N'Tương ớt', 37, 0.5, 7.6, 0.5),
+    (N'Tương nếp', 86, 4.3, 15.7, 0.7),
+    (N'Nước mắm cá', 35, 5.1, 3.6, 0.01),
+    (N'Mắm tôm loãng', 44, 7, 2.1, 0.8),
+    (N'Magi', 65, 10.5, 5.6, 0.1),
+    (N'Riềng', 26, 0.3, 2.5, 0),
+    (N'Nghệ tươi', 25, 1.1, 4.4, 0.3),
+    (N'Muối', 0, 0, 0, 0),
+    (N'Hạt tiêu', 231, 7, 34.1, 7.4),
+    (N'Gừng tươi', 29, 0.4, 5.1, 0.8),
+    (N'Bột cary', 283, 8.2, 46, 7.3),
+    (N'Bột ngọt', 260, 66, 0, 0),
+    (N'Mật ong', 327, 0.4, 81.3, 0),
+    (N'Đường cát', 390, 0, 97.4, 0),
+    (N'Bột ca cao', 414, 19.6, 53, 13.7),
+    (N'Pho mát', 380, 25.5, 0, 30.9),
+    (N'Sữa đặc có đường', 336, 8.1, 56, 8.8),
+    (N'Sữa chua vinalmilk có đường', 97.7, 3.5, 15.3, 2.5),
+    (N'Sữa bò tươi', 74, 3.9, 4.8, 4.4),
+    (N'Bột trứng', 563, 44, 1.8, 42.2),
+    (N'Trứng vịt lộn', 182, 13.6, 4, 12.4),
+    (N'Trứng cá', 171, 20.5, 0, 9.9),
+    (N'Trứng cút', 154, 13.1, 0.4, 11.1),
+    (N'Trứng vịt', 184, 13, 1, 14.2),
+    (N'Trứng gà', 166, 14.8, 0.5, 11.6),
+    (N'Ruốc tôm', 305, 65.5, 3.7, 3.1),
+    (N'Bánh phồng tôm', 381, 3.4, 75.3, 7.4),
+    (N'Tôm khô', 347, 75.6, 2.5, 3.8),
+    (N'Tôm đồng', 90, 18.4, 0, 1.8),
+    (N'Tôm biển', 82, 17.6, 0.9, 0.9),
+    (N'Tép khô', 269, 59.8, 0.7, 3),
+    (N'Sò', 78, 9.5, 4.9, 2.3),
+    (N'Trai', 38, 4.6, 2.5, 1.1),
+    (N'Ốc bươu', 84, 11.1, 8.3, 0.7),
+    (N'Mực tươi', 73, 16.3, 0, 0.9),
+    (N'Lươn', 180, 18.4, 0.2, 11.7),
+    (N'Hến', 45, 4.5, 5.1, 0.7),
+    (N'Ghẹ', 54, 11.9, 0, 0.7),
+    (N'Cua đồng', 87, 12.3, 2, 3.3),
+    (N'Cá trê', 173, 16.5, 0, 11.9),
+    (N'Cá trạch', 110, 20.4, 0, 3.2),
+    (N'Cá thu', 166, 18.2, 0, 10.3),
+    (N'Cá rô phi', 100, 19.7, 0, 2.3),
+    (N'Cá nục', 111, 20.2, 0, 3.3),
+    (N'Cá ngừ', 87, 21, 0, 0.3),
+    (N'Cá mòi', 124, 17.5, 0, 6),
+    (N'Cá hồi', 136, 22, 0, 5.3),
+    (N'Cá chép', 96, 16, 0, 3.6),
+    (N'Cá bống', 70, 15.8, 0, 0.8),
+    (N'Thịt bê', 85, 20, 0, 0.5),
+    (N'Thịt dê', 122, 20.7, 0, 4.3),
+    (N'Đuôi bò', 137, 19.7, 0, 6.5),
+    (N'Gân bò', 124, 30.2, 0, 0.3),
+    (N'Sườn heo', 187, 17.9, 0, 12.8),
+    (N'Tai heo', 126, 21, 1.3, 4.1),
+    (N'Lòng gà', 119, 17.9, 1.8, 4.5),
+    (N'Thịt ếch', 90, 20, 0, 1.1),
+    (N'Xúc xích', 535, 27.2, 0, 47.4),
+    (N'Nem chua', 137, 21.7, 4.3, 3.7),
+    (N'Lạp xưởng', 585, 20.8, 1.7, 55),
+    (N'Chả heo', 517, 10.8, 5.1, 50.4),
+    (N'Giò lụa', 136, 21.5, 0, 5.5),
+    (N'Giò bò', 357, 13.8, 0, 33.5),
+    (N'Pa tê', 326, 10.8, 15.4, 24.6),
+    (N'Dăm bông heo', 318, 23, 0.3, 25),
+    (N'Chân giò heo', 230, 15.7, 0, 18.6),
+    (N'Thịt vịt', 267, 17.8, 0, 21.8),
+    (N'Thịt trâu', 97, 20.4, 0.9, 1.4),
+    (N'Thịt heo nạc', 139, 19, 0, 7),
+    (N'Thịt heo (nửa nạc, nửa mỡ)', 260, 16.5, 0, 21.5),
+    (N'Thịt heo mỡ', 394, 14.5, 0, 37.3),
+    (N'Thịt gà ta', 199, 20.3, 0, 13.1),
+    (N'Thịt bò', 118, 21, 0, 3.8),
+    (N'Thịt bò (lưng, nạc và mỡ)', 182, 21.5, 0, 10.7),
+    (N'Bì heo', 118, 23.3, 0, 2.7),
+    (N'Tủy xương heo', 749, 2.3, 0, 82.2),
+    (N'Tủy xương bò', 814, 1.1, 0, 89.9),
+    (N'Dầu oliu', 900, 0, 0, 100),
+    (N'Dầu ăn Tường An', 900, 0, 0, 100),
+    (N'Chanh', 24, 0.9, 4.5, 0.3),
+    (N'Cam', 38, 0.9, 8.3, 0.1),
+    (N'Bưởi', 30, 0.2, 7.3, 0),
+    (N'Chuối tiêu', 97, 1.5, 22.2, 0.2),
+    (N'Chuối tây', 56, 0.9, 12.4, 0.3),
+    (N'Dâu tây', 43, 1.8, 8.1, 0.4),
+    (N'Dưa hấu', 16, 1.2, 2.3, 0.2),
+    (N'Dứa', 29, 0.8, 6.5, 0),
+    (N'Nấm rơm', 57, 3.6, 3.4, 3.2),
+    (N'Nấm hương', 39, 5.5, 3.1, 0.5),
+    (N'Mộc nhĩ', 304, 10.6, 65, 0.2),
+    (N'Tỏi', 121, 6, 23, 0.5),
+    (N'Tía tô', 25, 2.9, 3.4, 0),
+    (N'Thìa là', 28, 2.6, 1.8, 1.1),
+    (N'Súp lơ xanh', 26, 3, 2.9, 0.3),
+    (N'Su su', 19, 0.8, 3.6, 0.1),
+    (N'Su hào', 37, 2.8, 6.2, 0.1),
+    (N'Rau thơm các loại', 18, 2, 2.4, 0),
+    (N'Rau sà lách', 17, 1.5, 1.8, 0.4),
+    (N'Rau ngót', 35, 5.3, 3.4, 0),
+    (N'Rau muống', 25, 3.2, 2.1, 0.4),
+    (N'Rau mồng tơi', 14, 2, 1.4, 0),
+    (N'Rau má', 20, 3.2, 1.8, 0),
+    (N'Ớt đỏ', 23, 1, 4, 0.3),
+    (N'Ngó sen', 61, 1, 13.9, 0.1),
+    (N'Mướp', 17, 0.9, 2.8, 0.2),
+    (N'Mướp đắng', 16, 0.9, 2.8, 0.2),
+    (N'Măng tây', 14, 2.2, 1.1, 0.1),
+    (N'Măng chua', 11, 1.4, 1.4, 0),
+    (N'Lá lốt', 39, 4.3, 5.4, 0),
+    (N'Khế', 16, 0.6, 2.8, 0.3),
+    (N'Hẹ lá', 18, 2.2, 1.5, 0.3),
+    (N'Hạt sen', 161, 9.5, 29.5, 0.5),
+    (N'Hành tây', 41, 1.8, 8.2, 0.1),
+    (N'Hành lá', 22, 1.3, 4.3, 0),
+    (N'Hành củ', 26, 1.3, 4.4, 0.4),
+    (N'Giá', 44, 5.5, 5.1, 0.2),
+    (N'Đu đủ xanh', 22, 0.8, 4.6, 0),
+    (N'Đậu rồng', 34, 1.9, 6.3, 0.1),
+    (N'Đậu cô ve', 73, 5, 13.3, 0),
+    (N'Dưa leo', 16, 0.8, 2.9, 0.1),
+    (N'Dưa gang', 11, 0.8, 2, 0),
+    (N'Củ cải trắng', 21, 1.5, 3.6, 0.1),
+    (N'Củ cải đỏ', 48, 1.3, 10.8, 0),
+    (N'Cần tây', 48, 3.7, 7.9, 0.2),
+    (N'Chuối xanh', 74, 1.2, 16.4, 0.5),
+    (N'Cải xanh', 16, 1.7, 1.9, 0.2),
+    (N'Cải thìa', 17, 1.4, 2.4, 0.2),
+    (N'Cải cúc', 14, 1.6, 1.9, 0),
+    (N'Cà tím', 22, 1, 4.5, 0),
+    (N'Cà rốt', 39, 1.5, 7.8, 0.2),
+    (N'Cà pháo', 20, 1.5, 3.6, 0),
+    (N'Cà chua', 20, 0.6, 4, 0.2),
+    (N'Bí ngô', 27, 0.3, 6.1, 0.1),
+    (N'Bí xanh', 12, 0.6, 2.4, 0),
+    (N'Bầu', 14, 0.6, 2.9, 0.02),
+    (N'Sữa đậu nành', 28, 3.1, 0.4, 1.6),
+    (N'Đậu phụ', 95, 10.9, 0.7, 5.4),
+    (N'Đậu xanh', 328, 23.4, 53.1, 2.4),
+    (N'Đậu đen', 325, 24.2, 53.3, 1.7),
+    (N'Miến dong', 332, 0.6, 82.2, 0.1),
+    (N'Khoai tây', 93, 2, 20.9, 0.1),
+    (N'Khoai sọ', 114, 1.8, 26.5, 0.1),
+    (N'Khoai môn', 109, 1.5, 25.2, 0.2),
+    (N'Khoai lang', 119, 0.8, 28.5, 0.2),
+    (N'Mì sợi', 349, 11, 74.2, 0.9),
+    (N'Cốm', 297, 6.1, 66.3, 0.8),
+    (N'Bún', 110, 1.7, 25.7, 0),
+    (N'Bột ngô vàng', 361, 8.3, 73, 4),
+    (N'Bột mì', 346, 10.3, 73.6, 1.1),
+    (N'Bột gạo tẻ', 359, 6.6, 82.2, 0.4),
+    (N'Bột gạo nếp', 362, 8.2, 78.8, 1.6),
+    (N'Bánh phở', 143, 3.2, 31.7, 0.4),
+    (N'Bánh mì', 249, 7.9, 52.6, 0.8),
+    (N'Bánh đúc', 52, 0.9, 11.3, 0.3),
+    (N'Bắp ngô', 196, 4.1, 39.6, 2.3),
+    (N'Cơm gạo lứt đỏ', 111, 2.6, 23, 0.9),
+    (N'Cơm trắng', 130, 2.7, 28.2, 0.3),
+    (N'Cơm gạo nếp', 130, 2.5, 28, 0.3);
 GO
 
 -- Insert Roles with explicit IDs
@@ -229,163 +396,6 @@ VALUES
     (50, N'Gỏi ngó sen tôm thịt', 'Appetizer', 'Salad', N'Gỏi ngó sen tôm thịt chua ngọt, ăn kèm bánh phồng tôm', N'1 đĩa', 220, 15, 20, 8, 4, 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Ph%E1%BB%93ng_t%C3%B4m.jpg/640px-Ph%E1%BB%93ng_t%C3%B4m.jpg');
 
 SET IDENTITY_INSERT Food OFF;
-
--- Insert data into FoodAllergy table based on common allergies
-INSERT INTO FoodAllergy (FoodID, AllergyID) VALUES
--- Phở bò (1) - Contains beef
-(1, 2), -- seafood allergy (some broths may contain seafood)
-
--- Bánh mì thịt (2) - Contains wheat, meat
-(2, 9), -- wheat allergy
-(2, 3), -- dairy allergy (may contain butter)
-
--- Cơm tấm sườn (3) - Contains pork
-(3, 2), -- seafood allergy (fish sauce)
-
--- Bún chả (4) - Contains pork, fish sauce
-(4, 2), -- seafood allergy (fish sauce)
-
--- Gỏi cuốn (5) - Contains shrimp, pork
-(5, 2), -- seafood allergy
-(5, 10), -- shellfish allergy
-
--- Bánh xèo (6) - Contains shrimp, pork, wheat
-(6, 2), -- seafood allergy
-(6, 9), -- wheat allergy
-(6, 10), -- shellfish allergy
-
--- Chả giò (7) - Contains pork, shrimp
-(7, 2), -- seafood allergy
-(7, 10), -- shellfish allergy
-
--- Canh chua cá lóc (8) - Contains fish
-(8, 2), -- seafood allergy
-(8, 11), -- fish allergy
-
--- Bún riêu (9) - Contains crab, shrimp
-(9, 2), -- seafood allergy
-(9, 10), -- shellfish allergy
-
--- Cá kho tộ (10) - Contains fish
-(10, 2), -- seafood allergy
-(10, 11), -- fish allergy
-
--- Bánh cuốn (11) - Contains pork, wheat
-(11, 9), -- wheat allergy
-
--- Chè đậu đen (12) - Contains beans, coconut milk
-(12, 6), -- soy allergy
-
--- Bánh bèo (13) - Contains shrimp, rice flour
-(13, 2), -- seafood allergy
-(13, 10), -- shellfish allergy
-
--- Bánh ướt (14) - Contains rice flour, pork
-(14, 2), -- seafood allergy (fish sauce)
-
--- Bánh canh cua (15) - Contains crab, wheat flour
-(15, 2), -- seafood allergy
-(15, 9), -- wheat allergy
-(15, 10), -- shellfish allergy
-
--- Bánh tét (16) - Contains pork, mung beans
-(16, 6), -- soy allergy
-
--- Bánh chưng (17) - Contains pork, mung beans
-(17, 6), -- soy allergy
-
--- Bánh đúc (18) - Contains rice flour, coconut milk
-(18, 3), -- dairy allergy (coconut milk)
-
--- Bánh khọt (19) - Contains shrimp, rice flour
-(19, 2), -- seafood allergy
-(19, 10), -- shellfish allergy
-
--- Bánh tráng trộn (20) - Contains eggs
-(20, 4); -- egg allergy
-
--- Insert data into FoodDisease table based on nutritional content and disease restrictions
-INSERT INTO FoodDisease (FoodID, DiseaseID) VALUES
--- Phở bò (1) - High in sodium, protein
-(1, 2), -- heart disease
-(1, 3), -- high blood pressure
-(1, 4), -- kidney disease
-
--- Bánh mì thịt (2) - High in carbs
-(2, 1), -- diabetes
-(2, 8), -- obesity
-
--- Cơm tấm sườn (3) - High in calories, fat
-(3, 1), -- diabetes
-(3, 2), -- heart disease
-(3, 8), -- obesity
-
--- Bún chả (4) - High in sodium
-(4, 2), -- heart disease
-(4, 3), -- high blood pressure
-
--- Gỏi cuốn (5) - Generally healthy but contains shrimp
-(5, 5), -- gout
-
--- Bánh xèo (6) - High in fat, calories
-(6, 1), -- diabetes
-(6, 2), -- heart disease
-(6, 8), -- obesity
-
--- Chả giò (7) - High in fat, calories
-(7, 1), -- diabetes
-(7, 2), -- heart disease
-(7, 8), -- obesity
-
--- Canh chua cá lóc (8) - Generally healthy
-(8, 5), -- gout (fish)
-
--- Bún riêu (9) - High in sodium, contains seafood
-(9, 3), -- high blood pressure
-(9, 5), -- gout
-
--- Cá kho tộ (10) - High in sodium
-(10, 2), -- heart disease
-(10, 3), -- high blood pressure
-(10, 5), -- gout
-
--- Bánh cuốn (11) - High in carbs
-(11, 1), -- diabetes
-(11, 8), -- obesity
-
--- Chè đậu đen (12) - High in sugar
-(12, 1), -- diabetes
-(12, 8), -- obesity
-
--- Bánh bèo (13) - Contains shrimp
-(13, 5), -- gout
-
--- Bánh ướt (14) - High in carbs
-(14, 1), -- diabetes
-(14, 8), -- obesity
-
--- Bánh canh cua (15) - High in sodium, contains seafood
-(15, 3), -- high blood pressure
-(15, 5), -- gout
-
--- Bánh tét (16) - High in carbs, calories
-(16, 1), -- diabetes
-(16, 8), -- obesity
-
--- Bánh chưng (17) - High in carbs, calories
-(17, 1), -- diabetes
-(17, 8), -- obesity
-
--- Bánh đúc (18) - High in carbs
-(18, 1), -- diabetes
-
--- Bánh khọt (19) - High in fat, contains seafood
-(19, 2), -- heart disease
-(19, 5), -- gout
-(19, 8), -- obesity
-
--- Bánh tráng trộn (20) - Generally lower in concerns
-(20, 7); -- IBS (spicy ingredients)
 
 INSERT INTO CuisineType (CuisineName) VALUES 
 (N'Ẩm thực miền Bắc'),

@@ -11,7 +11,6 @@ namespace NutriDiet.Repository.Interface
 
         IUserRepository UserRepository { get; }
         IFoodRepository FoodRepository { get; }
-
         IGeneralHealthProfileRepository HealthProfileRepository { get; }
         IMealPlanRepository MealPlanRepository { get; }
         IMealPlanDetailRepository MealPlanDetailRepository { get; }
@@ -22,6 +21,7 @@ namespace NutriDiet.Repository.Interface
         ICuisineRepository CuisineRepository { get; }
         IHealthcareIndicatorRepository HealthcareIndicatorRepository { get; }
         IMealLogRepository MealLogRepository { get; }
-        IAIRecommendationRepository AIRecommendationRepository { get; }
+        IAIRecommendationMealPlanRepository AIRecommendationRepository { get; }
+        IIngredientRepository IngredientRepository { get; }
     }
 }

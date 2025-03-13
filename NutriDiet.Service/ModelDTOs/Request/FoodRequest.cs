@@ -27,11 +27,5 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public double? Glucid { get; set; }
 
         public double? Fiber { get; set; }
-
-        public string? Others { get; set; }
-
-        public IEnumerable<int>? AllergyId { get; set; }
-
-        public IEnumerable<int>? DiseaseId { get; set; }
     }
 }

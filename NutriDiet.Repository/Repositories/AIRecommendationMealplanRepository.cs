@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Repository.Repositories
 {
-    public class AIRecommendationRepository : GenericRepository<Airecommendation>, IAIRecommendationRepository
+    public class AIRecommendationMealplanRepository : GenericRepository<AirecommendMealPlan>, IAIRecommendationMealPlanRepository
     {
-        public AIRecommendationRepository(NutriDietContext context) : base(context)
+        public AIRecommendationMealplanRepository(NutriDietContext context) : base(context)
         {
         }
     }

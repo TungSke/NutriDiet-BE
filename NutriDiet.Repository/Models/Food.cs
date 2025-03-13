@@ -31,7 +31,7 @@ public partial class Food
 
     public double? Fiber { get; set; }
 
-    public string? Others { get; set; }
+    public virtual ICollection<FoodIngredient> FoodIngredients { get; set; } = new List<FoodIngredient>();
 
     public virtual ICollection<FoodSubstitution> FoodSubstitutionOriginalFoods { get; set; } = new List<FoodSubstitution>();
 
@@ -44,8 +44,4 @@ public partial class Food
     public virtual ICollection<RecipeSuggestion> RecipeSuggestions { get; set; } = new List<RecipeSuggestion>();
 
     public virtual ICollection<UserFoodPreference> UserFoodPreferences { get; set; } = new List<UserFoodPreference>();
-
-    public virtual ICollection<Allergy> Allergies { get; set; } = new List<Allergy>();
-
-    public virtual ICollection<Disease> Diseases { get; set; } = new List<Disease>();
 }

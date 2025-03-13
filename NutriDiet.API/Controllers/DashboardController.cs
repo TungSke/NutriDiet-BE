@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.Services;
 
@@ -15,10 +17,11 @@ namespace NutriDiet.API.Controllers
         {
             _dashboardService = dashboardService;
         }
-        [HttpGet("user")]
-        public async Task<IActionResult> CountUser()
+        [HttpGet("dashboard")]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        public async Task<IActionResult> Dashboard()
         {
-            var result = await _dashboardService.CountUser();
+            var result = await _dashboardService.Dashboard();
             return Ok(result);
         }
     }

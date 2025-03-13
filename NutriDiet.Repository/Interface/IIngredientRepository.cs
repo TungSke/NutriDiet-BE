@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Repository.Interface
 {
-    public interface IAIRecommendationMealPlanRepository : IGenericRepository<AirecommendMealPlan>
+    public interface IIngredientRepository : IGenericRepository<Ingredient>
     {
     }
 }
