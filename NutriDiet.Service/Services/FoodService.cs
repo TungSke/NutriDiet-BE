@@ -113,7 +113,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> UpdateFood(int foodId, FoodRequest request)
         {
-            var existedFood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).FirstOrDefaultAsync();
+            var existedFood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(f => f.Ingredients).FirstOrDefaultAsync();
             if (existedFood == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -123,25 +123,19 @@ namespace NutriDiet.Service.Services
 
             if (request.Ingredients != null)
             {
-                if (request.Ingredients.Count == 0)
-                {
-                    existedFood.Ingredients.Clear();
-                }
-                else
-                {
-                    var ingredients = await _unitOfWork.IngredientRepository
-                        .GetByWhere(x => request.Ingredients.Contains(x.IngredientId))
-                        .ToListAsync();
+                existedFood.Ingredients.Clear();
 
-                    if (ingredients.Count != request.Ingredients.Count)
-                    {
-                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found");
-                    }
+                var ingredients = await _unitOfWork.IngredientRepository
+                    .GetByWhere(x => request.Ingredients.Contains(x.IngredientId))
+                    .ToListAsync();
 
-                    existedFood.Ingredients = ingredients;
+                if (ingredients.Count != request.Ingredients.Count)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found");
                 }
+
+                existedFood.Ingredients = ingredients;
             }
-
 
             if (request.FoodImageUrl != null)
             {
