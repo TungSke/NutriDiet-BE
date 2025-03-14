@@ -62,7 +62,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetFoodById(int foodId)
         {
-            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.FoodIngredients).FirstOrDefaultAsync();
+            var food = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(x => x.Ingredients).FirstOrDefaultAsync();
             if (food == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
@@ -85,6 +85,20 @@ namespace NutriDiet.Service.Services
 
             var food = request.Adapt<Food>();
 
+            if (request.Ingredients != null && request.Ingredients.Count > 0)
+            {
+                var ingredients = await _unitOfWork.IngredientRepository
+                    .GetByWhere(x => request.Ingredients.Contains(x.IngredientId))
+                    .ToListAsync();
+
+                if (ingredients.Count != request.Ingredients.Count)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found");
+                }
+
+                food.Ingredients = ingredients;
+            }
+
             if (request.FoodImageUrl != null)
             {
                 var cloudinaryHelper = new CloudinaryHelper();
@@ -106,6 +120,28 @@ namespace NutriDiet.Service.Services
             }
 
             request.Adapt(existedFood);
+
+            if (request.Ingredients != null)
+            {
+                if (request.Ingredients.Count == 0)
+                {
+                    existedFood.Ingredients.Clear();
+                }
+                else
+                {
+                    var ingredients = await _unitOfWork.IngredientRepository
+                        .GetByWhere(x => request.Ingredients.Contains(x.IngredientId))
+                        .ToListAsync();
+
+                    if (ingredients.Count != request.Ingredients.Count)
+                    {
+                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found");
+                    }
+
+                    existedFood.Ingredients = ingredients;
+                }
+            }
+
 
             if (request.FoodImageUrl != null)
             {

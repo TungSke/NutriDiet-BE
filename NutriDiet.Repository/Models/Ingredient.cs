@@ -21,7 +21,7 @@ public partial class Ingredient
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<FoodIngredient> FoodIngredients { get; set; } = new List<FoodIngredient>();
-
     public virtual ICollection<UserIngreDientPreference> UserIngreDientPreferences { get; set; } = new List<UserIngreDientPreference>();
+
+    public virtual ICollection<Food> Foods { get; set; } = new List<Food>();
 }

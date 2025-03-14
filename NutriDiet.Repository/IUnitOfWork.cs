@@ -23,6 +23,5 @@ namespace NutriDiet.Repository.Interface
         IMealLogRepository MealLogRepository { get; }
         IAIRecommendationMealPlanRepository AIRecommendationRepository { get; }
         IIngredientRepository IngredientRepository { get; }
-        IFoodIngredientRepository FoodIngredientRepository { get; }
     }
 }

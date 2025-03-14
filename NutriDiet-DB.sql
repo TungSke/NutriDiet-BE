@@ -128,13 +128,10 @@ CREATE TABLE Ingredient (
 CREATE TABLE FoodIngredient (
     FoodID INT NOT NULL,
     IngredientID INT NOT NULL,
-    Quantity FLOAT CHECK (Quantity > 0), -- Lượng nguyên liệu trong món ăn (VD: 100g, 1 thìa)
-    Unit NVARCHAR(50) NOT NULL, -- Đơn vị (g, ml, thìa, cốc...)
     PRIMARY KEY (FoodID, IngredientID),
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
     FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID) ON DELETE CASCADE
 );
-
 
 -- Bảng RecipeSuggestion
 CREATE TABLE RecipeSuggestion (
