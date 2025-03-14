@@ -1,16 +1,32 @@
 USE master;
-IF EXISTS (SELECT name FROM sys.databases WHERE name = 'NutriDiet')
-BEGIN
-    ALTER DATABASE NutriDiet SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE NutriDiet;
-END;
 GO
 
-CREATE DATABASE NutriDiet;
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'NutriDiet')
+BEGIN
+    CREATE DATABASE NutriDiet;
+END;
 GO
 
 USE NutriDiet;
 GO
+
+-- Bỏ ràng buộc FOREIGN KEY trước khi xóa bảng
+DECLARE @sql NVARCHAR(MAX) = N'';
+SELECT @sql += 'ALTER TABLE [' + TABLE_SCHEMA + '].[' + TABLE_NAME + '] DROP CONSTRAINT [' + CONSTRAINT_NAME + '];' + CHAR(13)
+FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+WHERE CONSTRAINT_TYPE = 'FOREIGN KEY';
+
+EXEC sp_executesql @sql;
+
+-- Xóa tất cả bảng
+SET @sql = '';
+SELECT @sql += 'DROP TABLE IF EXISTS [' + TABLE_SCHEMA + '].[' + TABLE_NAME + '];' + CHAR(13)
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE';
+
+EXEC sp_executesql @sql;
+GO
+
 
 -- Bảng Role
 CREATE TABLE Role (
