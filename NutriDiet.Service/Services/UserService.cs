@@ -142,6 +142,7 @@ namespace NutriDiet.Service.Services
 
             account.RefreshToken = refreshToken;
             account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            account.FcmToken = request.fcmToken;
 
             await _unitOfWork.UserRepository.UpdateAsync(account);
             await _unitOfWork.SaveChangesAsync();
@@ -156,7 +157,7 @@ namespace NutriDiet.Service.Services
 
         }
 
-        public async Task<IBusinessResult> LoginWithGoogle(string idToken)
+        public async Task<IBusinessResult> LoginWithGoogle(string idToken, string fcmToken)
         {
             GoogleJsonWebSignature.Payload payload;
             try
@@ -195,6 +196,7 @@ namespace NutriDiet.Service.Services
 
             account.RefreshToken = refreshToken;
             account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            account.FcmToken = fcmToken;
 
             await _unitOfWork.UserRepository.UpdateAsync(account);
             await _unitOfWork.SaveChangesAsync();
@@ -210,7 +212,7 @@ namespace NutriDiet.Service.Services
         }
 
 
-        public async Task<IBusinessResult> LoginWithFacebook(string accessToken)
+        public async Task<IBusinessResult> LoginWithFacebook(string accessToken, string fcmToken)
         {
             try
             {
@@ -235,47 +237,46 @@ namespace NutriDiet.Service.Services
                 var account = await findUserByEmail(email);
                 if (account == null)
                 {
+                    // Tạo tài khoản mới
                     account = new User
                     {
-                        FullName = name ?? "User",
+                        FullName = name,
                         Email = email,
                         Password = HashPassword("12345"),
                         Avatar = userAvatar,
                         Status = "ACTIVE",
-                        RoleId = (int)RoleEnum.Customer
+                        RoleId = (int)RoleEnum.Customer,
+                        FcmToken = fcmToken // Gán FCM Token khi tạo tài khoản
                     };
                     await _unitOfWork.UserRepository.AddAsync(account);
-                    await _unitOfWork.SaveChangesAsync();
-
-                    account = await findUserByEmail(email);
-
-                    var accessTokenRes = await _tokenHandler.GenerateJwtToken(account);
-                    var refreshToken = await _tokenHandler.GenerateRefreshToken();
-
-                    account.RefreshToken = refreshToken;
-                    await _unitOfWork.UserRepository.UpdateAsync(account);
-                    await _unitOfWork.SaveChangesAsync();
-
-                    var res = new LoginResponse
-                    {
-                        Role = account.Role.RoleName,
-                        AccessToken = accessTokenRes,
-                        RefreshToken = refreshToken
-                    };
-                    return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, res);
-                } else if (account.Status == "INACTIVE")
+                }
+                else
                 {
-                    throw new Exception("Account is deleted, please contact admin to restore");
+                    if (account.Status == "INACTIVE") return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Account is deleted, please contact admin to restore");
+
+                    account.FcmToken = fcmToken;
+                    await _unitOfWork.UserRepository.UpdateAsync(account);
                 }
 
-                var responseSuccess = new LoginResponse
+                await _unitOfWork.SaveChangesAsync();
+
+                // Tạo token đăng nhập
+                var accessTokenRes = await _tokenHandler.GenerateJwtToken(account);
+                var refreshToken = account.RefreshToken ?? await _tokenHandler.GenerateRefreshToken();
+                account.RefreshToken = refreshToken;
+
+                await _unitOfWork.UserRepository.UpdateAsync(account);
+                await _unitOfWork.SaveChangesAsync();
+
+                var loginresponse = new LoginResponse
                 {
                     Role = account.Role.RoleName,
-                    AccessToken = await _tokenHandler.GenerateJwtToken(account),
-                    RefreshToken = account.RefreshToken
+                    AccessToken = accessTokenRes,
+                    RefreshToken = refreshToken
                 };
 
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, responseSuccess);
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, loginresponse);
+            
             }
             catch (Exception ex)
             {

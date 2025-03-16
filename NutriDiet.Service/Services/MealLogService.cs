@@ -435,6 +435,13 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log details copied successfully.");
         }
 
+        public async Task<IBusinessResult> CreateMealLogAI()
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            return new BusinessResult();
+        }
+
 
     }
 }

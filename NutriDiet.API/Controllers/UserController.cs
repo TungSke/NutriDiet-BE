@@ -68,16 +68,16 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("login-with-google")]
-        public async Task<IActionResult> LoginWithGoogle(string idToken)
+        public async Task<IActionResult> LoginWithGoogle(string idToken, string fcmToken)
         {
-            var result = await _userService.LoginWithGoogle(idToken);
+            var result = await _userService.LoginWithGoogle(idToken, fcmToken);
             return StatusCode(result.StatusCode, result);
         }
 
         [HttpPost("login-with-facebook")]
-        public async Task<IActionResult> LoginWithFacebook(string idToken)
+        public async Task<IActionResult> LoginWithFacebook(string idToken, string fcmToken)
         {
-            var result = await _userService.LoginWithFacebook(idToken);
+            var result = await _userService.LoginWithFacebook(idToken, fcmToken);
             return StatusCode(result.StatusCode, result);
         }
 
