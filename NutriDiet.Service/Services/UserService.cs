@@ -180,37 +180,41 @@ namespace NutriDiet.Service.Services
                     Password = HashPassword("tungdeptrai123142"),
                     Avatar = payload.Picture,
                     Status = "ACTIVE",
-                    RoleId = (int)RoleEnum.Customer
+                    RoleId = (int)RoleEnum.Customer,
+                    FcmToken = fcmToken,
+                    RefreshToken = await _tokenHandler.GenerateRefreshToken(),
+                    RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7)
                 };
 
                 await _unitOfWork.UserRepository.AddAsync(account);
                 await _unitOfWork.SaveChangesAsync();
             }
-            else if (account.Status == "INACTIVE")
+            else
             {
-                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Account is inactive, please contact support.");
+                if (account.Status == "INACTIVE")
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Account is inactive, please contact support.");
+                }
+
+                account.FcmToken = fcmToken;
+                account.RefreshToken = await _tokenHandler.GenerateRefreshToken();
+                account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+                await _unitOfWork.UserRepository.UpdateAsync(account);
+                await _unitOfWork.SaveChangesAsync();
             }
 
             var accessToken = await _tokenHandler.GenerateJwtToken(account);
-            var refreshToken = await _tokenHandler.GenerateRefreshToken();
-
-            account.RefreshToken = refreshToken;
-            account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            account.FcmToken = fcmToken;
-
-            await _unitOfWork.UserRepository.UpdateAsync(account);
-            await _unitOfWork.SaveChangesAsync();
 
             var response = new LoginResponse
             {
                 Role = account.Role.RoleName,
                 AccessToken = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = account.RefreshToken
             };
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Login successful", response);
         }
-
 
         public async Task<IBusinessResult> LoginWithFacebook(string accessToken, string fcmToken)
         {
@@ -229,10 +233,14 @@ namespace NutriDiet.Service.Services
                 var content = await response.Content.ReadAsStringAsync();
                 var userData = JsonConvert.DeserializeObject<JObject>(content);
 
-                // Kiểm tra sự tồn tại của các trường trước khi truy cập
-                var name = userData?["name"]?.ToString();
+                var name = userData?["name"]?.ToString() ?? "User";
                 var email = userData?["email"]?.ToString();
-                var userAvatar = userData["picture"]?["data"]?["url"]?.ToString();
+                var userAvatar = userData?["picture"]?["data"]?["url"]?.ToString();
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Email not found in Facebook response.");
+                }
 
                 var account = await findUserByEmail(email);
                 if (account == null)
@@ -246,43 +254,46 @@ namespace NutriDiet.Service.Services
                         Avatar = userAvatar,
                         Status = "ACTIVE",
                         RoleId = (int)RoleEnum.Customer,
-                        FcmToken = fcmToken // Gán FCM Token khi tạo tài khoản
+                        FcmToken = fcmToken, // Lưu FCM Token khi tạo user mới
+                        RefreshToken = await _tokenHandler.GenerateRefreshToken(),
+                        RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7)
                     };
+
                     await _unitOfWork.UserRepository.AddAsync(account);
                 }
                 else
                 {
-                    if (account.Status == "INACTIVE") return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Account is deleted, please contact admin to restore");
+                    if (account.Status == "INACTIVE")
+                    {
+                        return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Account is deleted, please contact admin to restore.");
+                    }
 
                     account.FcmToken = fcmToken;
+                    account.RefreshToken = account.RefreshToken ?? await _tokenHandler.GenerateRefreshToken();
+                    account.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
                     await _unitOfWork.UserRepository.UpdateAsync(account);
                 }
 
                 await _unitOfWork.SaveChangesAsync();
 
-                // Tạo token đăng nhập
                 var accessTokenRes = await _tokenHandler.GenerateJwtToken(account);
-                var refreshToken = account.RefreshToken ?? await _tokenHandler.GenerateRefreshToken();
-                account.RefreshToken = refreshToken;
 
-                await _unitOfWork.UserRepository.UpdateAsync(account);
-                await _unitOfWork.SaveChangesAsync();
-
-                var loginresponse = new LoginResponse
+                var loginResponse = new LoginResponse
                 {
                     Role = account.Role.RoleName,
                     AccessToken = accessTokenRes,
-                    RefreshToken = refreshToken
+                    RefreshToken = account.RefreshToken
                 };
 
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, loginresponse);
-            
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, loginResponse);
             }
             catch (Exception ex)
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, ex.Message);
             }
         }
+
 
         public async Task<IBusinessResult> ForgotPassword(string email)
         {
