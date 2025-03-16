@@ -188,6 +188,8 @@ namespace NutriDiet.Service.Services
 
                 await _unitOfWork.UserRepository.AddAsync(account);
                 await _unitOfWork.SaveChangesAsync();
+
+                account = await findUserByEmail(payload.Email);
             }
             else
             {
@@ -220,7 +222,6 @@ namespace NutriDiet.Service.Services
         {
             try
             {
-                // Kiểm tra token với Facebook
                 var urlConnect = $"https://graph.facebook.com/v21.0/me?fields=id,name,email,picture.width(200).height(200)&access_token={accessToken}";
                 var response = await _httpClient.GetAsync(urlConnect);
 
@@ -260,6 +261,8 @@ namespace NutriDiet.Service.Services
                     };
 
                     await _unitOfWork.UserRepository.AddAsync(account);
+                    await _unitOfWork.SaveChangesAsync();
+                    account = await findUserByEmail(email);
                 }
                 else
                 {
