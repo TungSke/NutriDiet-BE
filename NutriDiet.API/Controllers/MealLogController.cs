@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
@@ -59,6 +60,14 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> CopyMealLogDetails([FromForm] CopyMealLogRequest request)
         {
             var result = await _mealLogService.CopyMealLogDetails(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("meallogAI")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> MeallogAI()
+        {
+            var result = await _mealLogService.CreateMealLogAI();
             return StatusCode(result.StatusCode, result);
         }
     }

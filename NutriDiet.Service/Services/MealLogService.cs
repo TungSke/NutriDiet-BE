@@ -1,15 +1,19 @@
 ﻿using Azure;
+using Google.Apis.Drive.v3.Data;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
+using NutriDiet.Service.Utilities;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace NutriDiet.Service.Services
 {
@@ -17,12 +21,14 @@ namespace NutriDiet.Service.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly AIGeneratorService _aiGeneratorService;
         private readonly string _userIdClaim;
 
-        public MealLogService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
+        public MealLogService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
+            _aiGeneratorService = aIGeneratorService;
             _userIdClaim = GetUserIdClaim();
         }
         private string GetUserIdClaim()
@@ -129,7 +135,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log updated successfully.");
         }
 
-        public async Task<IBusinessResult> RemoveMealLogDetail(int mealLogId,int detailId)
+        public async Task<IBusinessResult> RemoveMealLogDetail(int mealLogId, int detailId)
         {
             var userId = int.Parse(_userIdClaim);
 
@@ -183,7 +189,7 @@ namespace NutriDiet.Service.Services
             var mealLog = await _unitOfWork.MealLogRepository
                 .GetByWhere(m => m.MealLogId == mealLogId && m.UserId == userId)
                 .Include(m => m.MealLogDetails)
-                .ThenInclude(d => d.Food) 
+                .ThenInclude(d => d.Food)
                 .FirstOrDefaultAsync();
 
             if (mealLog == null)
@@ -202,7 +208,7 @@ namespace NutriDiet.Service.Services
                 TotalFat = mealLog.TotalFat.Value,
                 MealLogDetails = mealLog.MealLogDetails.Select(d => new MealLogDetailResponse
                 {
-                    FoodName = d.Food.FoodName ?? "Quick Add", 
+                    FoodName = d.Food.FoodName ?? "Quick Add",
                     MealType = d.MealType,
                     ServingSize = d.ServingSize,
                     Quantity = d.Quantity,
@@ -305,7 +311,7 @@ namespace NutriDiet.Service.Services
             // Thêm nhanh một MealLogDetail mà không cần chọn món ăn
             var mealLogDetail = new MealLogDetail
             {
-                FoodId = null, 
+                FoodId = null,
                 MealType = request.MealType.ToString(),
                 Quantity = 1,
                 Calories = request.Calories ?? 0,
@@ -439,7 +445,122 @@ namespace NutriDiet.Service.Services
         {
             var userId = int.Parse(_userIdClaim);
 
-            return new BusinessResult();
+            var userInfo = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userId)
+                                                           .Include(x => x.GeneralHealthProfiles)
+                                                           .Include(x => x.UserFoodPreferences)
+                                                           .Include(x => x.PersonalGoals)
+                                                           .Include(x => x.Allergies)
+                                                           .Include(x => x.Diseases)
+                                                           .FirstOrDefaultAsync();
+
+            if (userInfo == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
+
+            var allergyNames = userInfo.Allergies?.Select(x => x.AllergyName).ToList() ?? new List<string>();
+            var diseaseNames = userInfo.Diseases?.Select(x => x.DiseaseName).ToList() ?? new List<string>();
+
+            var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
+            var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
+
+            var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
+            var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
+
+            var height = userProfile?.Height ?? 0;
+            var weight = userProfile?.Weight ?? 0;
+            var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
+            var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
+            var startDate = personalGoal?.StartDate?.ToString("yyyy-MM-dd") ?? "Chưa đặt";
+            var targetDate = personalGoal?.TargetDate.ToString("yyyy-MM-dd") ?? "Chưa đặt";
+            var dailyCalories = personalGoal?.DailyCalories ?? 0;
+            var dailyCarb = personalGoal?.DailyCarb ?? 0;
+            var dailyFat = personalGoal?.DailyFat ?? 0;
+            var dailyProtein = personalGoal?.DailyProtein ?? 0;
+
+            // Lấy Meal Log 7 ngày gần nhất
+            var mealLogs = await GetMealLogsByDateRange(null, DateTime.Now.AddDays(-7), DateTime.Now);
+
+            var formattedMealLogs = JsonSerializer.Serialize(mealLogs.Data);
+
+            // Lấy danh sách thực phẩm có thể ăn
+            var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
+            var foodResponse = foods.Adapt<List<FoodResponse>>();
+            var foodListText = JsonSerializer.Serialize(foodResponse);
+
+            var mealogrequest = new List<MealLogRequest>
+            {
+                new MealLogRequest
+                {
+                    LogDate = DateTime.Now,
+                    FoodId = 1, // phở
+                    MealType = MealType.Breakfast,
+                    Quantity = 1,
+                    ServingSize = "1 tô"
+                },
+                new MealLogRequest
+                {
+                    LogDate = DateTime.Now,
+                    FoodId = 2, // cơm
+                    MealType = MealType.Lunch,
+                    Quantity = 1,
+                    ServingSize = "1 bát"
+                },
+                new MealLogRequest
+                {
+                    LogDate = DateTime.Now,
+                    FoodId = 3, // gà
+                    MealType = MealType.Dinner,
+                    Quantity = 1,
+                    ServingSize = "1 phần"
+                }
+            };
+
+            var input = $@"
+                        Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
+
+                        Thông tin người dùng:
+                        - **Họ tên:** {userInfo.FullName}
+                        - **Email:** {userInfo.Email}
+                        - **Giới tính:** {userInfo.Gender}
+                        - **Tuổi:** {userInfo.Age}
+                        - **Chiều cao:** {height} cm
+                        - **Cân nặng:** {weight} kg
+                        - **Mức độ vận động:** {activityLevel}
+                        - **Mục tiêu:** {goalType} ({startDate} - {targetDate})
+
+                        Dữ liệu Meal Log 7 ngày gần nhất:
+                        {formattedMealLogs}
+
+                        Yêu cầu cho Meallog ngày hôm nay:
+                        - **Meallog 1 ngày** với 3 bữa chính (Breakfast, Lunch, Dinner)
+                        - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
+                        - **Dị ứng thực phẩm:** {formattedAllergies}
+                        - **Bệnh lý cần lưu ý:** {formattedDiseases}
+
+                        Giá trị dinh dưỡng đề xuất cho user nạp:
+                        - **Calories:** {dailyCalories}
+                        - **Carb:** {dailyCarb}
+                        - **Fat:** {dailyFat}
+                        - **Protein:** {dailyProtein}
+
+                        Lưu ý:
+                        - Hạn chế chọn các món đã ăn quá nhiều trong tuần trước
+                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
+                        ";
+
+            //var airesponse = await 
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Input đã tạo thành công", input);
+        }
+
+
+        private async Task SaveMeallogOneDay(List<MealLogRequest> request)
+        {
+            foreach (var mealLogRequest in request)
+            {
+                await AddOrUpdateMealLog(mealLogRequest);
+            }
         }
 
 

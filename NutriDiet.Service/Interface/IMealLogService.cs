@@ -16,5 +16,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetMealLogsByDateRange(DateTime? logDate, DateTime? fromDate, DateTime? toDate);
         Task<IBusinessResult> QuickAddMealLogDetail(QuickMealLogRequest request);
         Task<IBusinessResult> CopyMealLogDetails(CopyMealLogRequest request);
+
+        Task<IBusinessResult> CreateMealLogAI();
     }
 }
