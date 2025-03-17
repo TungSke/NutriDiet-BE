@@ -34,6 +34,6 @@ namespace NutriDiet.Service.ModelDTOs.Response
 
         public double? Fiber { get; set; }
 
-        public List<IngredientResponse> Ingredients { get; set; } = new();
+        public List<IngredientResponse>? Ingredients { get; set; }
     }
 }

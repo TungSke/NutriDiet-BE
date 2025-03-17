@@ -413,8 +413,7 @@ namespace NutriDiet.Service.Services
             // Sample JSON output
             string jsonOutputSample = JsonSerializer.Serialize(mealPlanRequesttest);
 
-            var input = $@"
-                        Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Plan phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
+            var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Plan phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
 
                         Thông tin người dùng:
                         - **Họ tên:** {userInfo.FullName}
@@ -440,8 +439,7 @@ namespace NutriDiet.Service.Services
 
                         Lưu ý:
                         - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}
-                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
-                        ";
+                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
 
             // Xử lý dữ liệu đầu vào và gửi yêu cầu tạo Meal Plan phù hợp
             var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOutputSample);
