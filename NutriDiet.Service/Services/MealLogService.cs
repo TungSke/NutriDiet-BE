@@ -491,7 +491,7 @@ namespace NutriDiet.Service.Services
             {
                 new MealLogRequest
                 {
-                    LogDate = DateTime.Now.Date,
+                    LogDate = DateTime.Now,
                     FoodId = 1,
                     MealType = MealType.Breakfast,
                     Quantity = 1,
@@ -499,7 +499,7 @@ namespace NutriDiet.Service.Services
                 },
                 new MealLogRequest
                 {
-                    LogDate = DateTime.Now.Date,
+                    LogDate = DateTime.Now,
                     FoodId = 2,
                     MealType = MealType.Lunch,
                     Quantity = 1,
@@ -507,7 +507,7 @@ namespace NutriDiet.Service.Services
                 },
                 new MealLogRequest
                 {
-                    LogDate = DateTime.Now.Date,
+                    LogDate = DateTime.Now,
                     FoodId = 3,
                     MealType = MealType.Dinner,
                     Quantity = 1,
@@ -544,17 +544,32 @@ namespace NutriDiet.Service.Services
                         - **Protein:** {dailyProtein}
 
                         Lưu ý:
-                        - Hạn chế chọn các món đã ăn quá nhiều trong tuần
+                        - Hạn chế chọn các món đã ăn quá nhiều trong tuần hôm nay là ngày {DateTime.UtcNow.Date}
                         - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
 
             var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
 
-            var airecommendmealog = new AirecommendMealLog
+            var airecommendMeallogExisted = await _unitOfWork.AIRecommendationMeallogRepository.GetByWhere(x => x.UserId == userId && x.Status.ToLower() == "pending").FirstOrDefaultAsync();
+            if (airecommendMeallogExisted == null)
             {
-                MealLogId = null,
-                Status = "Pending",
-                
-            };
+                var airecommendmealog = new AirecommendMealLog
+                {
+                    MealLogId = null,
+                    Status = "Pending",
+                    UserId = userId,
+                    AirecommendMealPlanResponse = airesponse
+                };
+
+                await _unitOfWork.AIRecommendationMeallogRepository.AddAsync(airecommendmealog);
+
+            }
+            else
+            {
+                airecommendMeallogExisted.AirecommendMealPlanResponse = airesponse;
+                await _unitOfWork.AIRecommendationMeallogRepository.UpdateAsync(airecommendMeallogExisted);
+
+            }
+            await _unitOfWork.SaveChangesAsync();
 
             var mealogresquestToadd = JsonSerializer.Deserialize<List<MealLogRequest>>(airesponse);
 
@@ -603,6 +618,19 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> SaveMeallogAI()
         {
+            var userId = int.Parse(_userIdClaim);
+
+            var airecommendMeallogExisted = await _unitOfWork.AIRecommendationMeallogRepository.GetByWhere(x => x.UserId == userId && x.Status.ToLower() == "pending").FirstOrDefaultAsync();
+            if(airecommendMeallogExisted == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No pending AI recommendation found.");
+            }
+
+            airecommendMeallogExisted.Status = "Accepted";
+            var aiResponse = JsonSerializer.Deserialize<List<MealLogRequest>>(airecommendMeallogExisted.AirecommendMealPlanResponse);
+
+            await SaveMeallogOneDay(aiResponse);
+
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log AI saved successfully.");
         }
     }

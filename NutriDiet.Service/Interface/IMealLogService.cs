@@ -18,5 +18,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> CopyMealLogDetails(CopyMealLogRequest request);
 
         Task<IBusinessResult> CreateMealLogAI();
+        Task<IBusinessResult> SaveMeallogAI();
     }
 }

@@ -63,11 +63,19 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("meallogAI")]
+        [HttpGet("meallogai")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> MeallogAI()
         {
             var result = await _mealLogService.CreateMealLogAI();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPost("savemeallogai")]
+        [Authorize]
+        public async Task<IActionResult> SaveMeallogAI()
+        {
+            var result = await _mealLogService.SaveMeallogAI();
             return StatusCode(result.StatusCode, result);
         }
     }
