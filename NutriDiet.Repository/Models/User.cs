@@ -33,6 +33,10 @@ public partial class User
 
     public DateTime? RefreshTokenExpiryTime { get; set; }
 
+    public virtual ICollection<AirecommendMealLog> AirecommendMealLogs { get; set; } = new List<AirecommendMealLog>();
+
+    public virtual ICollection<AirecommendMealPlan> AirecommendMealPlans { get; set; } = new List<AirecommendMealPlan>();
+
     public virtual ICollection<GeneralHealthProfile> GeneralHealthProfiles { get; set; } = new List<GeneralHealthProfile>();
 
     public virtual ICollection<HealthcareIndicator> HealthcareIndicators { get; set; } = new List<HealthcareIndicator>();

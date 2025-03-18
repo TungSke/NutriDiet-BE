@@ -261,12 +261,14 @@ CREATE TABLE HealthcareIndicator (
 -- Bảng AIRecommendMealPlan
 CREATE TABLE AIRecommendMealPlan (
     AIRecommendMealPlanID INT IDENTITY(1,1) PRIMARY KEY,
-	MealPlanID INT NULL,
+    MealPlanID INT NULL,
+    UserID INT NOT NULL,
     RecommendedAt DATETIME DEFAULT GETDATE(),
     AIRecommendMealPlanResponse NVARCHAR(MAX),
-	Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
+    Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
     RejectionReason NVARCHAR(255) NULL,
-	FOREIGN KEY (MealPlanID) REFERENCES [MealPlan](MealPlanID) ON DELETE CASCADE
+    FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE NO ACTION,
+    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
 -- Bảng MealLog
@@ -301,11 +303,13 @@ CREATE TABLE MealLogDetail (
 CREATE TABLE AIRecommendMealLog (
     AIRecommendMealLogID INT IDENTITY(1,1) PRIMARY KEY,
 	MealLogID INT NULL,
+	UserID INT NOT NULL,
     RecommendedAt DATETIME DEFAULT GETDATE(),
     AIRecommendMealPlanResponse NVARCHAR(MAX),
 	Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
     RejectionReason NVARCHAR(255) NULL,
-	FOREIGN KEY (MealLogID) REFERENCES MealLog(MealLogID) ON DELETE CASCADE
+	FOREIGN KEY (MealLogID) REFERENCES MealLog(MealLogID) ON DELETE NO ACTION,
+	FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
 
 -- Bảng PersonalGoal

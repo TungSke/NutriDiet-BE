@@ -9,6 +9,8 @@ public partial class AirecommendMealPlan
 
     public int? MealPlanId { get; set; }
 
+    public int UserId { get; set; }
+
     public DateTime? RecommendedAt { get; set; }
 
     public string? AirecommendMealPlanResponse { get; set; }
@@ -18,4 +20,6 @@ public partial class AirecommendMealPlan
     public string? RejectionReason { get; set; }
 
     public virtual MealPlan? MealPlan { get; set; }
+
+    public virtual User User { get; set; } = null!;
 }

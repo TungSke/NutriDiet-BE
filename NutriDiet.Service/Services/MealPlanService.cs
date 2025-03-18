@@ -375,7 +375,7 @@ namespace NutriDiet.Service.Services
             var foodListText = JsonSerializer.Serialize(foods);
 
             var airecommendationResponse = await _unitOfWork.AIRecommendationRepository
-                        .GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower())
+                        .GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid)
                         .FirstOrDefaultAsync();
 
             var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
@@ -456,6 +456,7 @@ namespace NutriDiet.Service.Services
                 {
                     await _unitOfWork.AIRecommendationRepository.AddAsync(new AirecommendMealPlan
                     {
+                        UserId = userid,
                         AirecommendMealPlanResponse = airesponse,
                         RecommendedAt = DateTime.Now,
                         Status = AIRecommendStatus.Pending.ToString()
@@ -482,7 +483,7 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> RejectMealplan(string rejectReason)
         {
             int userid = int.Parse(_userIdClaim);
-            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower()).FirstOrDefaultAsync();
+            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid).FirstOrDefaultAsync();
             if (recommendResponse == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
@@ -498,7 +499,7 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> SaveMealPlanAI()
         {
             int userid = int.Parse(_userIdClaim);
-            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x=>x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower()).FirstOrDefaultAsync();
+            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x=>x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid).FirstOrDefaultAsync();
             if (recommendResponse == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");

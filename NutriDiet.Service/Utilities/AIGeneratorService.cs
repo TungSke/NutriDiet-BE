@@ -118,7 +118,7 @@ namespace NutriDiet.Service.Utilities
 
         private static string ExtractJsonFromText(string text)
         {
-            var match = Regex.Match(text, @"```json\s*(\{[\s\S]*?\})\s*```", RegexOptions.Multiline);
+            var match = Regex.Match(text, @"```json\s*(\[.*?\]|\{.*?\})\s*```", RegexOptions.Singleline);
             return match.Success ? match.Groups[1].Value.Trim() : string.Empty;
         }
     }

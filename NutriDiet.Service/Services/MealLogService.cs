@@ -473,8 +473,6 @@ namespace NutriDiet.Service.Services
             var weight = userProfile?.Weight ?? 0;
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
             var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
-            var startDate = personalGoal?.StartDate?.ToString("yyyy-MM-dd") ?? "Chưa đặt";
-            var targetDate = personalGoal?.TargetDate.ToString("yyyy-MM-dd") ?? "Chưa đặt";
             var dailyCalories = personalGoal?.DailyCalories ?? 0;
             var dailyCarb = personalGoal?.DailyCarb ?? 0;
             var dailyFat = personalGoal?.DailyFat ?? 0;
@@ -487,49 +485,48 @@ namespace NutriDiet.Service.Services
 
             // Lấy danh sách thực phẩm có thể ăn
             var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
-            var foodResponse = foods.Adapt<List<FoodResponse>>();
-            var foodListText = JsonSerializer.Serialize(foodResponse);
+            var foodListText = JsonSerializer.Serialize(foods);
 
-            var mealogrequest = new List<MealLogRequest>
+            var mealogrequestSample = new List<MealLogRequest>
             {
                 new MealLogRequest
                 {
-                    LogDate = DateTime.Now,
-                    FoodId = 1, // phở
+                    LogDate = DateTime.Now.Date,
+                    FoodId = 1,
                     MealType = MealType.Breakfast,
                     Quantity = 1,
                     ServingSize = "1 tô"
                 },
                 new MealLogRequest
                 {
-                    LogDate = DateTime.Now,
-                    FoodId = 2, // cơm
+                    LogDate = DateTime.Now.Date,
+                    FoodId = 2,
                     MealType = MealType.Lunch,
                     Quantity = 1,
                     ServingSize = "1 bát"
                 },
                 new MealLogRequest
                 {
-                    LogDate = DateTime.Now,
-                    FoodId = 3, // gà
+                    LogDate = DateTime.Now.Date,
+                    FoodId = 3,
                     MealType = MealType.Dinner,
                     Quantity = 1,
                     ServingSize = "1 phần"
                 }
             };
 
-            var input = $@"
-                        Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
+            var jsonSampleOutput = JsonSerializer.Serialize(mealogrequestSample);
+
+            var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
 
                         Thông tin người dùng:
                         - **Họ tên:** {userInfo.FullName}
-                        - **Email:** {userInfo.Email}
                         - **Giới tính:** {userInfo.Gender}
                         - **Tuổi:** {userInfo.Age}
                         - **Chiều cao:** {height} cm
                         - **Cân nặng:** {weight} kg
                         - **Mức độ vận động:** {activityLevel}
-                        - **Mục tiêu:** {goalType} ({startDate} - {targetDate})
+                        - **Mục tiêu:** {goalType}
 
                         Dữ liệu Meal Log 7 ngày gần nhất:
                         {formattedMealLogs}
@@ -547,24 +544,66 @@ namespace NutriDiet.Service.Services
                         - **Protein:** {dailyProtein}
 
                         Lưu ý:
-                        - Hạn chế chọn các món đã ăn quá nhiều trong tuần trước
-                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
-                        ";
+                        - Hạn chế chọn các món đã ăn quá nhiều trong tuần
+                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
 
-            //var airesponse = await 
+            var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Input đã tạo thành công", input);
+            var airecommendmealog = new AirecommendMealLog
+            {
+                MealLogId = null,
+                Status = "Pending",
+                
+            };
+
+            var mealogresquestToadd = JsonSerializer.Deserialize<List<MealLogRequest>>(airesponse);
+
+            var foodIds = mealogresquestToadd.Select(m => m.FoodId).Distinct().ToList();
+
+            var foodList = await _unitOfWork.FoodRepository
+                .GetByWhere(f => foodIds.Contains(f.FoodId))
+                .ToListAsync();
+
+            var mealLogDetails = mealogresquestToadd
+                .Select(m =>
+                {
+                    var food = foodList.FirstOrDefault(f => f.FoodId == m.FoodId);
+                    if (food == null) return null; // Nếu không tìm thấy food, bỏ qua
+
+                    return new MealLogDetailResponse
+                    {
+                        FoodName = food.FoodName,
+                        MealType = m.MealType.ToString(),
+                        ServingSize = m.ServingSize,
+                        Quantity = m.Quantity,
+                        Calories = (m.Quantity ?? 1) * (food.Calories ?? 0),
+                        Protein = (m.Quantity ?? 1) * (food.Protein ?? 0),
+                        Carbs = (m.Quantity ?? 1) * (food.Carbs ?? 0),
+                        Fat = (m.Quantity ?? 1) * (food.Fat ?? 0)
+                    };
+                })
+                .Where(m => m != null) // Loại bỏ food null
+                .ToList();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Input đã tạo thành công", mealLogDetails);
         }
 
-
-        private async Task SaveMeallogOneDay(List<MealLogRequest> request)
+        private async Task SaveMeallogOneDay(List<MealLogRequest> requests)
         {
-            foreach (var mealLogRequest in request)
+            if (requests == null || !requests.Any())
+            {
+                throw new ArgumentException("Meal log request list cannot be empty.");
+            }
+
+            foreach (var mealLogRequest in requests)
             {
                 await AddOrUpdateMealLog(mealLogRequest);
             }
         }
 
-
+        public async Task<IBusinessResult> SaveMeallogAI()
+        {
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log AI saved successfully.");
+        }
     }
 }
