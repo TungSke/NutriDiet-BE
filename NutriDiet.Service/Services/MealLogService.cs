@@ -263,6 +263,7 @@ namespace NutriDiet.Service.Services
                 TotalFat = mealLog.TotalFat ?? 0,
                 MealLogDetails = mealLog.MealLogDetails.Select(d => new MealLogDetailResponse
                 {
+                    DetailId = d.DetailId,
                     FoodName = d.Food?.FoodName ?? "Quick Add",
                     MealType = d.MealType,
                     ServingSize = d.ServingSize,
