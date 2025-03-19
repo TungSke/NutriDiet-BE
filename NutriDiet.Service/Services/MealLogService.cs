@@ -103,7 +103,7 @@ namespace NutriDiet.Service.Services
                 {
                     FoodId = request.FoodId,
                     MealType = request.MealType.ToString(),
-                    ServingSize = request.ServingSize,
+                    ServingSize = food.ServingSize,
                     Quantity = quantity,
                     Calories = quantity * food.Calories,
                     Protein = quantity * food.Protein,
@@ -633,5 +633,46 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log AI saved successfully.");
         }
+
+        public async Task<IBusinessResult> TransferMealLogDetail(int detailId, MealType targetMealType)
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            // Tìm MealLog chứa MealLogDetail có detailId cho người dùng hiện tại
+            var mealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.MealLogDetails.Any(d => d.DetailId == detailId))
+                .Include(m => m.MealLogDetails)
+                .FirstOrDefaultAsync();
+
+            if (mealLog == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log detail not found.", null);
+            }
+
+            // Tìm chi tiết bữa ăn cần chuyển
+            var mealLogDetail = mealLog.MealLogDetails.FirstOrDefault(d => d.DetailId == detailId);
+            if (mealLogDetail == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log detail not found.", null);
+            }
+
+            // Nếu bữa hiện tại đã trùng với bữa chuyển đến thì trả về thông báo
+            if (mealLogDetail.MealType.Equals(targetMealType.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail is already in the target meal type.", null);
+            }
+
+            // Cập nhật MealType cho MealLogDetail
+            mealLogDetail.MealType = targetMealType.ToString();
+
+            // Nếu cần thiết, bạn có thể cập nhật lại các thông tin tổng hợp của MealLog nếu chuyển bữa cần điều chỉnh tổng dinh dưỡng.
+            // Trong ví dụ này, vì chỉ chuyển bữa mà không thay đổi số lượng hay giá trị dinh dưỡng, nên ta không cần tính lại tổng.
+
+            await _unitOfWork.MealLogRepository.UpdateAsync(mealLog);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail transferred successfully.");
+        }
+
     }
 }

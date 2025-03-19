@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Common.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.Services;
@@ -76,6 +77,13 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> SaveMeallogAI()
         {
             var result = await _mealLogService.SaveMeallogAI();
+            return StatusCode(result.StatusCode, result);
+        }
+        [HttpPut("detail/transfer/{detailId}")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> TransferMealLogDetail(int detailId, [FromQuery] MealType targetMealType)
+        {
+            var result = await _mealLogService.TransferMealLogDetail(detailId, targetMealType);
             return StatusCode(result.StatusCode, result);
         }
     }

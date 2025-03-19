@@ -1,4 +1,5 @@
 ﻿using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Service.ModelDTOs.Request;
 using System;
 using System.Collections.Generic;
@@ -19,5 +20,6 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> CreateMealLogAI();
         Task<IBusinessResult> SaveMeallogAI();
+        Task<IBusinessResult> TransferMealLogDetail(int detailId, MealType targetMealType);
     }
 }
