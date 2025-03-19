@@ -27,7 +27,6 @@ WHERE TABLE_TYPE = 'BASE TABLE';
 EXEC sp_executesql @sql;
 GO
 
-
 -- Bảng Role
 CREATE TABLE Role (
     RoleID INT PRIMARY KEY,
@@ -52,6 +51,7 @@ CREATE TABLE [User] (
 	RefreshTokenExpiryTime DATETIME NULL,
     FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
 );
+
 -- Bảng Package
 CREATE TABLE Package (
     PackageID INT IDENTITY(1,1) PRIMARY KEY,
@@ -84,6 +84,7 @@ CREATE TABLE GeneralHealthProfile (
 	AISuggestion NVARCHAR(255),
 	Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')), 
 	IsActive BIT,
+	ImageUrl NVARCHAR(MAX) NULL,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
@@ -185,7 +186,7 @@ CREATE TABLE UserIngreDientPreference(
 )
 
 -- Bảng MealPlan
-    CREATE TABLE MealPlan (
+CREATE TABLE MealPlan (
     MealPlanID INT IDENTITY(1,1) PRIMARY KEY,
 	UserID INT NOT NULL, -- User sở hữu meal plan
     PlanName NVARCHAR(100) NOT NULL,
@@ -217,7 +218,6 @@ CREATE TABLE MealPlanDetail (
     FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE CASCADE,
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
 );
-
 
 -- Bảng FoodSubstitution
 CREATE TABLE FoodSubstitution (
@@ -267,6 +267,7 @@ CREATE TABLE AIRecommendMealPlan (
     AIRecommendMealPlanResponse NVARCHAR(MAX),
     Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
     RejectionReason NVARCHAR(255) NULL,
+	Feedback NVARCHAR(255) NULL, -- feedback của người dùng, admin xem xét lại nếu response của AI sai sẽ cải thiện AI
     FOREIGN KEY (MealPlanID) REFERENCES MealPlan(MealPlanID) ON DELETE NO ACTION,
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
@@ -290,6 +291,7 @@ CREATE TABLE MealLogDetail (
     FoodID INT,
 	MealType NVARCHAR(50),  -- Bữa ăn(Breakfast, lunch, dinner)
     Quantity FLOAT CHECK (Quantity > 0),
+	ImageUrl NVARCHAR(MAX) NULL,
     Calories FLOAT CHECK (Calories >= 0),
     ServingSize NVARCHAR(50),
     Protein FLOAT CHECK (Protein >= 0),
@@ -299,15 +301,16 @@ CREATE TABLE MealLogDetail (
     FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE
 );
 
--- Bảng AIRecommendMealPlan
+-- Bảng AIRecommendMealLog
 CREATE TABLE AIRecommendMealLog (
     AIRecommendMealLogID INT IDENTITY(1,1) PRIMARY KEY,
 	MealLogID INT NULL,
 	UserID INT NOT NULL,
     RecommendedAt DATETIME DEFAULT GETDATE(),
-    AIRecommendMealPlanResponse NVARCHAR(MAX),
+    AIRecommendMealLogResponse NVARCHAR(MAX),
 	Status NVARCHAR(50) DEFAULT 'Pending' NOT NULL,
     RejectionReason NVARCHAR(255) NULL,
+	Feedback NVARCHAR(255) NULL, -- feedback của người dùng, admin xem xét lại nếu response của AI sai sẽ cải thiện AI
 	FOREIGN KEY (MealLogID) REFERENCES MealLog(MealLogID) ON DELETE NO ACTION,
 	FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
 );
@@ -366,4 +369,19 @@ CREATE TABLE MyFood (
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
+);
+
+-- Bảng SystemConfiguration (Quản lý tham số hệ thống)
+CREATE TABLE SystemConfiguration (
+    ConfigID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL UNIQUE,           -- Tên tham số (ví dụ: "MinimumAge", "MinMenuItems")
+    MinValue FLOAT NULL,                          -- Giá trị tối thiểu
+    MaxValue FLOAT NULL,                          -- Giá trị tối đa
+    Unit NVARCHAR(50) NULL,                       -- Đơn vị (ví dụ: "years", "items")
+    IsActive BIT DEFAULT 1,                       -- Trạng thái hoạt động
+    EffectedDateFrom DATETIME NOT NULL DEFAULT GETDATE(), -- Ngày bắt đầu hiệu lực
+    EffectedDateTo DATETIME NULL,                 -- Ngày hết hiệu lực
+    Description NVARCHAR(255) NULL,               -- Mô tả tham số
+    CreatedAt DATETIME DEFAULT GETDATE(),         -- Thời gian tạo
+    UpdatedAt DATETIME DEFAULT GETDATE()          -- Thời gian cập nhật
 );
