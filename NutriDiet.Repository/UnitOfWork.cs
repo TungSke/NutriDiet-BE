@@ -24,6 +24,7 @@ namespace NutriDiet.Repository
         private IAIRecommendationMealPlanRepository _aIRecommendationMealPlanRepository;
         private IIngredientRepository _ingredientRepository;
         private IAIRecommendationMeallogRepository _aIRecommendationMeallogRepository;
+        private IUserIngredientPreferenceRepository _userIngredientPreferenceRepository;
 
         public UnitOfWork(NutriDietContext context)
         {
@@ -45,6 +46,7 @@ namespace NutriDiet.Repository
         public IAIRecommendationMealPlanRepository AIRecommendationRepository => _aIRecommendationMealPlanRepository ??= new AIRecommendationMealplanRepository(_context);
         public IIngredientRepository IngredientRepository => _ingredientRepository ??= new IngredientRepository(_context);
         public IAIRecommendationMeallogRepository AIRecommendationMeallogRepository => _aIRecommendationMeallogRepository ??= new AIRecommendationMeallogRepository(_context);
+        public IUserIngredientPreferenceRepository UserIngredientPreferenceRepository => _userIngredientPreferenceRepository ??= new UserIngredientPreferenceRepository(_context);
 
         public async Task BeginTransaction()
         {

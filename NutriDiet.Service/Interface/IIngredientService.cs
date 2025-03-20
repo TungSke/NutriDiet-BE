@@ -19,5 +19,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> UpdateIngredient(int ingredientId, IngredientRequest request);
 
         Task<IBusinessResult> DeleteIngredient(int ingredientId);
+
+        Task<IBusinessResult> PreferenceIngredient(int ingredientId, int preferenceLevel);
     }
 }

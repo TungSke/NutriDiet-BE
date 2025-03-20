@@ -25,7 +25,7 @@ namespace NutriDiet.Service.Helpers
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<int> GetUser()
+        public async Task<int> GetUserId()
         {
             var userId = _httpContextAccessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var userIdInt = userId != null ? int.Parse(userId) : 0;

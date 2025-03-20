@@ -4,6 +4,7 @@ using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
+using NutriDiet.Service.Helpers;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
@@ -18,10 +19,12 @@ namespace NutriDiet.Service.Services
     public class IngreDientSevice : IIngreDientService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TokenHandlerHelper _tokenHandlerHelper;
 
-        public IngreDientSevice(IUnitOfWork unitOfWork)
+        public IngreDientSevice(IUnitOfWork unitOfWork, TokenHandlerHelper tokenHandlerHelper)
         {
             _unitOfWork = unitOfWork;
+            _tokenHandlerHelper = tokenHandlerHelper;
         }
 
         public async Task<IBusinessResult> GetIngreDients(int pageIndex, int pageSize, string search)
@@ -96,6 +99,38 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
+        }
+
+        public async Task<IBusinessResult> PreferenceIngredient(int ingredientId, int preferenceLevel)
+        {
+            var userId = await _tokenHandlerHelper.GetUserId();
+
+            var ingredients = await _unitOfWork.IngredientRepository.GetByIdAsync(ingredientId);
+            if (ingredients == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No preference ingredient found");
+            }
+
+            var userIngredient = await _unitOfWork.UserIngredientPreferenceRepository.GetByWhere(x => x.UserId == userId && x.IngredientId == ingredientId).FirstOrDefaultAsync();
+            if (userIngredient == null)
+            {
+                userIngredient = new UserIngreDientPreference
+                {
+                    UserId = userId,
+                    IngredientId = ingredientId,
+                    Level = preferenceLevel
+                };
+                await _unitOfWork.UserIngredientPreferenceRepository.AddAsync(userIngredient);
+            }
+            else
+            {
+                userIngredient.Level = preferenceLevel;
+                await _unitOfWork.UserIngredientPreferenceRepository.UpdateAsync(userIngredient);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
     }
 }

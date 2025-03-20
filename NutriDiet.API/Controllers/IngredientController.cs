@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Common.Enums;
 using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
@@ -52,6 +53,14 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> DeleteIngredient(int ingredientId)
         {
             var result = await _ingredientService.DeleteIngredient(ingredientId);
+            return Ok(result);
+        }
+
+        [HttpPut("{ingredientId}/preference")]
+        [Authorize]
+        public async Task<IActionResult> PreferenceIngredient(int ingredientId, PreferenceLevel preferenceLevel)
+        {
+            var result = await _ingredientService.PreferenceIngredient(ingredientId, (int)preferenceLevel);
             return Ok(result);
         }
     }
