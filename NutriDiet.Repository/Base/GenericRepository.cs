@@ -79,7 +79,8 @@ namespace NutriDiet.Repository.Repositories
         public async Task<IEnumerable<TEntity>> GetPagedAsync(
             int pageNumber,
             int pageSize,
-            Expression<Func<TEntity, bool>> predicate = null)
+            Expression<Func<TEntity, bool>> predicate = null,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null)
         {
             IQueryable<TEntity> query = _context.Set<TEntity>();
             if (pageNumber == 0) pageNumber = 1;
@@ -89,6 +90,10 @@ namespace NutriDiet.Repository.Repositories
                 query = query.Where(predicate);
             }
 
+            if(orderBy != null)
+            {
+                query = orderBy(query);
+            }
             return await query.Skip((pageNumber - 1) * pageSize)
                               .Take(pageSize)
                               .AsNoTracking()
