@@ -19,6 +19,8 @@ public partial class AirecommendMealPlan
 
     public string? RejectionReason { get; set; }
 
+    public string? Feedback { get; set; }
+
     public virtual MealPlan? MealPlan { get; set; }
 
     public virtual User User { get; set; } = null!;

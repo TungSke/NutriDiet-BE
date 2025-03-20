@@ -13,11 +13,13 @@ public partial class AirecommendMealLog
 
     public DateTime? RecommendedAt { get; set; }
 
-    public string? AirecommendMealPlanResponse { get; set; }
+    public string? AirecommendMealLogResponse { get; set; }
 
     public string Status { get; set; } = null!;
 
     public string? RejectionReason { get; set; }
+
+    public string? Feedback { get; set; }
 
     public virtual MealLog? MealLog { get; set; }
 

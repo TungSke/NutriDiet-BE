@@ -15,6 +15,8 @@ public partial class MealLogDetail
 
     public double? Quantity { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public double? Calories { get; set; }
 
     public string? ServingSize { get; set; }

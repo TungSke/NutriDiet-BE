@@ -8,18 +8,28 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace NutriDiet.Service.Helpers
 {
     public class TokenHandlerHelper
     {
         private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public TokenHandlerHelper() { }
 
-        public TokenHandlerHelper(IConfiguration configuration)
+        public TokenHandlerHelper(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public async Task<int> GetUser()
+        {
+            var userId = _httpContextAccessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var userIdInt = userId != null ? int.Parse(userId) : 0;
+            return userIdInt;
         }
 
         public async Task<string> GenerateJwtToken(User user)

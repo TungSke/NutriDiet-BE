@@ -558,7 +558,7 @@ namespace NutriDiet.Service.Services
                     MealLogId = null,
                     Status = "Pending",
                     UserId = userId,
-                    AirecommendMealPlanResponse = airesponse
+                    AirecommendMealLogResponse = airesponse
                 };
 
                 await _unitOfWork.AIRecommendationMeallogRepository.AddAsync(airecommendmealog);
@@ -566,7 +566,7 @@ namespace NutriDiet.Service.Services
             }
             else
             {
-                airecommendMeallogExisted.AirecommendMealPlanResponse = airesponse;
+                airecommendMeallogExisted.AirecommendMealLogResponse = airesponse;
                 await _unitOfWork.AIRecommendationMeallogRepository.UpdateAsync(airecommendMeallogExisted);
 
             }
@@ -628,7 +628,7 @@ namespace NutriDiet.Service.Services
             }
 
             airecommendMeallogExisted.Status = "Accepted";
-            var aiResponse = JsonSerializer.Deserialize<List<MealLogRequest>>(airecommendMeallogExisted.AirecommendMealPlanResponse);
+            var aiResponse = JsonSerializer.Deserialize<List<MealLogRequest>>(airecommendMeallogExisted.AirecommendMealLogResponse);
 
             await SaveMeallogOneDay(aiResponse);
 
