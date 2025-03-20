@@ -126,7 +126,7 @@ namespace NutriDiet.API.Controllers
 
         [HttpPut]
         [Authorize]
-        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
+        public async Task<IActionResult> UpdateUser([FromForm] UpdateUserRequest request)
         {
             var result = await _userService.UpdateUser(request);
             return StatusCode(result.StatusCode, result);

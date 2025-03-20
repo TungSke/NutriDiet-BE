@@ -1,9 +1,5 @@
-﻿using NutriDiet.Common.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
+using NutriDiet.Common.Enums;
 
 namespace NutriDiet.Service.ModelDTOs.Request
 {
@@ -16,5 +12,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public Gender Gender { get; set; }
 
         public string Location { get; set; }
+
+        public IFormFile? Avatar { get; set; }
     }
 }
