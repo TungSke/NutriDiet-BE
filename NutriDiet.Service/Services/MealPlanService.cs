@@ -87,51 +87,58 @@ namespace NutriDiet.Service.Services
                 UpdatedAt = DateTime.Now
             };
 
-            await _unitOfWork.BeginTransaction();
             try
             {
                 await _unitOfWork.MealPlanRepository.AddAsync(mealPlan);
                 await _unitOfWork.SaveChangesAsync();
                 if (mealPlanRequest.MealPlanDetails != null && mealPlanRequest.MealPlanDetails.Any())
                 {
-                    var mealPlanDetails = new List<MealPlanDetail>();
-                    var dayNumberSet = new HashSet<int>();
-
-                    foreach (var detail in mealPlanRequest.MealPlanDetails)
+                    await _unitOfWork.BeginTransaction();
+                    try
                     {
-                        var foodExist = await _unitOfWork.FoodRepository.GetByIdAsync(detail.FoodId);
-                        if (foodExist == null)
+
+                        var mealPlanDetails = new List<MealPlanDetail>();
+                        var dayNumberSet = new HashSet<int>();
+
+                        foreach (var detail in mealPlanRequest.MealPlanDetails)
                         {
-                            return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food is not found");
+                            var foodExist = await _unitOfWork.FoodRepository.GetByIdAsync(detail.FoodId);
+                            if (foodExist == null)
+                            {
+                                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food is not found");
+                            }
+
+                            dayNumberSet.Add(detail.DayNumber);
+
+                            var mealPlanDetail = detail.Adapt<MealPlanDetail>();
+                            mealPlanDetail.TotalCalories = (foodExist.Calories) * (detail.Quantity ?? 1);
+                            mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (detail.Quantity ?? 1);
+                            mealPlanDetail.TotalFat = (foodExist.Fat) * (detail.Quantity ?? 1);
+                            mealPlanDetail.TotalProtein = (foodExist.Protein) * (detail.Quantity ?? 1);
+                            mealPlanDetail.MealPlanId = mealPlan.MealPlanId;
+                            mealPlanDetail.FoodName = foodExist.FoodName;
+                            mealPlanDetails.Add(mealPlanDetail);
                         }
 
-                        dayNumberSet.Add(detail.DayNumber);
+                        await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(mealPlanDetails);
 
-                        var mealPlanDetail = detail.Adapt<MealPlanDetail>();
-                        mealPlanDetail.TotalCalories = (foodExist.Calories) * (detail.Quantity ?? 1);
-                        mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (detail.Quantity ?? 1);
-                        mealPlanDetail.TotalFat = (foodExist.Fat) * (detail.Quantity ?? 1);
-                        mealPlanDetail.TotalProtein = (foodExist.Protein) * (detail.Quantity ?? 1);
-                        mealPlanDetail.MealPlanId = mealPlan.MealPlanId;
-                        mealPlanDetail.FoodName = foodExist.FoodName;
-                        mealPlanDetails.Add(mealPlanDetail);
+                        mealPlan.Duration = dayNumberSet.Count;
+                        await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+                        await _unitOfWork.SaveChangesAsync();
+                        await _unitOfWork.CommitTransaction();
                     }
-
-                    await _unitOfWork.MealPlanDetailRepository.AddRangeAsync(mealPlanDetails);
-
-                    mealPlan.Duration = dayNumberSet.Count;
-                    await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
-                    await _unitOfWork.SaveChangesAsync();
-                    await _unitOfWork.CommitTransaction();
+                    catch (Exception ex)
+                    {
+                        await _unitOfWork.RollbackTransaction();
+                        throw ex;
+                    }
                 }
+                    var mealplanResponse = mealPlan.Adapt<MealPlanResponse>();
 
-                var mealplanResponse = mealPlan.Adapt<MealPlanResponse>();
-
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, mealplanResponse);
+                    return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, mealplanResponse);
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransaction();
                 throw ex;
             }
         }
