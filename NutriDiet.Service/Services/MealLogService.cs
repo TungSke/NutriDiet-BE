@@ -674,5 +674,92 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail transferred successfully.");
         }
 
+        public async Task<IBusinessResult> GetRecentFoods()
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            // Lấy meal log gần nhất theo ngày của người dùng
+            var mealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId)
+                .OrderByDescending(m => m.LogDate)
+                .Include(m => m.MealLogDetails)
+                .ThenInclude(d => d.Food)
+                .FirstOrDefaultAsync();
+
+            if (mealLog == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Không tìm thấy nhật ký ăn uống của người dùng hiện tại.", null);
+            }
+
+            var foods = mealLog.MealLogDetails
+                .Take(5)    
+                .Select(d =>
+                {
+                    var food = d.Food;
+                    return new FoodResponse
+                    {
+                        FoodId = food?.FoodId ?? 0,
+                        FoodName = food?.FoodName ?? "Quick Add",
+                        MealType = d.MealType,
+                        ImageUrl = food?.ImageUrl,
+                        FoodType = food?.FoodType,
+                        Description = food?.Description,
+                        ServingSize = food?.ServingSize,
+                        Calories = food?.Calories,
+                        Protein = food?.Protein,
+                        Carbs = food?.Carbs,
+                        Fat = food?.Fat,
+                        Glucid = food?.Glucid,
+                        Fiber = food?.Fiber,
+                        Ingredients = food?.Ingredients?.Select(i => new IngredientResponse
+                        {
+                            // Giả sử IngredientResponse có các trường IngredientId và IngredientName
+                            IngredientId = i.IngredientId,
+                            IngredientName = i.IngredientName
+                        }).ToList()
+                    };
+                }).ToList();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy danh sách món ăn từ nhật ký ăn uống gần nhất thành công.", foods);
+        }
+
+        public async Task<IBusinessResult> AddMealToMultipleDays(AddMultipleDaysMealLogRequest request)
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (existingUser == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User does not exist.", null);
+            }
+
+            if (request.Dates == null || !request.Dates.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "No dates specified.", null);
+            }
+
+            foreach (var date in request.Dates)
+            {
+                // Tạo request cho từng ngày
+                var singleDayRequest = new MealLogRequest
+                {
+                    LogDate = date,               
+                    FoodId = request.FoodId,      
+                    Quantity = request.Quantity,  
+                    MealType = request.MealType,  
+                };
+
+                var result = await AddOrUpdateMealLog(singleDayRequest);
+
+                if (result.StatusCode != Const.HTTP_STATUS_OK)
+                {
+                    return result;
+                }
+
+            }
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Added meal to multiple days successfully.");
+        }
+
+
     }
 }

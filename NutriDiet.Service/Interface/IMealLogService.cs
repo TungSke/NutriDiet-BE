@@ -21,5 +21,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> CreateMealLogAI();
         Task<IBusinessResult> SaveMeallogAI();
         Task<IBusinessResult> TransferMealLogDetail(int detailId, MealType targetMealType);
+        Task<IBusinessResult> GetRecentFoods();
+        Task<IBusinessResult> AddMealToMultipleDays(AddMultipleDaysMealLogRequest request);
     }
 }

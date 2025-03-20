@@ -5,6 +5,8 @@ using NutriDiet.Common.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace NutriDiet.API.Controllers
 {
@@ -25,8 +27,16 @@ namespace NutriDiet.API.Controllers
         {
             var result = await _mealLogService.AddOrUpdateMealLog(request);
             return StatusCode(result.StatusCode, result);
-        
         }
+
+        [HttpPost("multiple-days")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> AddMealToMultipleDays([FromForm] AddMultipleDaysMealLogRequest request)
+        {
+            var result = await _mealLogService.AddMealToMultipleDays(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpDelete("{mealLogId}/detail/{detailId}")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> RemoveMealLogDetail(int mealLogId, int detailId)
@@ -34,6 +44,7 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.RemoveMealLogDetail(mealLogId, detailId);
             return StatusCode(result.StatusCode, result);
         }
+
         [HttpGet("{mealLogId}")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> GetMealLogById(int mealLogId)
@@ -49,6 +60,7 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.GetMealLogsByDateRange(logDate, fromDate, toDate);
             return StatusCode(result.StatusCode, result);
         }
+
         [HttpPost("quick")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> QuickAddMealLogDetail([FromForm] QuickMealLogRequest request)
@@ -56,6 +68,7 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.QuickAddMealLogDetail(request);
             return StatusCode(result.StatusCode, result);
         }
+
         [HttpPost("clone")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> CopyMealLogDetails([FromForm] CopyMealLogRequest request)
@@ -79,11 +92,20 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.SaveMeallogAI();
             return StatusCode(result.StatusCode, result);
         }
+
         [HttpPut("detail/transfer/{detailId}")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> TransferMealLogDetail(int detailId, [FromQuery] MealType targetMealType)
         {
             var result = await _mealLogService.TransferMealLogDetail(detailId, targetMealType);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("recent-food")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> GetRecentFood()
+        {
+            var result = await _mealLogService.GetRecentFoods();
             return StatusCode(result.StatusCode, result);
         }
     }
