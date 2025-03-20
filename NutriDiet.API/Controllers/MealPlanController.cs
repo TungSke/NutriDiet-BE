@@ -112,9 +112,9 @@ namespace NutriDiet.API.Controllers
 
         [HttpPut("save-mealplan-AI")]
         [Authorize]
-        public async Task<IActionResult> SaveMealPlanAI()
+        public async Task<IActionResult> SaveMealPlanAI([FromForm]string? feedback)
         {
-            var result = await _mealPlanService.SaveMealPlanAI();
+            var result = await _mealPlanService.SaveMealPlanAI(feedback);
             return StatusCode(result.StatusCode, result);
         }
 

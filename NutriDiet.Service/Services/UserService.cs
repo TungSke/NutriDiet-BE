@@ -414,6 +414,11 @@ namespace NutriDiet.Service.Services
             user.Age = request.Age;
             user.Gender = request.Gender.ToString();
             user.Location = request.Location;
+            if(request.Avatar != null)
+            {
+                CloudinaryHelper cloudinary = new CloudinaryHelper();
+                user.Avatar = await cloudinary.UploadImageWithCloudDinary(request.Avatar);           
+            }
 
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();

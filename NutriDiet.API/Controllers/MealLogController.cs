@@ -79,9 +79,9 @@ namespace NutriDiet.API.Controllers
 
         [HttpPost("savemeallogai")]
         [Authorize]
-        public async Task<IActionResult> SaveMeallogAI()
+        public async Task<IActionResult> SaveMeallogAI([FromForm] string? feedback)
         {
-            var result = await _mealLogService.SaveMeallogAI();
+            var result = await _mealLogService.SaveMeallogAI(feedback);
             return StatusCode(result.StatusCode, result);
         }
 

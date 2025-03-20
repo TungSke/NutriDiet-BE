@@ -24,7 +24,7 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> RejectMealplan(string rejectReason);
 
-        Task<IBusinessResult> SaveMealPlanAI();
+        Task<IBusinessResult> SaveMealPlanAI(string feedback);
         Task<IBusinessResult> ApplyMealPlan(int mealPlanId);
         Task<IBusinessResult> GetSampleMealPlan(int pageIndex, int pageSize, string? search);
         Task<IBusinessResult> GetMyMealPlan(int pageIndex, int pageSize, string? search);

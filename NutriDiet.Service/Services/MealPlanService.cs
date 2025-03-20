@@ -507,7 +507,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response.Data);
         }
 
-        public async Task<IBusinessResult> SaveMealPlanAI()
+        public async Task<IBusinessResult> SaveMealPlanAI(string feedback)
         {
             int userid = int.Parse(_userIdClaim);
             var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x=>x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid).FirstOrDefaultAsync();
@@ -516,7 +516,8 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
             }
             recommendResponse.Status = AIRecommendStatus.Accepted.ToString();
-            recommendResponse.RejectionReason = null; 
+            recommendResponse.RejectionReason = null;
+            recommendResponse.Feedback = feedback;
             await _unitOfWork.SaveChangesAsync();
 
             var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(recommendResponse.AirecommendMealPlanResponse.ToString());

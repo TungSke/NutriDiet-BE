@@ -3,6 +3,7 @@ using Google.Apis.Drive.v3.Data;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Common.Enums;
@@ -588,7 +589,7 @@ namespace NutriDiet.Service.Services
             }
         }
 
-        public async Task<IBusinessResult> SaveMeallogAI()
+        public async Task<IBusinessResult> SaveMeallogAI(string? feedback)
         {
             var userId = int.Parse(_userIdClaim);
 
@@ -599,6 +600,10 @@ namespace NutriDiet.Service.Services
             }
 
             airecommendMeallogExisted.Status = "Accepted";
+            if (feedback.IsNullOrEmpty() == false)
+            {
+                airecommendMeallogExisted.Feedback = feedback;
+            }         
             var aiResponse = JsonSerializer.Deserialize<List<MealLogRequest>>(airecommendMeallogExisted.AirecommendMealLogResponse);
 
             await SaveMeallogOneDay(aiResponse);
