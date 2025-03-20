@@ -315,6 +315,10 @@ namespace NutriDiet.Service.Services
         {
             var userId = int.Parse(_userIdClaim);
 
+            if(request.DailyCarb + request.DailyProtein + request.DailyFat != 100)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Sum Macronutrients must be 100%.");
+            }
             var existingGoal = await _unitOfWork.PersonalGoalRepository
                 .GetByWhere(pg => pg.UserId == userId)
                 .FirstOrDefaultAsync();
