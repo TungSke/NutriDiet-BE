@@ -45,14 +45,6 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("{mealLogId}")]
-        [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> GetMealLogById(int mealLogId)
-        {
-            var result = await _mealLogService.GetMealLogById(mealLogId);
-            return StatusCode(result.StatusCode, result);
-        }
-
         [HttpGet]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> GetMealLogsByDateRange([FromQuery] DateTime? logDate, [FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)

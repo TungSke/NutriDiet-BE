@@ -311,6 +311,33 @@ namespace NutriDiet.Service.Services
             }
         }
 
+        public async Task<IBusinessResult> UpdateDailyMacronutrients(EditDailyMacronutrientsRequest request)
+        {
+            var userId = int.Parse(_userIdClaim);
 
+            if(request.DailyCarb + request.DailyProtein + request.DailyFat != 100)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Sum Macronutrients must be 100%.");
+            }
+            var existingGoal = await _unitOfWork.PersonalGoalRepository
+                .GetByWhere(pg => pg.UserId == userId)
+                .FirstOrDefaultAsync();
+
+            if (existingGoal == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Personal goal not found.", null);
+            }
+
+            existingGoal.DailyCarb = request.DailyCarb;
+            existingGoal.DailyProtein = request.DailyProtein;
+            existingGoal.DailyFat = request.DailyFat;
+
+            await _unitOfWork.PersonalGoalRepository.UpdateAsync(existingGoal);
+            await _unitOfWork.SaveChangesAsync();
+
+            var response = existingGoal.Adapt<PersonalGoalResponse>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Daily macronutrients updated successfully.", response);
+        }
     }
 }

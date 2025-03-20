@@ -35,7 +35,7 @@ namespace NutriDiet.API.Controllers
             }
 
             await _personalGoalService.CreatePersonalGoal(request);
-            return StatusCode(201); // HTTP 201 for resource creation
+            return StatusCode(201); // HTTP 201 cho việc tạo resource
         }
 
         [HttpPut]
@@ -47,6 +47,18 @@ namespace NutriDiet.API.Controllers
             }
 
             var result = await _personalGoalService.UpdatePersonalGoal(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPut("daily-macronutrients")]
+        public async Task<IActionResult> UpdateDailyMacronutrients([FromForm] EditDailyMacronutrientsRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _personalGoalService.UpdateDailyMacronutrients(request);
             return StatusCode(result.StatusCode, result);
         }
     }
