@@ -23,5 +23,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> TransferMealLogDetail(int detailId, MealType targetMealType);
         Task<IBusinessResult> GetRecentFoods();
         Task<IBusinessResult> AddMealToMultipleDays(AddMultipleDaysMealLogRequest request);
+        Task<IBusinessResult> GetNutritionSummary(DateTime date);
+
     }
 }

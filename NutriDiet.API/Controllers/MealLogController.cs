@@ -108,5 +108,13 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.GetRecentFoods();
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpGet("nutrition")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> NutritionSummary([FromQuery] DateTime date)
+        {
+            var result = await _mealLogService.GetNutritionSummary(date);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

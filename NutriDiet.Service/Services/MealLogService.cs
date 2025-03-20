@@ -14,6 +14,7 @@ using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
 using System.Security.Claims;
 using System.Text.Json;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace NutriDiet.Service.Services
 {
@@ -758,6 +759,153 @@ namespace NutriDiet.Service.Services
 
             }
             return new BusinessResult(Const.HTTP_STATUS_OK, "Added meal to multiple days successfully.");
+        }
+
+        public async Task<IBusinessResult> GetNutritionSummary(DateTime date)
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            // Lấy user + personal goals
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.PersonalGoals.OrderByDescending(pg => pg.CreatedAt))
+                .FirstOrDefaultAsync();
+
+            if (existingUser == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found.", null);
+            }
+
+            var personalGoal = existingUser.PersonalGoals.FirstOrDefault();
+            double dailyGoal = personalGoal?.DailyCalories ?? 2000;
+            double carbsGoalRatio = personalGoal?.DailyCarb ?? 50;
+            double fatGoalRatio = personalGoal?.DailyFat ?? 20;
+            double proteinGoalRatio = personalGoal?.DailyProtein ?? 30;
+
+            // Lấy MealLog
+            var mealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.LogDate.Value.Date == date.Date)
+                .Include(m => m.MealLogDetails)
+                .ThenInclude(d => d.Food)
+                .FirstOrDefaultAsync();
+
+            // Nếu không có mealLog => trả về rỗng
+            if (mealLog == null)
+            {
+                var emptyResp = new NutritionSummaryResponse
+                {
+                    Goal = dailyGoal,
+                    MacroGoal = new MacroGoalResponse
+                    {
+                        CarbsRatio = carbsGoalRatio,
+                        FatRatio = fatGoalRatio,
+                        ProteinRatio = proteinGoalRatio
+                    }
+                };
+                return new BusinessResult(Const.HTTP_STATUS_OK, "No meal log found for this date.", emptyResp);
+            }
+
+            // Tính totalCalories, netCalories
+            double totalCalories = mealLog.MealLogDetails.Sum(d => d.Calories) ?? 0;
+            double netCalories = totalCalories; // tuỳ logic
+
+            // Phân bổ calories theo bữa
+            var groupByMeal = mealLog.MealLogDetails
+                .GroupBy(d => d.MealType)
+                .Select(g => new {
+                    MealType = g.Key,
+                    TotalCals = g.Sum(x => x.Calories ?? 0)
+                })
+                .ToList();
+
+            var mealBreakdown = new List<MealTypeBreakdownResponse>();
+            foreach (var group in groupByMeal)
+            {
+                double mealCals = group.TotalCals;
+                double percentage = totalCalories > 0 ? (mealCals / totalCalories * 100) : 0;
+                mealBreakdown.Add(new MealTypeBreakdownResponse
+                {
+                    MealType = group.MealType,
+                    Calories = mealCals,
+                    Percentage = Math.Round(percentage, 2)
+                });
+            }
+
+            // Tính macros thực tế
+            double totalCarbs = mealLog.MealLogDetails.Sum(d => d.Carbs) ?? 0;
+            double totalFat = mealLog.MealLogDetails.Sum(d => d.Fat) ?? 0;
+            double totalProtein = mealLog.MealLogDetails.Sum(d => d.Protein) ?? 0;
+
+            // Top 5 highest in Calories
+            var highestInCalories = mealLog.MealLogDetails
+                .OrderByDescending(d => d.Calories)
+                .Take(5)
+                .Select(d => new FoodHighResponse
+                {
+                    FoodName = d.Food?.FoodName ?? "Quick Add",
+                    Value = d.Calories ?? 0
+                })
+                .ToList();
+
+            // Highest in Carbs
+            var highestInCarbs = mealLog.MealLogDetails
+                .OrderByDescending(d => d.Carbs)
+                .Take(5)
+                .Select(d => new FoodHighResponse
+                {
+                    FoodName = d.Food?.FoodName ?? "Quick Add",
+                    Value = d.Carbs ?? 0
+                })
+                .ToList();
+
+            // Highest in Fat
+            var highestInFat = mealLog.MealLogDetails
+                .OrderByDescending(d => d.Fat)
+                .Take(5)
+                .Select(d => new FoodHighResponse
+                {
+                    FoodName = d.Food?.FoodName ?? "Quick Add",
+                    Value = d.Fat ?? 0
+                })
+                .ToList();
+
+            // Highest in Protein
+            var highestInProtein = mealLog.MealLogDetails
+                .OrderByDescending(d => d.Protein)
+                .Take(5)
+                .Select(d => new FoodHighResponse
+                {
+                    FoodName = d.Food?.FoodName ?? "Quick Add",
+                    Value = d.Protein ?? 0
+                })
+                .ToList();
+
+            // Tạo response
+            var response = new NutritionSummaryResponse
+            {
+                TotalCalories = totalCalories,
+                NetCalories = netCalories,
+                Goal = dailyGoal,
+                MealBreakdown = mealBreakdown,
+                HighestInCalories = highestInCalories,
+                Macros = new MacrosResponse
+                {
+                    Carbs = totalCarbs,
+                    Fat = totalFat,
+                    Protein = totalProtein
+                },
+                MacroGoal = new MacroGoalResponse
+                {
+                    CarbsRatio = carbsGoalRatio,
+                    FatRatio = fatGoalRatio,
+                    ProteinRatio = proteinGoalRatio
+                },
+                HighestInCarbs = highestInCarbs,
+                HighestInFat = highestInFat,
+                HighestInProtein = highestInProtein
+            };
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Nutrition summary retrieved successfully.", response);
         }
 
 
