@@ -13,7 +13,6 @@ namespace NutriDiet.Service.Interface
     {
         Task<IBusinessResult> AddOrUpdateMealLog(MealLogRequest request);
         Task<IBusinessResult> RemoveMealLogDetail(int mealLogId,int detailId);
-        Task<IBusinessResult> GetMealLogById(int mealLogId);
         Task<IBusinessResult> GetMealLogsByDateRange(DateTime? logDate, DateTime? fromDate, DateTime? toDate);
         Task<IBusinessResult> QuickAddMealLogDetail(QuickMealLogRequest request);
         Task<IBusinessResult> CopyMealLogDetails(CopyMealLogRequest request);

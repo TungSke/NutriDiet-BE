@@ -183,51 +183,21 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail removed successfully.");
         }
 
-        public async Task<IBusinessResult> GetMealLogById(int mealLogId)
-        {
-            var userId = int.Parse(_userIdClaim);
-
-            var mealLog = await _unitOfWork.MealLogRepository
-                .GetByWhere(m => m.MealLogId == mealLogId && m.UserId == userId)
-                .Include(m => m.MealLogDetails)
-                .ThenInclude(d => d.Food)
-                .FirstOrDefaultAsync();
-
-            if (mealLog == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log not found.", null);
-            }
-
-            // Map dữ liệu sang DTO
-            var response = new MealLogResponse
-            {
-                MealLogId = mealLog.MealLogId,
-                LogDate = mealLog.LogDate.Value,
-                TotalCalories = mealLog.TotalCalories.Value,
-                TotalProtein = mealLog.TotalProtein.Value,
-                TotalCarbs = mealLog.TotalCarbs.Value,
-                TotalFat = mealLog.TotalFat.Value,
-                MealLogDetails = mealLog.MealLogDetails.Select(d => new MealLogDetailResponse
-                {
-                    DetailId = d.DetailId,
-                    FoodName = d.Food.FoodName ?? "Quick Add",
-                    MealType = d.MealType,
-                    ServingSize = d.ServingSize,
-                    Quantity = d.Quantity,
-                    Calories = d.Calories.Value,
-                    Protein = d.Protein.Value,
-                    Carbs = d.Carbs.Value,
-                    Fat = d.Fat.Value
-                }).ToList()
-            };
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log retrieved successfully.", response);
-        }
         public async Task<IBusinessResult> GetMealLogsByDateRange(DateTime? logDate, DateTime? fromDate, DateTime? toDate)
         {
             var userId = int.Parse(_userIdClaim);
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.PersonalGoals.OrderByDescending(pg => pg.CreatedAt))
+                .FirstOrDefaultAsync();
 
-            // Truy vấn MealLog theo điều kiện
+            if (existingUser == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found.", null);
+            }
+
+            var personalGoal = existingUser.PersonalGoals.FirstOrDefault();
+            double dailycalories = personalGoal?.DailyCalories ?? 2000;
             IQueryable<MealLog> query = _unitOfWork.MealLogRepository
                 .GetByWhere(m => m.UserId == userId)
                 .Include(m => m.MealLogDetails)
@@ -262,6 +232,7 @@ namespace NutriDiet.Service.Services
                 TotalProtein = mealLog.TotalProtein ?? 0,
                 TotalCarbs = mealLog.TotalCarbs ?? 0,
                 TotalFat = mealLog.TotalFat ?? 0,
+                DailyCalories = dailycalories,
                 MealLogDetails = mealLog.MealLogDetails.Select(d => new MealLogDetailResponse
                 {
                     DetailId = d.DetailId,
