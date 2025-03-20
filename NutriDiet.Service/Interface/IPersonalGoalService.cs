@@ -13,5 +13,7 @@ namespace NutriDiet.Service.Interface
         Task CreatePersonalGoal(PersonalGoalRequest request);
         Task<IBusinessResult> GetPersonalGoal();
         Task<IBusinessResult> UpdatePersonalGoal(PersonalGoalRequest request);
+
+        Task<IBusinessResult> UpdateDailyMacronutrients(EditDailyMacronutrientsRequest request);
     }
 }
