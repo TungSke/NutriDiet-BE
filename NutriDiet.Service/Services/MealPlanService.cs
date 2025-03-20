@@ -51,7 +51,9 @@ namespace NutriDiet.Service.Services
                 pageSize,
                 x => (string.IsNullOrEmpty(status) || x.Status.ToLower() == status.ToLower()) &&
                       (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
-                                                   || x.HealthGoal.ToLower().Contains(search)));
+                                                   || x.HealthGoal.ToLower().Contains(search)),
+                q => q.OrderByDescending(x => x.CreatedAt)
+                );
 
 
             if (mealPlans == null || !mealPlans.Any())
@@ -137,6 +139,15 @@ namespace NutriDiet.Service.Services
         public async Task DeleteMealPlan(int id)
         {
             var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByIdAsync(id);
+
+            var userId = int.Parse(_userIdClaim);
+            
+            var mealPlanAI = _unitOfWork.AIRecommendationRepository.GetByWhere(x=>x.MealPlanId == id).FirstOrDefault();
+            if (mealPlanAI != null)
+            {
+                await _unitOfWork.AIRecommendationRepository.DeleteAsync(mealPlanAI);
+            }
+
             await _unitOfWork.MealPlanRepository.DeleteAsync(mealPlanExisted);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -531,7 +542,9 @@ namespace NutriDiet.Service.Services
                 pageIndex,
                 pageSize,
                 x => x.UserId == userid && (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
-                                                   || x.HealthGoal.ToLower().Contains(search)));
+                                                   || x.HealthGoal.ToLower().Contains(search)),
+                q => q.OrderByDescending(x=>x.CreatedAt)
+                );
 
             if (mealPlans == null || !mealPlans.Any())
             {
