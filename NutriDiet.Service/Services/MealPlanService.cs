@@ -355,7 +355,24 @@ namespace NutriDiet.Service.Services
             }
         }
 
+        public async Task<IBusinessResult> UpdateMealPlanMobile(int mealPlanID, string planName, string healthGoal)
+        {
+            var userID = int.Parse(_userIdClaim);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userID);
 
+            var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanID);
+            if (mealPlan == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal Plan not found.");
+            }
+            mealPlan.PlanName = planName;
+            mealPlan.HealthGoal = healthGoal;
+            mealPlan.UpdatedBy = user.FullName;
+            mealPlan.UpdatedAt = DateTime.Now;
+            await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+            await _unitOfWork.SaveChangesAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
+        }
 
         public async Task<IBusinessResult> CreateSuitableMealPlanByAI()
         {
