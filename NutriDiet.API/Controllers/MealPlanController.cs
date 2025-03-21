@@ -128,6 +128,14 @@ namespace NutriDiet.API.Controllers
             var result = await _mealPlanService.GetMyCurrentMealPlan();
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpPut("mobile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateMealPlanMobile(int mealPlanId, string planName, string healthGoal)
+        {
+            var result = await _mealPlanService.UpdateMealPlanMobile(mealPlanId, planName, healthGoal);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }
 

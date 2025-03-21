@@ -427,32 +427,47 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> UpgradePackage(int packageId)
         {
-            int userId = int.Parse(_userIdClaim);
-            var package = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
-            if (package == null)
+            try
             {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
-            }
-            var existingPackage = await _unitOfWork.UserPackageRepository
-            .GetByWhere(x => x.UserId == userId && x.Status == "Active" && x.ExpiryDate > DateTime.UtcNow)
-            .FirstOrDefaultAsync();
-            if (existingPackage != null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đã có gói Premium đang hoạt động");
-            }
+                int userId = int.Parse(_userIdClaim);
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+                if (user == null)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+                }
+                var package = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
+                if (package == null)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+                }
 
-            var userPackage = new UserPackage
+                var existingPackage = await _unitOfWork.UserPackageRepository
+                    .GetByWhere(x => x.UserId == userId && x.Status == "Active" && x.ExpiryDate > DateTime.UtcNow)
+                    .FirstOrDefaultAsync();
+                if (existingPackage != null)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đã có gói Premium đang hoạt động");
+                }
+
+                var userPackage = new UserPackage
+                {
+                    UserId = userId,
+                    PackageId = packageId,
+                    StartDate = DateTime.UtcNow,
+                    ExpiryDate = DateTime.UtcNow.AddDays(package.Duration ?? 0),
+                    Status = "Active"
+                };
+                await _unitOfWork.UserPackageRepository.AddAsync(userPackage);
+                await _unitOfWork.SaveChangesAsync();
+                var response = userPackage.Adapt<UserPackageResponse>();
+                response.FullName = user.FullName;
+                response.PackageName = package.PackageName;
+                return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, response);
+            }
+            catch (Exception ex)
             {
-                UserId = userId,
-                PackageId = packageId,
-                StartDate = DateTime.UtcNow,
-                ExpiryDate = DateTime.UtcNow.AddDays(package.Duration ?? 0),
-                Status = "Active"
-            };
-            await _unitOfWork.UserPackageRepository.AddAsync(userPackage);
-            await _unitOfWork.SaveChangesAsync();
-            var response = userPackage.Adapt<UserPackage>();
-            return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, response);
+                return new BusinessResult(Const.HTTP_STATUS_INTERNAL_ERROR, "Lỗi server: " + ex.Message);
+            }
         }
 
         public async Task<IBusinessResult> IsPremium()
