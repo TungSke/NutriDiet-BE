@@ -27,13 +27,15 @@ namespace NutriDiet.Service.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AIGeneratorService _aIGeneratorService;
         private readonly string _userIdClaim;
+        private readonly IUserService _userService;
 
-        public MealPlanService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
+        public MealPlanService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService, IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _aIGeneratorService = aIGeneratorService;
             _userIdClaim = GetUserIdClaim();
+            _userService = userService;
         }
 
         private string GetUserIdClaim()
@@ -68,6 +70,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateMealPlan(MealPlanRequest mealPlanRequest)
         {
+            
             var userid = int.Parse(_userIdClaim);
 
             var existedUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
@@ -356,6 +359,12 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateSuitableMealPlanByAI()
         {
+            var isPremiumResult = await _userService.IsPremium();
+            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
+                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
             var userid = int.Parse(_userIdClaim);
 
             // Lấy thông tin sức khỏe, mục tiêu cá nhân, thói quen ăn uống, dị ứng, bệnh lý của user
@@ -500,6 +509,12 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> RejectMealplan(string rejectReason)
         {
+            var isPremiumResult = await _userService.IsPremium();
+            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
+                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
             int userid = int.Parse(_userIdClaim);
             var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid).FirstOrDefaultAsync();
             if (recommendResponse == null)
@@ -516,6 +531,12 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> SaveMealPlanAI(string feedback)
         {
+            var isPremiumResult = await _userService.IsPremium();
+            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
+                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
             int userid = int.Parse(_userIdClaim);
             var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid).FirstOrDefaultAsync();
             if (recommendResponse == null)
@@ -542,6 +563,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetMyMealPlan(int pageIndex, int pageSize, string? search)
         {
+            
             int userid = int.Parse(_userIdClaim);
 
             search = search?.ToLower() ?? string.Empty;

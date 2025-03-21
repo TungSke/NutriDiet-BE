@@ -23,13 +23,14 @@ namespace NutriDiet.Service.Services
 
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _userIdClaim;
-
-        public FoodService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
+        private readonly IUserService _userService;
+        public FoodService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService, IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _userIdClaim = GetUserIdClaim();
             _aIGeneratorService=aIGeneratorService;
+            _userService = userService;
         }
 
         private string GetUserIdClaim()
@@ -195,6 +196,13 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateFoodRecipeByAI(int foodId, int cuisineId)
         {
+            var isPremiumResult = await _userService.IsPremium();
+            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
+                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
+
             //lấy thông tin tình trạng sức khỏe của user
             int userid = int.Parse(_userIdClaim);
             var userError = await _unitOfWork.UserRepository
@@ -274,6 +282,13 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> RejectRecipe(RejectRecipeRequest request)
         {
+            var isPremiumResult = await _userService.IsPremium();
+            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
+                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
+
             int userid = int.Parse(_userIdClaim);
             var recipe = await _unitOfWork.RecipeSuggestionRepository.GetByWhere(x => x.FoodId == request.FoodId && x.UserId == userid).FirstOrDefaultAsync();
             if (recipe == null)
