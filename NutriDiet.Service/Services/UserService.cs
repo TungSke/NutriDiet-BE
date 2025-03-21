@@ -424,5 +424,64 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
         }
+
+        public async Task<IBusinessResult> UpgradePackage(int packageId)
+        {
+            int userId = int.Parse(_userIdClaim);
+            var package = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
+            if (package == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+            var existingPackage = await _unitOfWork.UserPackageRepository
+            .GetByWhere(x => x.UserId == userId && x.Status == "Active" && x.ExpiryDate > DateTime.UtcNow)
+            .FirstOrDefaultAsync();
+            if (existingPackage != null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đã có gói Premium đang hoạt động");
+            }
+
+            var userPackage = new UserPackage
+            {
+                UserId = userId,
+                PackageId = packageId,
+                StartDate = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddDays(package.Duration ?? 0),
+                Status = "Active"
+            };
+            await _unitOfWork.UserPackageRepository.AddAsync(userPackage);
+            await _unitOfWork.SaveChangesAsync();
+            var response = userPackage.Adapt<UserPackage>();
+            return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, response);
+        }
+
+        public async Task<IBusinessResult> IsPremium()
+        {
+            int userId = int.Parse(_userIdClaim);
+            var activePackage = await _unitOfWork.UserPackageRepository
+                .GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate > DateTime.UtcNow)
+                .FirstOrDefaultAsync();
+
+            if (activePackage == null)
+            {
+                // Kiểm tra và cập nhật các gói hết hạn
+                var expiredPackages = await _unitOfWork.UserPackageRepository
+                    .GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate <= DateTime.UtcNow)
+                    .ToListAsync();
+                foreach (var package in expiredPackages)
+                {
+                    package.Status = "Inactive";
+                    await _unitOfWork.UserPackageRepository.UpdateAsync(package);
+                }
+                if (expiredPackages.Any())
+                {
+                    await _unitOfWork.SaveChangesAsync();
+                }
+            }
+
+            var result = new { IsPremium = activePackage != null };
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result);
+        }
+
     }
 }

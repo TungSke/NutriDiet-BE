@@ -29,6 +29,7 @@ namespace NutriDiet.Repository.Base
             int pageNumber,
             int pageSize,
             Expression<Func<TEntity, bool>> predicate = null,
-            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null);
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>> include = null);
     }
 }

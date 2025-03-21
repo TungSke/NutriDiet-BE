@@ -5,6 +5,7 @@ GO
 ALTER TABLE UserAllergy NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserDisease NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserPackage NOCHECK CONSTRAINT ALL;
+ALTER TABLE Package NOCHECK CONSTRAINT ALL;
 ALTER TABLE GeneralHealthProfile NOCHECK CONSTRAINT ALL;
 ALTER TABLE RecipeSuggestion NOCHECK CONSTRAINT ALL;
 ALTER TABLE UserFoodPreference NOCHECK CONSTRAINT ALL;
@@ -47,6 +48,7 @@ DELETE FROM CuisineType;
 ALTER TABLE UserAllergy CHECK CONSTRAINT ALL;
 ALTER TABLE UserDisease CHECK CONSTRAINT ALL;
 ALTER TABLE UserPackage CHECK CONSTRAINT ALL;
+ALTER TABLE Package CHECK CONSTRAINT ALL;
 ALTER TABLE GeneralHealthProfile CHECK CONSTRAINT ALL;
 ALTER TABLE RecipeSuggestion CHECK CONSTRAINT ALL;
 ALTER TABLE UserFoodPreference CHECK CONSTRAINT ALL;
@@ -254,6 +256,10 @@ INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], 
 GO
 SET IDENTITY_INSERT [dbo].[User] OFF
 GO
+
+SET IDENTITY_INSERT [dbo].[Package] ON 
+INSERT Package (PackageID, PackageName, Price, Duration, Description) VALUES (1, 'Premium 1 Tháng', 99.00, 30, N'Truy cập đầy đủ tính năng AI trong 1 tháng');
+SET IDENTITY_INSERT [dbo].[Package] OFF
 
 -- Bật IDENTITY_INSERT cho GeneralHealthProfile
 SET IDENTITY_INSERT [dbo].[GeneralHealthProfile] ON;
