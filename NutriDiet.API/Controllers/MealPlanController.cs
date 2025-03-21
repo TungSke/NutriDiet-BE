@@ -123,7 +123,7 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> ApplyMealPlan(int mealPlanId)
         {
             var result = await _mealPlanService.ApplyMealPlan(mealPlanId);
-            return StatusCode(result.StatusCode, new { message = result.Message });
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpGet("my-current-mealplan")]

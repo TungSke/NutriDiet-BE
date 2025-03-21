@@ -133,9 +133,9 @@ namespace NutriDiet.Service.Services
                         throw ex;
                     }
                 }
-                    var mealplanResponse = mealPlan.Adapt<MealPlanResponse>();
+                var mealplanResponse = mealPlan.Adapt<MealPlanResponse>();
 
-                    return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, mealplanResponse);
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, mealplanResponse);
             }
             catch (Exception ex)
             {
@@ -148,8 +148,8 @@ namespace NutriDiet.Service.Services
             var mealPlanExisted = await _unitOfWork.MealPlanRepository.GetByIdAsync(id);
 
             var userId = int.Parse(_userIdClaim);
-            
-            var mealPlanAI = _unitOfWork.AIRecommendationRepository.GetByWhere(x=>x.MealPlanId == id).FirstOrDefault();
+
+            var mealPlanAI = _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.MealPlanId == id).FirstOrDefault();
             if (mealPlanAI != null)
             {
                 await _unitOfWork.AIRecommendationRepository.DeleteAsync(mealPlanAI);
@@ -517,7 +517,7 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> SaveMealPlanAI(string feedback)
         {
             int userid = int.Parse(_userIdClaim);
-            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x=>x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid).FirstOrDefaultAsync();
+            var recommendResponse = await _unitOfWork.AIRecommendationRepository.GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid).FirstOrDefaultAsync();
             if (recommendResponse == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
@@ -551,7 +551,7 @@ namespace NutriDiet.Service.Services
                 pageSize,
                 x => x.UserId == userid && (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
                                                    || x.HealthGoal.ToLower().Contains(search)),
-                q => q.OrderByDescending(x=>x.CreatedAt)
+                q => q.OrderByDescending(x => x.CreatedAt)
                 );
 
             if (mealPlans == null || !mealPlans.Any())
@@ -566,7 +566,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> ApplyMealPlan(int mealPlanId)
         {
-            var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanId);
+            var mealPlan = await _unitOfWork.MealPlanRepository.GetByWhere(x => x.MealPlanId == mealPlanId).Include(x => x.MealPlanDetails).AsNoTracking().FirstOrDefaultAsync();
 
             if (mealPlan == null)
             {
@@ -575,22 +575,68 @@ namespace NutriDiet.Service.Services
 
             int userId = int.Parse(_userIdClaim);
 
-            var existingActiveMealPlan =  _unitOfWork.MealPlanRepository.GetAll()
-                .Any(x => x.UserId == userId // any: check true false
+            var existingActiveMealPlan = await _unitOfWork.MealPlanRepository.GetByWhere(
+                    x => x.UserId == userId
                     && x.Status == MealplanStatus.Active.ToString()
-                    && x.StartAt != null);
-
-            if (existingActiveMealPlan && mealPlan.Status == MealplanStatus.Inactive.ToString())
+                    && x.StartAt != null).FirstOrDefaultAsync();
+            if (existingActiveMealPlan != null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đã có một thực đơn đang được áp dụng");
+                existingActiveMealPlan.Status = MealplanStatus.Inactive.ToString();
+                existingActiveMealPlan.StartAt = null;
             }
+            
 
             if (mealPlan.Status == MealplanStatus.Inactive.ToString() && mealPlan.StartAt == null)
             {
-            mealPlan.StartAt = DateTime.Now;
-            mealPlan.Status = MealplanStatus.Active.ToString();
+                mealPlan.StartAt = DateTime.Now;
+                mealPlan.Status = MealplanStatus.Active.ToString();
+
+                //add meallog day by days
+                var mealLogs = new List<MealLog>();
+
+                foreach (var dayGroup in mealPlan.MealPlanDetails.GroupBy(d => d.DayNumber))
+                {
+                    var dayNumber = dayGroup.Key;
+                    var logDate = DateTime.Now.AddDays(dayNumber - 1);
+
+                    //xóa mealog đã tồn tại và ghi đè lên nó
+                    var existingMealLog = await _unitOfWork.MealLogRepository.GetByWhere(
+                                x => x.UserId == userId && x.LogDate.Value.Date == logDate.Date).AsNoTracking().FirstOrDefaultAsync();
+
+                    if (existingMealLog != null)
+                    {
+                        // Xóa MealLogDetail và MealLog hiện có
+                        await _unitOfWork.MealLogRepository.DeleteAsync(existingMealLog);
+                    }
+
+                    var mealLogDetails = dayGroup.Select(detail => new MealLogDetail
+                    {
+                        FoodId = detail.FoodId,
+                        Quantity = detail.Quantity,
+                        MealType = detail.MealType,
+                        Calories = detail.TotalCalories,
+                        Carbs = detail.TotalCarbs,
+                        Fat = detail.TotalFat,
+                        Protein = detail.TotalProtein
+                    }).ToList();
+
+                    var mealLog = new MealLog
+                    {
+                        UserId = userId,
+                        LogDate = logDate,
+                        TotalCalories = mealLogDetails.Sum(x => x.Calories ?? 0),
+                        TotalProtein = mealLogDetails.Sum(x => x.Protein ?? 0),
+                        TotalCarbs = mealLogDetails.Sum(x => x.Carbs ?? 0),
+                        TotalFat = mealLogDetails.Sum(x => x.Fat ?? 0),
+                        MealLogDetails = mealLogDetails
+                    };
+
+                    mealLogs.Add(mealLog);
+                }
+
+                await _unitOfWork.MealLogRepository.AddRangeAsync(mealLogs);
             }
-            else 
+            else
             {
                 mealPlan.StartAt = null;
                 mealPlan.Status = MealplanStatus.Inactive.ToString();
