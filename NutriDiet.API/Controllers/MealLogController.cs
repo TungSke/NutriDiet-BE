@@ -36,6 +36,13 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.AddMealToMultipleDays(request);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpDelete("{mealLogId}")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> RemoveMealLog(int mealLogId)
+        {
+            var result = await _mealLogService.RemoveMealLog(mealLogId);
+            return StatusCode(result.StatusCode, result);
+        }
 
         [HttpDelete("{mealLogId}/detail/{detailId}")]
         [Authorize(Roles = "Customer")]

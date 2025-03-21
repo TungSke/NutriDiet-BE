@@ -81,6 +81,15 @@ namespace NutriDiet.Service.Services
             // Tính toán Macronutrient Ratios (%) dựa trên mục tiêu
             var macronutrients = CalculateMacronutrientRatios(request.GoalType);
 
+            // Nếu user đã có personal goal đang Active thì xóa nó đi trước
+            var existingGoal = await _unitOfWork.PersonalGoalRepository
+                .GetByWhere(pg => pg.UserId == userId)
+                .FirstOrDefaultAsync();
+            if (existingGoal != null)
+            {
+                await _unitOfWork.PersonalGoalRepository.DeleteAsync(existingGoal);
+            }
+
             var personalGoal = request.Adapt<PersonalGoal>();
             personalGoal.UserId = userId;
             personalGoal.StartDate = DateTime.Now;
@@ -96,6 +105,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.PersonalGoalRepository.AddAsync(personalGoal);
             await _unitOfWork.SaveChangesAsync();
         }
+
 
         private void ValidatePersonalGoal(PersonalGoalRequest request, double? currentWeight)
         {

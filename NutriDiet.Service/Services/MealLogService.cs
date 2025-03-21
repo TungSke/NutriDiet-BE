@@ -136,6 +136,27 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log updated successfully.");
         }
+        public async Task<IBusinessResult> RemoveMealLog(int mealLogId)
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            // Lấy MealLog theo ID và kiểm tra xem có thuộc về người dùng hiện tại không
+            var mealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.MealLogId == mealLogId && m.UserId == userId)
+                .Include(m => m.MealLogDetails)
+                .FirstOrDefaultAsync();
+
+            if (mealLog == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log not found.", null);
+            }
+
+            // Xóa toàn bộ meal log (bao gồm các chi tiết nếu có)
+            await _unitOfWork.MealLogRepository.DeleteAsync(mealLog);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log removed successfully.");
+        }
 
         public async Task<IBusinessResult> RemoveMealLogDetail(int mealLogId, int detailId)
         {
@@ -202,7 +223,7 @@ namespace NutriDiet.Service.Services
             IQueryable<MealLog> query = _unitOfWork.MealLogRepository
                 .GetByWhere(m => m.UserId == userId)
                 .Include(m => m.MealLogDetails)
-                .ThenInclude(d => d.Food); // ✅ Include để lấy thông tin món ăn
+                .ThenInclude(d => d.Food); 
 
             if (logDate.HasValue)
             {
@@ -744,7 +765,7 @@ namespace NutriDiet.Service.Services
             // Lấy user + personal goals
             var existingUser = await _unitOfWork.UserRepository
                 .GetByWhere(u => u.UserId == userId)
-                .Include(u => u.PersonalGoals.OrderByDescending(pg => pg.CreatedAt))
+                .Include(u => u.PersonalGoals)
                 .FirstOrDefaultAsync();
 
             if (existingUser == null)

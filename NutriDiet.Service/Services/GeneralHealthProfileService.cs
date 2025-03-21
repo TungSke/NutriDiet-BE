@@ -48,25 +48,35 @@ namespace NutriDiet.Service.Services
             {
                 throw new Exception("User does not exist.");
             }
+
             var healthProfile = request.Adapt<GeneralHealthProfile>();
             healthProfile.CreatedAt = DateTime.Now;
             healthProfile.UpdatedAt = DateTime.Now;
+            // Cập nhật tiến trình giảm cân
+            if (request.Weight != null)
+            {
+                await UpdateGoalProgress(request.Weight, userId);
+            }
 
-            // Tính toán và lưu các chỉ số sức khỏe nếu đủ dữ liệu
             if (IsValidHealthData(request))
             {
-                await SaveHealthIndicatorsAsync(userId, request,existingUser);
+                await SaveHealthIndicatorsAsync(userId, request, existingUser);
             }
 
             await _unitOfWork.BeginTransaction();
             try
+            {
+                // Kiểm tra nếu đã tồn tại record HealthProfile với CreatedAt là ngày hôm nay thì xóa trước
+                var today = DateTime.Today.Date;
+                var existingRecord = await _unitOfWork.HealthProfileRepository
+                    .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.Value.Date == today)
+                    .FirstOrDefaultAsync();
+
+                if (existingRecord != null)
                 {
-                // Cập nhật tiến trình giảm cân
-                if(request.Weight != null)
-                {
-                    await UpdateGoalProgress(request.Weight, userId);
+                    await _unitOfWork.HealthProfileRepository.DeleteAsync(existingRecord);
                 }
-                // Lưu hồ sơ sức khỏe
+                // Lưu hồ sơ sức khỏe mới
                 healthProfile.UserId = existingUser.UserId;
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
                 await UpdateUserAllergiesAsync(existingUser, request.AllergyIds);
@@ -81,6 +91,7 @@ namespace NutriDiet.Service.Services
                 throw;
             }
         }
+
 
         private async Task UpdateGoalProgress(double? weight, int userId)
         {
