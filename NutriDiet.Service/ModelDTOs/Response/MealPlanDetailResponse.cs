@@ -9,6 +9,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
     public class MealPlanDetailResponse
     {
         public int MealPlanDetailId { get; set; }
+        public int? FoodId { get; set; }
         public string? FoodName { get; set; }
 
         public double? Quantity { get; set; }
