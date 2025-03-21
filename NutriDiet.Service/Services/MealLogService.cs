@@ -25,13 +25,15 @@ namespace NutriDiet.Service.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AIGeneratorService _aiGeneratorService;
         private readonly string _userIdClaim;
+        private readonly IUserService _userService;
 
-        public MealLogService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
+        public MealLogService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService, IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _aiGeneratorService = aIGeneratorService;
             _userIdClaim = GetUserIdClaim();
+            _userService = userService;
         }
         private string GetUserIdClaim()
         {
@@ -439,6 +441,12 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateMealLogAI()
         {
+            var isPremiumResult = await _userService.IsPremium();
+            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
+                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
             var userId = int.Parse(_userIdClaim);
 
             var userInfo = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userId)
@@ -612,6 +620,12 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> SaveMeallogAI(string? feedback)
         {
+            var isPremiumResult = await _userService.IsPremium();
+            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
+                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
             var userId = int.Parse(_userIdClaim);
 
             var airecommendMeallogExisted = await _unitOfWork.AIRecommendationMeallogRepository.GetByWhere(x => x.UserId == userId && x.Status.ToLower() == "pending").FirstOrDefaultAsync();

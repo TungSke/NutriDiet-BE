@@ -67,6 +67,7 @@ DBCC CHECKIDENT ('Allergy', RESEED, 0);
 DBCC CHECKIDENT ('Food', RESEED, 0);
 DBCC CHECKIDENT ('Ingredient', RESEED, 0); -- Thêm reset IDENTITY cho Ingredient
 DBCC CHECKIDENT ('Package', RESEED, 0);
+DBCC CHECKIDENT ('UserPackage', RESEED, 0);
 DBCC CHECKIDENT ('MealPlan', RESEED, 0);
 DBCC CHECKIDENT ('MealLog', RESEED, 0);
 DBCC CHECKIDENT ('MealLogDetail', RESEED, 0);
@@ -260,6 +261,10 @@ GO
 SET IDENTITY_INSERT [dbo].[Package] ON 
 INSERT Package (PackageID, PackageName, Price, Duration, Description) VALUES (1, 'Premium 1 Tháng', 99.00, 30, N'Truy cập đầy đủ tính năng AI trong 1 tháng');
 SET IDENTITY_INSERT [dbo].[Package] OFF
+
+SET IDENTITY_INSERT [dbo].[UserPackage] ON 
+INSERT UserPackage (UserPackageID, UserID, PackageID, StartDate, ExpiryDate, Status) VALUES (1, 1, 1, GETDATE(), GETDATE() + 30, 'Active');
+SET IDENTITY_INSERT [dbo].[UserPackage] OFF
 
 -- Bật IDENTITY_INSERT cho GeneralHealthProfile
 SET IDENTITY_INSERT [dbo].[GeneralHealthProfile] ON;

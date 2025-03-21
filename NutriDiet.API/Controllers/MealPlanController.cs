@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.API.Extensions;
 using NutriDiet.Common.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
@@ -79,12 +80,6 @@ namespace NutriDiet.API.Controllers
             return Ok("Cập nhật trạng thái thành công");
         }
 
-        //[HttpGet("meal-plan-detail")]
-        //public async Task<IActionResult> GetMealPlanDetailByMealPlanID(int mealPlanID) 
-        //{
-        //    var mealPlanDetail = await _mealPlanService.GetMealPlanDetailByMealPlanID(mealPlanID);
-        //    return Ok(mealPlanDetail);
-        //}
 
         [HttpPost("clone")]
         [Authorize]
