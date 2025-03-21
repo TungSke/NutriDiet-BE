@@ -55,7 +55,7 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
 
             var response = package.Adapt<PackageResponse>();
-            return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, response);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, response);
         }
 
         public async Task<IBusinessResult> UpdatePackage(int packageId, PackageRequest request)

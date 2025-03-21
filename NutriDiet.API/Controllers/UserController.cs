@@ -143,7 +143,7 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPut("upgrade-package/{packageId}")]
+        [HttpPost("upgrade-package/{packageId}")]
         [Authorize]
         public async Task<IActionResult> UpgradePackage(int packageId)
         {
