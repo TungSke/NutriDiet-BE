@@ -180,6 +180,7 @@ namespace NutriDiet.Service.Services
             response.MealPlanDetails = mealPlan.MealPlanDetails.Select(m => new MealPlanDetailResponse
             {
                 MealPlanDetailId = m.MealPlanDetailId,
+                FoodId = m.FoodId,
                 FoodName = m.Food.FoodName,
                 Quantity = m.Quantity,
                 MealType = m.MealType,
