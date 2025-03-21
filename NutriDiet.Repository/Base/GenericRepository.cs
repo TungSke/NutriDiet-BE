@@ -80,9 +80,14 @@ namespace NutriDiet.Repository.Repositories
             int pageNumber,
             int pageSize,
             Expression<Func<TEntity, bool>> predicate = null,
-            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null)
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
+            Func<IQueryable<TEntity>, IQueryable<TEntity>> include = null)
         {
             IQueryable<TEntity> query = _context.Set<TEntity>();
+            if (include != null)
+            {
+                query = include(query);
+            }
             if (pageNumber == 0) pageNumber = 1;
             if (pageSize == 0) pageSize = 10;
             if (predicate != null)

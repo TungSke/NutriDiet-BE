@@ -11,6 +11,8 @@ using System.Net.Http;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Authorization;
+using NutriDiet.Service.Services;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace NutriDiet.API.Controllers
 {
@@ -130,6 +132,22 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> UpdateUser([FromForm] UpdateUserRequest request)
         {
             var result = await _userService.UpdateUser(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("is-premium")]
+        [Authorize]
+        public async Task<IActionResult> IsPremium()
+        {
+            var result = await _userService.IsPremium();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPut("upgrade-package{packageId}")]
+        [Authorize]
+        public async Task<IActionResult> UpgradePackage(int packageId)
+        {
+            var result = await _userService.UpgradePackage(packageId);
             return StatusCode(result.StatusCode, result);
         }
     }
