@@ -462,7 +462,7 @@ namespace NutriDiet.Service.Services
                 var response = userPackage.Adapt<UserPackageResponse>();
                 response.FullName = user.FullName;
                 response.PackageName = package.PackageName;
-                return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, response);
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, response);
             }
             catch (Exception ex)
             {
@@ -473,29 +473,24 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> IsPremium()
         {
             int userId = int.Parse(_userIdClaim);
-            var activePackage = await _unitOfWork.UserPackageRepository
-                .GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate > DateTime.UtcNow)
-                .FirstOrDefaultAsync();
 
-            if (activePackage == null)
+            var isPremium = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+
+            // Cập nhật trạng thái gói hết hạn
+            var expiredPackages = await _unitOfWork.UserPackageRepository
+                .GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate <= DateTime.UtcNow)
+                .ToListAsync();
+            if (expiredPackages.Any())
             {
-                // Kiểm tra và cập nhật các gói hết hạn
-                var expiredPackages = await _unitOfWork.UserPackageRepository
-                    .GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate <= DateTime.UtcNow)
-                    .ToListAsync();
                 foreach (var package in expiredPackages)
                 {
                     package.Status = "Inactive";
                     await _unitOfWork.UserPackageRepository.UpdateAsync(package);
                 }
-                if (expiredPackages.Any())
-                {
-                    await _unitOfWork.SaveChangesAsync();
-                }
+                await _unitOfWork.SaveChangesAsync();
             }
 
-            var result = new { IsPremium = activePackage != null };
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, isPremium);
         }
 
     }

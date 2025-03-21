@@ -10,5 +10,6 @@ namespace NutriDiet.Repository.Interface
 {
     public interface IUserPackageRepository : IGenericRepository<UserPackage>
     {
+        Task<bool> IsUserPremiumAsync(int userId);
     }
 }
