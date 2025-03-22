@@ -210,7 +210,7 @@ namespace NutriDiet.Service.Services
             var mealPlan = new MealPlan
             {
                 UserId = userID,
-                PlanName = mealPlanExisted.PlanName + $" - Clone by {user.Email}",
+                PlanName = mealPlanExisted.PlanName + $" - Clone by {user.FullName}",
                 HealthGoal = mealPlanExisted.HealthGoal,
                 Duration = mealPlanExisted.Duration,
                 Status = MealplanStatus.Inactive.ToString(),
@@ -440,7 +440,7 @@ namespace NutriDiet.Service.Services
 
             var mealPlanRequesttest = new MealPlanRequest
             {
-                PlanName = "kế hoạch ăn (bệnh lý user) của (userEmail)",
+                PlanName = $"kế hoạch ăn (bệnh lý user) của {userInfo.FullName}",
                 HealthGoal = "string",
                 MealPlanDetails = new List<MealPlanDetailRequest>
                 {

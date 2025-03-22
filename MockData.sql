@@ -439,202 +439,177 @@ SET IDENTITY_INSERT MealPlan OFF;
 -- Insert data into MealPlanDetail for 'Giảm cân nhanh'
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
 VALUES
-    (1, 5, N'Gỏi cuốn', 2, N'Bữa sáng', 1, 200, 20, 6, 10),
-    (1, 8, N'Canh chua cá lóc', 1, N'Bữa trưa', 1, 200, 10, 5, 15),
-    (1, 14, N'Bánh ướt', 1, N'Bữa tối', 1, 200, 25, 5, 10),
-    (1, 7, N'Chả giò', 2, N'Bữa sáng', 2, 300, 20, 10, 10),
-    (1, 2, N'Bánh mì thịt', 1, N'Bữa trưa', 2, 350, 40, 12, 15),
-    (1, 18, N'Bánh đúc', 1, N'Bữa tối', 2, 150, 20, 5, 5),
-    (1, 1, N'Phở bò', 1, N'Bữa sáng', 3, 450, 50, 10, 25),
-    (1, 6, N'Bánh xèo', 1, N'Bữa trưa', 3, 300, 30, 15, 10),
-    (1, 12, N'Chè đậu đen', 1, N'Bữa tối', 3, 200, 30, 5, 5),
-    (1, 9, N'Bún riêu', 1, N'Bữa sáng', 4, 350, 40, 10, 20),
-    (1, 10, N'Cá kho tộ', 1, N'Bữa trưa', 4, 400, 10, 20, 25),
-    (1, 15, N'Bánh canh cua', 1, N'Bữa tối', 4, 400, 40, 15, 20),
-    (1, 3, N'Cơm tấm sườn', 1, N'Bữa sáng', 5, 600, 70, 20, 30),
-    (1, 11, N'Bánh cuốn', 1, N'Bữa trưa', 5, 300, 40, 8, 10),
-    (1, 20, N'Bánh tráng trộn', 1, N'Bữa tối', 5, 250, 30, 10, 5),
-    (1, 16, N'Bánh tét', 1, N'Bữa sáng', 6, 300, 40, 10, 10),
-    (1, 19, N'Bánh khọt', 1, N'Bữa trưa', 6, 200, 20, 10, 10),
-    (1, 13, N'Bánh bèo', 1, N'Bữa tối', 6, 250, 30, 10, 8),
-    (1, 4, N'Cháo lòng', 1, N'Bữa sáng', 7, 350, 35, 12, 20),
-    (1, 17, N'Bánh chưng', 1, N'Bữa trưa', 7, 350, 45, 12, 15),
-    (1, 21, N'Bánh khoai mì', 1, N'Bữa tối', 7, 300, 40, 15, 10);
+    (1, 5, N'Gỏi cuốn', 2, N'Breakfast', 1, 200, 20, 6, 10),
+    (1, 8, N'Canh chua cá lóc', 1, N'Lunch', 1, 200, 10, 5, 15),
+    (1, 14, N'Bánh ướt', 1, N'Dinner', 1, 200, 25, 5, 10),
+    (1, 7, N'Chả giò', 2, N'Breakfast', 2, 300, 20, 10, 10),
+    (1, 2, N'Bánh mì thịt', 1, N'Lunch', 2, 350, 40, 12, 15),
+    (1, 18, N'Bánh đúc', 1, N'Dinner', 2, 150, 20, 5, 5),
+    (1, 1, N'Phở bò', 1, N'Breakfast', 3, 450, 50, 10, 25),
+    (1, 6, N'Bánh xèo', 1, N'Lunch', 3, 300, 30, 15, 10),
+    (1, 12, N'Chè đậu đen', 1, N'Dinner', 3, 200, 30, 5, 5),
+    (1, 9, N'Bún riêu', 1, N'Breakfast', 4, 350, 40, 10, 20),
+    (1, 10, N'Cá kho tộ', 1, N'Lunch', 4, 400, 10, 20, 25),
+    (1, 15, N'Bánh canh cua', 1, N'Dinner', 4, 400, 40, 15, 20),
+    (1, 3, N'Cơm tấm sườn', 1, N'Breakfast', 5, 600, 70, 20, 30),
+    (1, 11, N'Bánh cuốn', 1, N'Lunch', 5, 300, 40, 8, 10),
+    (1, 20, N'Bánh tráng trộn', 1, N'Dinner', 5, 250, 30, 10, 5),
+    (1, 16, N'Bánh tét', 1, N'Breakfast', 6, 300, 40, 10, 10),
+    (1, 19, N'Bánh khọt', 1, N'Lunch', 6, 200, 20, 10, 10),
+    (1, 13, N'Bánh bèo', 1, N'Dinner', 6, 250, 30, 10, 8),
+    (1, 4, N'Cháo lòng', 1, N'Breakfast', 7, 350, 35, 12, 20),
+    (1, 17, N'Bánh chưng', 1, N'Lunch', 7, 350, 45, 12, 15),
+    (1, 21, N'Bánh khoai mì', 1, N'Dinner', 7, 300, 40, 15, 10);
 
 -- Insert data into MealPlanDetail for 'Tăng cơ bắp'
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
 VALUES
     -- Ngày 1
-    (2, 10, N'Cá kho tộ', 1, N'Bữa sáng', 1, 400, 10, 20, 25),
-    (2, 3, N'Cơm tấm sườn', 1, N'Bữa trưa', 1, 600, 70, 20, 30),
-    (2, 15, N'Bánh canh cua', 1, N'Bữa tối', 1, 400, 40, 15, 20),
+    (2, 10, N'Cá kho tộ', 1, N'Breakfast', 1, 400, 10, 20, 25),
+    (2, 3, N'Cơm tấm sườn', 1, N'Lunch', 1, 600, 70, 20, 30),
+    (2, 15, N'Bánh canh cua', 1, N'Dinner', 1, 400, 40, 15, 20),
     
     -- Ngày 2
-    (2, 9, N'Bún riêu', 1, N'Bữa sáng', 2, 350, 40, 10, 20),
-    (2, 16, N'Bánh tét', 1, N'Bữa trưa', 2, 300, 40, 10, 10),
-    (2, 19, N'Bánh khọt', 1, N'Bữa tối', 2, 200, 20, 10, 10),
+    (2, 9, N'Bún riêu', 1, N'Breakfast', 2, 350, 40, 10, 20),
+    (2, 16, N'Bánh tét', 1, N'Lunch', 2, 300, 40, 10, 10),
+    (2, 19, N'Bánh khọt', 1, N'Dinner', 2, 200, 20, 10, 10),
 
     -- Ngày 3
-    (2, 11, N'Bánh cuốn', 1, N'Bữa sáng', 3, 300, 40, 8, 10),
-    (2, 6, N'Bánh xèo', 1, N'Bữa trưa', 3, 300, 30, 15, 10),
-    (2, 13, N'Bánh bèo', 1, N'Bữa tối', 3, 250, 30, 10, 8),
+    (2, 11, N'Bánh cuốn', 1, N'Breakfast', 3, 300, 40, 8, 10),
+    (2, 6, N'Bánh xèo', 1, N'Lunch', 3, 300, 30, 15, 10),
+    (2, 13, N'Bánh bèo', 1, N'Dinner', 3, 250, 30, 10, 8),
 
     -- Ngày 4
-    (2, 5, N'Gỏi cuốn', 2, N'Bữa sáng', 4, 200, 20, 6, 10),
-    (2, 1, N'Phở bò', 1, N'Bữa trưa', 4, 450, 50, 10, 25),
-    (2, 8, N'Canh chua cá lóc', 1, N'Bữa tối', 4, 200, 10, 5, 15),
+    (2, 5, N'Gỏi cuốn', 2, N'Breakfast', 4, 200, 20, 6, 10),
+    (2, 1, N'Phở bò', 1, N'Lunch', 4, 450, 50, 10, 25),
+    (2, 8, N'Canh chua cá lóc', 1, N'Dinner', 4, 200, 10, 5, 15),
 
     -- Ngày 5
-    (2, 7, N'Chả giò', 2, N'Bữa sáng', 5, 300, 20, 10, 10),
-    (2, 2, N'Bánh mì thịt', 1, N'Bữa trưa', 5, 350, 40, 12, 15),
-    (2, 12, N'Chè đậu đen', 1, N'Bữa tối', 5, 200, 30, 5, 5),
+    (2, 7, N'Chả giò', 2, N'Breakfast', 5, 300, 20, 10, 10),
+    (2, 2, N'Bánh mì thịt', 1, N'Lunch', 5, 350, 40, 12, 15),
+    (2, 12, N'Chè đậu đen', 1, N'Dinner', 5, 200, 30, 5, 5),
 
     -- Ngày 6
-    (2, 14, N'Bánh ướt', 1, N'Bữa sáng', 6, 200, 25, 5, 10),
-    (2, 4, N'Cháo lòng', 1, N'Bữa trưa', 6, 350, 35, 12, 20),
-    (2, 18, N'Bánh đúc', 1, N'Bữa tối', 6, 150, 20, 5, 5),
+    (2, 14, N'Bánh ướt', 1, N'Breakfast', 6, 200, 25, 5, 10),
+    (2, 4, N'Cháo lòng', 1, N'Lunch', 6, 350, 35, 12, 20),
+    (2, 18, N'Bánh đúc', 1, N'Dinner', 6, 150, 20, 5, 5),
 
     -- Ngày 7
-    (2, 17, N'Bánh chưng', 1, N'Bữa sáng', 7, 350, 45, 12, 15),
-    (2, 20, N'Bánh tráng trộn', 1, N'Bữa trưa', 7, 250, 30, 10, 5),
-    (2, 21, N'Bánh khoai mì', 1, N'Bữa tối', 7, 300, 40, 15, 10);
-
+    (2, 17, N'Bánh chưng', 1, N'Breakfast', 7, 350, 45, 12, 15),
+    (2, 20, N'Bánh tráng trộn', 1, N'Lunch', 7, 250, 30, 10, 5),
+    (2, 21, N'Bánh khoai mì', 1, N'Dinner', 7, 300, 40, 15, 10);
 
 -- Insert data into MealPlanDetail for 'Dinh dưỡng cân bằng'
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
 VALUES
     -- Ngày 1
-    (3, 1, N'Phở bò', 1, N'Bữa sáng', 1, 450, 50, 10, 25),
-    (3, 6, N'Bánh xèo', 1, N'Bữa trưa', 1, 300, 30, 15, 10),
-    (3, 12, N'Chè đậu đen', 1, N'Bữa tối', 1, 200, 30, 5, 5),
+    (3, 1, N'Phở bò', 1, N'Breakfast', 1, 450, 50, 10, 25),
+    (3, 6, N'Bánh xèo', 1, N'Lunch', 1, 300, 30, 15, 10),
+    (3, 12, N'Chè đậu đen', 1, N'Dinner', 1, 200, 30, 5, 5),
 
     -- Ngày 2
-    (3, 11, N'Bánh cuốn', 1, N'Bữa sáng', 2, 300, 40, 8, 10),
-    (3, 17, N'Bánh chưng', 1, N'Bữa trưa', 2, 350, 45, 12, 15),
-    (3, 20, N'Bánh tráng trộn', 1, N'Bữa tối', 2, 250, 30, 10, 5),
+    (3, 11, N'Bánh cuốn', 1, N'Breakfast', 2, 300, 40, 8, 10),
+    (3, 17, N'Bánh chưng', 1, N'Lunch', 2, 350, 45, 12, 15),
+    (3, 20, N'Bánh tráng trộn', 1, N'Dinner', 2, 250, 30, 10, 5),
 
     -- Ngày 3
-    (3, 5, N'Gỏi cuốn', 2, N'Bữa sáng', 3, 200, 20, 6, 10),
-    (3, 3, N'Cơm tấm sườn', 1, N'Bữa trưa', 3, 600, 70, 20, 30),
-    (3, 15, N'Bánh canh cua', 1, N'Bữa tối', 3, 400, 40, 15, 20),
+    (3, 5, N'Gỏi cuốn', 2, N'Breakfast', 3, 200, 20, 6, 10),
+    (3, 3, N'Cơm tấm sườn', 1, N'Lunch', 3, 600, 70, 20, 30),
+    (3, 15, N'Bánh canh cua', 1, N'Dinner', 3, 400, 40, 15, 20),
 
     -- Ngày 4
-    (3, 7, N'Chả giò', 2, N'Bữa sáng', 4, 300, 20, 10, 10),
-    (3, 2, N'Bánh mì thịt', 1, N'Bữa trưa', 4, 350, 40, 12, 15),
-    (3, 8, N'Canh chua cá lóc', 1, N'Bữa tối', 4, 200, 10, 5, 15),
+    (3, 7, N'Chả giò', 2, N'Breakfast', 4, 300, 20, 10, 10),
+    (3, 2, N'Bánh mì thịt', 1, N'Lunch', 4, 350, 40, 12, 15),
+    (3, 8, N'Canh chua cá lóc', 1, N'Dinner', 4, 200, 10, 5, 15),
 
     -- Ngày 5
-    (3, 9, N'Bún riêu', 1, N'Bữa sáng', 5, 350, 40, 10, 20),
-    (3, 16, N'Bánh tét', 1, N'Bữa trưa', 5, 300, 40, 10, 10),
-    (3, 19, N'Bánh khọt', 1, N'Bữa tối', 5, 200, 20, 10, 10),
+    (3, 9, N'Bún riêu', 1, N'Breakfast', 5, 350, 40, 10, 20),
+    (3, 16, N'Bánh tét', 1, N'Lunch', 5, 300, 40, 10, 10),
+    (3, 19, N'Bánh khọt', 1, N'Dinner', 5, 200, 20, 10, 10),
 
     -- Ngày 6
-    (3, 14, N'Bánh ướt', 1, N'Bữa sáng', 6, 200, 25, 5, 10),
-    (3, 4, N'Cháo lòng', 1, N'Bữa trưa', 6, 350, 35, 12, 20),
-    (3, 18, N'Bánh đúc', 1, N'Bữa tối', 6, 150, 20, 5, 5),
+    (3, 14, N'Bánh ướt', 1, N'Breakfast', 6, 200, 25, 5, 10),
+    (3, 4, N'Cháo lòng', 1, N'Lunch', 6, 350, 35, 12, 20),
+    (3, 18, N'Bánh đúc', 1, N'Dinner', 6, 150, 20, 5, 5),
 
     -- Ngày 7
-    (3, 10, N'Cá kho tộ', 1, N'Bữa sáng', 7, 400, 10, 20, 25),
-    (3, 13, N'Bánh bèo', 1, N'Bữa trưa', 7, 250, 30, 10, 8),
-    (3, 21, N'Bánh khoai mì', 1, N'Bữa tối', 7, 300, 40, 15, 10);
+    (3, 10, N'Cá kho tộ', 1, N'Breakfast', 7, 400, 10, 20, 25),
+    (3, 13, N'Bánh bèo', 1, N'Lunch', 7, 250, 30, 10, 8),
+    (3, 21, N'Bánh khoai mì', 1, N'Dinner', 7, 300, 40, 15, 10);
 
 -- MealPlan: Kế hoạch ăn uống Healthy
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)  
 VALUES  
- 
-(4, 21, N'Salad ức gà', 1, N'Bữa sáng', 1, 300, 20, 8, 35),  
-(4, 24, N'Cá hồi áp chảo', 1, N'Bữa trưa', 1, 400, 10, 20, 40),  
-(4, 25, N'Súp lơ hấp', 1, N'Bữa tối', 1, 180, 20, 10, 5),  
- 
-(4, 22, N'Cháo yến mạch', 1, N'Bữa sáng', 2, 250, 40, 6, 8),  
-(4, 30, N'Salad cá ngừ', 1, N'Bữa trưa', 2, 350, 15, 10, 40),  
-(4, 29, N'Súp bí đỏ', 1, N'Bữa tối', 2, 230, 35, 8, 6),  
-
-(4, 23, N'Smoothie bơ chuối', 1, N'Bữa sáng', 3, 220, 30, 10, 5),  
-(4, 24, N'Cá hồi áp chảo', 1, N'Bữa trưa', 3, 400, 10, 20, 40),  
-(4, 28, N'Xôi gạo lứt', 1, N'Bữa tối', 3, 320, 55, 7, 8),  
-
-(4, 26, N'Bánh pancake chuối yến mạch', 1, N'Bữa sáng', 4, 200, 30, 5, 6),  
-(4, 25, N'Súp lơ hấp', 1, N'Bữa trưa', 4, 180, 20, 10, 5),  
-(4, 27, N'Trà gừng mật ong', 1, N'Bữa tối', 4, 100, 25, 0, 0),  
-
-(4, 21, N'Salad ức gà', 1, N'Bữa sáng', 5, 300, 20, 8, 35),  
-(4, 22, N'Cháo yến mạch', 1, N'Bữa trưa', 5, 250, 40, 6, 8),  
-(4, 23, N'Smoothie bơ chuối', 1, N'Bữa tối', 5, 220, 30, 10, 5),  
- 
-(4, 29, N'Súp bí đỏ', 1, N'Bữa sáng', 6, 230, 35, 8, 6),  
-(4, 30, N'Salad cá ngừ', 1, N'Bữa trưa', 6, 350, 15, 10, 40),  
-(4, 28, N'Xôi gạo lứt', 1, N'Bữa tối', 6, 320, 55, 7, 8),  
-
-(4, 26, N'Bánh pancake chuối yến mạch', 1, N'Bữa sáng', 7, 200, 30, 5, 6),  
-(4, 24, N'Cá hồi áp chảo', 1, N'Bữa trưa', 7, 400, 10, 20, 40),  
-(4, 27, N'Trà gừng mật ong', 1, N'Bữa tối', 7, 100, 25, 0, 0);  
+    (4, 21, N'Salad ức gà', 1, N'Breakfast', 1, 300, 20, 8, 35),  
+    (4, 24, N'Cá hồi áp chảo', 1, N'Lunch', 1, 400, 10, 20, 40),  
+    (4, 25, N'Súp lơ hấp', 1, N'Dinner', 1, 180, 20, 10, 5),  
+    (4, 22, N'Cháo yến mạch', 1, N'Breakfast', 2, 250, 40, 6, 8),  
+    (4, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),  
+    (4, 29, N'Súp bí đỏ', 1, N'Dinner', 2, 230, 35, 8, 6),  
+    (4, 23, N'Smoothie bơ chuối', 1, N'Breakfast', 3, 220, 30, 10, 5),  
+    (4, 24, N'Cá hồi áp chảo', 1, N'Lunch', 3, 400, 10, 20, 40),  
+    (4, 28, N'Xôi gạo lứt', 1, N'Dinner', 3, 320, 55, 7, 8),  
+    (4, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 4, 200, 30, 5, 6),  
+    (4, 25, N'Súp lơ hấp', 1, N'Lunch', 4, 180, 20, 10, 5),  
+    (4, 27, N'Trà gừng mật ong', 1, N'Dinner', 4, 100, 25, 0, 0),  
+    (4, 21, N'Salad ức gà', 1, N'Breakfast', 5, 300, 20, 8, 35),  
+    (4, 22, N'Cháo yến mạch', 1, N'Lunch', 5, 250, 40, 6, 8),  
+    (4, 23, N'Smoothie bơ chuối', 1, N'Dinner', 5, 220, 30, 10, 5),  
+    (4, 29, N'Súp bí đỏ', 1, N'Breakfast', 6, 230, 35, 8, 6),  
+    (4, 30, N'Salad cá ngừ', 1, N'Lunch', 6, 350, 15, 10, 40),  
+    (4, 28, N'Xôi gạo lứt', 1, N'Dinner', 6, 320, 55, 7, 8),  
+    (4, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 7, 200, 30, 5, 6),  
+    (4, 24, N'Cá hồi áp chảo', 1, N'Lunch', 7, 400, 10, 20, 40),  
+    (4, 27, N'Trà gừng mật ong', 1, N'Dinner', 7, 100, 25, 0, 0);  
 
 -- MealPlan: Kế hoạch ăn uống cho người tiểu đường
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)  
 VALUES  
-
-(5, 22, N'Cháo yến mạch', 1, N'Bữa sáng', 1, 250, 40, 6, 8),  
-(5, 28, N'Xôi gạo lứt', 1, N'Bữa trưa', 1, 320, 55, 7, 8),  
-(5, 25, N'Súp lơ hấp', 1, N'Bữa tối', 1, 180, 20, 10, 5),  
- 
-(5, 23, N'Smoothie bơ chuối', 1, N'Bữa sáng', 2, 220, 30, 10, 5),  
-(5, 30, N'Salad cá ngừ', 1, N'Bữa trưa', 2, 350, 15, 10, 40),  
-(5, 29, N'Súp bí đỏ', 1, N'Bữa tối', 2, 230, 35, 8, 6),
-
-(5, 26, N'Bánh pancake chuối yến mạch', 1, N'Bữa sáng', 3, 200, 30, 5, 6),
-(5, 28, N'Xôi gạo lứt', 1, N'Bữa trưa', 3, 320, 55, 7, 8),
-(5, 27, N'Trà gừng mật ong', 1, N'Bữa tối', 3, 100, 25, 0, 0),
-
-(5, 21, N'Salad ức gà', 1, N'Bữa sáng', 4, 300, 20, 8, 35),
-(5, 22, N'Cháo yến mạch', 1, N'Bữa trưa', 4, 250, 40, 6, 8),
-(5, 23, N'Smoothie bơ chuối', 1, N'Bữa tối', 4, 220, 30, 10, 5),
-
-(5, 29, N'Súp bí đỏ', 1, N'Bữa sáng', 5, 230, 35, 8, 6),
-(5, 30, N'Salad cá ngừ', 1, N'Bữa trưa', 5, 350, 15, 10, 40),
-(5, 25, N'Súp lơ hấp', 1, N'Bữa tối', 5, 180, 20, 10, 5),
-
-(5, 26, N'Bánh pancake chuối yến mạch', 1, N'Bữa sáng', 6, 200, 30, 5, 6),
-(5, 24, N'Cá hồi áp chảo', 1, N'Bữa trưa', 6, 400, 10, 20, 40),
-(5, 27, N'Trà gừng mật ong', 1, N'Bữa tối', 6, 100, 25, 0, 0),
-
-(5, 21, N'Salad ức gà', 1, N'Bữa sáng', 7, 300, 20, 8, 35),
-(5, 22, N'Cháo yến mạch', 1, N'Bữa trưa', 7, 250, 40, 6, 8),
-(5, 23, N'Smoothie bơ chuối', 1, N'Bữa tối', 7, 220, 30, 10, 5);
+    (5, 22, N'Cháo yến mạch', 1, N'Breakfast', 1, 250, 40, 6, 8),  
+    (5, 28, N'Xôi gạo lứt', 1, N'Lunch', 1, 320, 55, 7, 8),  
+    (5, 25, N'Súp lơ hấp', 1, N'Dinner', 1, 180, 20, 10, 5),  
+    (5, 23, N'Smoothie bơ chuối', 1, N'Breakfast', 2, 220, 30, 10, 5),  
+    (5, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),  
+    (5, 29, N'Súp bí đỏ', 1, N'Dinner', 2, 230, 35, 8, 6),  
+    (5, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 3, 200, 30, 5, 6),  
+    (5, 28, N'Xôi gạo lứt', 1, N'Lunch', 3, 320, 55, 7, 8),  
+    (5, 27, N'Trà gừng mật ong', 1, N'Dinner', 3, 100, 25, 0, 0),  
+    (5, 21, N'Salad ức gà', 1, N'Breakfast', 4, 300, 20, 8, 35),  
+    (5, 22, N'Cháo yến mạch', 1, N'Lunch', 4, 250, 40, 6, 8),  
+    (5, 23, N'Smoothie bơ chuối', 1, N'Dinner', 4, 220, 30, 10, 5),  
+    (5, 29, N'Súp bí đỏ', 1, N'Breakfast', 5, 230, 35, 8, 6),  
+    (5, 30, N'Salad cá ngừ', 1, N'Lunch', 5, 350, 15, 10, 40),  
+    (5, 25, N'Súp lơ hấp', 1, N'Dinner', 5, 180, 20, 10, 5),  
+    (5, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 6, 200, 30, 5, 6),  
+    (5, 24, N'Cá hồi áp chảo', 1, N'Lunch', 6, 400, 10, 20, 40),  
+    (5, 27, N'Trà gừng mật ong', 1, N'Dinner', 6, 100, 25, 0, 0),  
+    (5, 21, N'Salad ức gà', 1, N'Breakfast', 7, 300, 20, 8, 35),  
+    (5, 22, N'Cháo yến mạch', 1, N'Lunch', 7, 250, 40, 6, 8),  
+    (5, 23, N'Smoothie bơ chuối', 1, N'Dinner', 7, 220, 30, 10, 5);
 
 -- MealPlan: Kế hoạch ăn uống cho người gan nhiễm mỡ
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
 VALUES
- 
-(1, 21, N'Bánh khoai mì', 1, N'Bữa tối', 7, 300, 40, 15, 10), 
-(3, 12, N'Chè đậu đen', 1, N'Bữa phụ', 1, 200, 30, 5, 5),
-(6, 24, N'Cá hồi áp chảo', 1, N'Bữa trưa', 1, 400, 10, 20, 40),  
-(6, 25, N'Súp lơ hấp', 1, N'Bữa tối', 1, 180, 20, 10, 5),  
-
-(6, 22, N'Cháo yến mạch', 1, N'Bữa sáng', 2, 250, 40, 6, 8),  
-(6, 30, N'Salad cá ngừ', 1, N'Bữa trưa', 2, 350, 15, 10, 40),  
-(6, 29, N'Súp bí đỏ', 1, N'Bữa tối', 2, 230, 35, 8, 6),  
-
-(6, 26, N'Bánh pancake chuối yến mạch', 1, N'Bữa sáng', 3, 200, 30, 5, 6),
-(6, 28, N'Xôi gạo lứt', 1, N'Bữa trưa', 3, 320, 55, 7, 8),
-(6, 27, N'Trà gừng mật ong', 1, N'Bữa tối', 3, 100, 25, 0, 0),
-
-(6, 21, N'Salad ức gà', 1, N'Bữa sáng', 4, 300, 20, 8, 35),
-(6, 22, N'Cháo yến mạch', 1, N'Bữa trưa', 4, 250, 40, 6, 8),
-(6, 23, N'Smoothie bơ chuối', 1, N'Bữa tối', 4, 220, 30, 10, 5),
-
-(6, 29, N'Súp bí đỏ', 1, N'Bữa sáng', 5, 230, 35, 8, 6),
-(6, 30, N'Salad cá ngừ', 1, N'Bữa trưa', 5, 350, 15, 10, 40),
-(6, 25, N'Súp lơ hấp', 1, N'Bữa tối', 5, 180, 20, 10, 5),
-
-(6, 26, N'Bánh pancake chuối yến mạch', 1, N'Bữa sáng', 6, 200, 30, 5, 6),
-(6, 27, N'Trà gừng mật ong', 1, N'Bữa phụ', 6, 100, 25, 0, 0),
-(6, 24, N'Cá hồi áp chảo', 1, N'Bữa trưa', 6, 400, 10, 20, 40),
-(1, 14, N'Bánh ướt', 1, N'Bữa tối', 1, 200, 25, 5, 10),
-
-(6, 21, N'Salad ức gà', 1, N'Bữa sáng', 7, 300, 20, 8, 35),
-(6, 22, N'Cháo yến mạch', 1, N'Bữa trưa', 7, 250, 40, 6, 8),
-(6, 23, N'Smoothie bơ chuối', 1, N'Bữa tối', 7, 220, 30, 10, 5);
+    (6, 24, N'Cá hồi áp chảo', 1, N'Lunch', 1, 400, 10, 20, 40),  
+    (6, 25, N'Súp lơ hấp', 1, N'Dinner', 1, 180, 20, 10, 5),  
+    (6, 22, N'Cháo yến mạch', 1, N'Breakfast', 2, 250, 40, 6, 8),  
+    (6, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),  
+    (6, 29, N'Súp bí đỏ', 1, N'Dinner', 2, 230, 35, 8, 6),  
+    (6, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 3, 200, 30, 5, 6),  
+    (6, 28, N'Xôi gạo lứt', 1, N'Lunch', 3, 320, 55, 7, 8),  
+    (6, 27, N'Trà gừng mật ong', 1, N'Dinner', 3, 100, 25, 0, 0),  
+    (6, 21, N'Salad ức gà', 1, N'Breakfast', 4, 300, 20, 8, 35),  
+    (6, 22, N'Cháo yến mạch', 1, N'Lunch', 4, 250, 40, 6, 8),  
+    (6, 23, N'Smoothie bơ chuối', 1, N'Dinner', 4, 220, 30, 10, 5),  
+    (6, 29, N'Súp bí đỏ', 1, N'Breakfast', 5, 230, 35, 8, 6),  
+    (6, 30, N'Salad cá ngừ', 1, N'Lunch', 5, 350, 15, 10, 40),  
+    (6, 25, N'Súp lơ hấp', 1, N'Dinner', 5, 180, 20, 10, 5),  
+    (6, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 6, 200, 30, 5, 6),  
+    (6, 24, N'Cá hồi áp chảo', 1, N'Lunch', 6, 400, 10, 20, 40),  
+    (6, 27, N'Trà gừng mật ong', 1, N'Dinner', 6, 100, 25, 0, 0),  
+    (6, 21, N'Salad ức gà', 1, N'Breakfast', 7, 300, 20, 8, 35),  
+    (6, 22, N'Cháo yến mạch', 1, N'Lunch', 7, 250, 40, 6, 8),  
+    (6, 23, N'Smoothie bơ chuối', 1, N'Dinner', 7, 220, 30, 10, 5);
 
 --Thêm nguyên liệu vào cho Food
 INSERT INTO FoodIngredient (FoodID, IngredientID)
