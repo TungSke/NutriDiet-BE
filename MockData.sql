@@ -43,6 +43,7 @@ DELETE FROM Package;
 DELETE FROM [User];
 DELETE FROM Role;
 DELETE FROM CuisineType;
+DELETE FROM SystemConfiguration;
 
 -- Bật lại ràng buộc khóa ngoại
 ALTER TABLE UserAllergy CHECK CONSTRAINT ALL;
@@ -930,3 +931,7 @@ VALUES
     (50, 29);    -- Bánh phồng tôm
 
 GO
+
+INSERT INTO SystemConfiguration (Name, MinValue, MaxValue, Unit, IsActive, EffectedDateFrom, Description)
+VALUES 
+('MinAge', 15, NULL, 'years', 1, GETDATE(), N'Tuổi tối thiểu để đăng ký tài khoản');

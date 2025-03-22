@@ -309,5 +309,23 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
+        public async Task<IBusinessResult> GetSuggestionImproveFromAI()
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            var healthProfiles = await _unitOfWork.HealthProfileRepository
+                .GetByWhere(hp => hp.UserId == userId)
+                .OrderBy(hp => hp.CreatedAt)
+                .Select(hp => new
+                {
+                    hp.CreatedAt,
+                    
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
+        }
+
     }
 }

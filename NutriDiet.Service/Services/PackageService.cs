@@ -1,6 +1,9 @@
-﻿using Mapster;
+﻿using CloudinaryDotNet.Actions;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Net.payOS;
+using Net.payOS.Types;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Repository.Interface;
@@ -24,18 +27,7 @@ namespace NutriDiet.Service.Services
         {
             _unitOfWork = unitOfWork;
         }
-
-        public async Task<IBusinessResult> GetAllPackage()
-        {
-            var packages =  _unitOfWork.PackageRepository.GetAll().ToList();
-            if(packages == null || !packages.Any())
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
-            }
-            var response = packages.Adapt<List<PackageResponse>>();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
-        }
+     
         public async Task<IBusinessResult> CreatePackage(PackageRequest request)
         {
 
@@ -142,6 +134,17 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+
+        //private async Task<IBusinessResult> CreatePaymentRequestAsync(Package package, string cancelUrl, string returnUrl, List<ItemData> itemdata)
+        //{
+        //    PayOS _payOS = new PayOS(Environment.GetEnvironmentVariable("PAYOS_CLIENTID"), Environment.GetEnvironmentVariable("PAYOS_APIKEY"), Environment.GetEnvironmentVariable("PAYOS_CHECKSUMKEY"));
+
+        //    long orderCode = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        //    PaymentData paymentData = new PaymentData(orderCode, (int)order.FinalAmount, "Thanh toan don hang", itemdata, cancelUrl+ $"?orderId={order.OrderId}", returnUrl+ $"?orderId={order.OrderId}", null, order.Account.Name, order.Account.Email, order.Account.PhoneNumber, order.Account.Address, DateTimeOffset.Now.AddMinutes(5).ToUnixTimeSeconds());
+
+        //    CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
+        //    return createPayment;
+        //}
 
     }
 }

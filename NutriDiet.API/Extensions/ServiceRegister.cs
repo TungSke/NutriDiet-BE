@@ -49,7 +49,6 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<FirebaseService>();
 
             services.AddScoped<IUserService, UserService>();
-
             services.AddScoped<IFoodService, FoodService>();
 
             services.AddScoped<IGeneralHealthProfileService, GeneralHealthProfileService>();
@@ -65,7 +64,8 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<IMealLogService, MealLogService>();
             services.AddScoped<ICuisineTypeService, CuisineTypeService>();
             services.AddScoped<IIngreDientService, IngreDientSevice>();        
-            services.AddScoped<IPackageService, PackageService>();        
+            services.AddScoped<IPackageService, PackageService>();
+            services.AddScoped<ISystemConfigurationService, SystemConfigationService>();
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)

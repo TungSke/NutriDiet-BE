@@ -9,17 +9,18 @@ namespace NutriDiet.API.Controllers
     [Route("api/[controller]")]
     public class PackageController : ControllerBase
     {
-      private readonly IPackageService _packageService;
+        private readonly IPackageService _packageService;
 
         public PackageController(IPackageService packageService)
         {
             _packageService = packageService;
         }
 
-        [HttpGet]
-            public async Task<IActionResult> getAllPackages()
+        [HttpGet("user-package")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUserPackages(int pageIndex, int pageSize, string? status, string? search)
         {
-            var result = await _packageService.GetAllPackage();
+            var result = await _packageService.GetUserPackage(pageIndex, pageSize, status, search);
             return StatusCode(result.StatusCode, result);
         }
 
@@ -47,12 +48,6 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("user-package")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUserPackages(int pageIndex, int pageSize, string? status, string? search)
-        {
-            var result = await _packageService.GetUserPackage(pageIndex, pageSize, status, search);
-            return StatusCode(result.StatusCode, result);
-        }
+
     }
 }

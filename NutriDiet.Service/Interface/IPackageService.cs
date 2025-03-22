@@ -10,10 +10,10 @@ namespace NutriDiet.Service.Interface
 {
     public interface IPackageService
     {
-        Task<IBusinessResult> GetAllPackage();
         Task<IBusinessResult> CreatePackage(PackageRequest request);
         Task<IBusinessResult> UpdatePackage(int packageId, PackageRequest request);
         Task<IBusinessResult> DeletePackage(int packageId);
         Task<IBusinessResult> GetUserPackage(int pageIndex, int pageSize, string? status, string? search);
+
     }
 }

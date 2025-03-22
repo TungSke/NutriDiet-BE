@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace NutriDiet.Common.Enums
 {
-    public enum HealProfileFields
+    public enum SystemConfigEnum
     {
-        Weight,
-        Height,
-        ActivityLevel,
-        Aisuggestion
+        MinAge
     }
 }
