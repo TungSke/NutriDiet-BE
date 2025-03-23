@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Azure.Core;
 using Google.Apis.Drive.v3.Data;
 using Mapster;
 using Microsoft.AspNetCore.Http;
@@ -254,7 +255,6 @@ namespace NutriDiet.Service.Services
                 TotalProtein = mealLog.TotalProtein ?? 0,
                 TotalCarbs = mealLog.TotalCarbs ?? 0,
                 TotalFat = mealLog.TotalFat ?? 0,
-                DailyCalories = dailycalories,
                 MealLogDetails = mealLog.MealLogDetails.Select(d => new MealLogDetailResponse
                 {
                     DetailId = d.DetailId,
@@ -265,7 +265,8 @@ namespace NutriDiet.Service.Services
                     Calories = d.Calories ?? 0,
                     Protein = d.Protein ?? 0,
                     Carbs = d.Carbs ?? 0,
-                    Fat = d.Fat ?? 0
+                    Fat = d.Fat ?? 0,
+                    ImageUrl = d.ImageUrl ?? "",
                 }).ToList()
             }).ToList();
 
@@ -692,55 +693,6 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail transferred successfully.");
         }
 
-        public async Task<IBusinessResult> GetRecentFoods()
-        {
-            var userId = int.Parse(_userIdClaim);
-
-            // Lấy meal log gần nhất theo ngày của người dùng
-            var mealLog = await _unitOfWork.MealLogRepository
-                .GetByWhere(m => m.UserId == userId)
-                .OrderByDescending(m => m.LogDate)
-                .Include(m => m.MealLogDetails)
-                .ThenInclude(d => d.Food)
-                .FirstOrDefaultAsync();
-
-            if (mealLog == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Không tìm thấy nhật ký ăn uống của người dùng hiện tại.", null);
-            }
-
-            var foods = mealLog.MealLogDetails
-                .Take(5)    
-                .Select(d =>
-                {
-                    var food = d.Food;
-                    return new FoodResponse
-                    {
-                        FoodId = food?.FoodId ?? 0,
-                        FoodName = food?.FoodName ?? "Quick Add",
-                        MealType = d.MealType,
-                        ImageUrl = food?.ImageUrl,
-                        FoodType = food?.FoodType,
-                        Description = food?.Description,
-                        ServingSize = food?.ServingSize,
-                        Calories = food?.Calories,
-                        Protein = food?.Protein,
-                        Carbs = food?.Carbs,
-                        Fat = food?.Fat,
-                        Glucid = food?.Glucid,
-                        Fiber = food?.Fiber,
-                        Ingredients = food?.Ingredients?.Select(i => new IngredientResponse
-                        {
-                            // Giả sử IngredientResponse có các trường IngredientId và IngredientName
-                            IngredientId = i.IngredientId,
-                            IngredientName = i.IngredientName
-                        }).ToList()
-                    };
-                }).ToList();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Lấy danh sách món ăn từ nhật ký ăn uống gần nhất thành công.", foods);
-        }
-
         public async Task<IBusinessResult> AddMealToMultipleDays(AddMultipleDaysMealLogRequest request)
         {
             var userId = int.Parse(_userIdClaim);
@@ -925,5 +877,38 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Nutrition summary retrieved successfully.", response);
         }
 
+        public async Task<IBusinessResult> AddImageToMealLogDetail(int detailId, AddImageRequest request)
+        {
+            if (request.Image == null || request.Image.Length == 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Image file is required.", null);
+            }
+            int userId = int.Parse(_userIdClaim);
+
+            var mealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.MealLogDetails.Any(d => d.DetailId == detailId))
+                .Include(m => m.MealLogDetails)
+                .FirstOrDefaultAsync();
+
+            if (mealLog == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log not found.", null);
+            }
+
+            var mealLogDetail = mealLog.MealLogDetails.FirstOrDefault(d => d.DetailId == detailId);
+            try
+            {
+                var cloudinaryHelper = new CloudinaryHelper();
+                mealLogDetail.ImageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.Image);
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.ERROR_EXCEPTION, "Error uploading image.", null);
+            }
+            await _unitOfWork.MealLogRepository.UpdateAsync(mealLog);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Image added to meal log detail successfully.");
+        }
     }
 }

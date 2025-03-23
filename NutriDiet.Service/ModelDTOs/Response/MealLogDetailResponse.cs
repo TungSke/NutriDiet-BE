@@ -18,5 +18,6 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public double Protein { get; set; }
         public double Carbs { get; set; }
         public double Fat { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

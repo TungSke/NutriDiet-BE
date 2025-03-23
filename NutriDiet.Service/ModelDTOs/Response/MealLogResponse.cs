@@ -14,7 +14,6 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public double TotalProtein { get; set; }
         public double TotalCarbs { get; set; }
         public double TotalFat { get; set; }
-        public double? DailyCalories { get; set; }
         public List<MealLogDetailResponse> MealLogDetails { get; set; } = new List<MealLogDetailResponse>();
     }
 }

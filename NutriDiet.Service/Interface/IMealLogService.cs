@@ -1,4 +1,5 @@
-﻿using NutriDiet.Common.BusinessResult;
+﻿using Microsoft.AspNetCore.Http;
+using NutriDiet.Common.BusinessResult;
 using NutriDiet.Common.Enums;
 using NutriDiet.Service.ModelDTOs.Request;
 using System;
@@ -20,9 +21,9 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> CreateMealLogAI();
         Task<IBusinessResult> SaveMeallogAI(string feedback);
         Task<IBusinessResult> TransferMealLogDetail(int detailId, MealType targetMealType);
-        Task<IBusinessResult> GetRecentFoods();
         Task<IBusinessResult> AddMealToMultipleDays(AddMultipleDaysMealLogRequest request);
         Task<IBusinessResult> GetNutritionSummary(DateTime date);
+        Task<IBusinessResult> AddImageToMealLogDetail(int detailId, AddImageRequest request);
 
     }
 }

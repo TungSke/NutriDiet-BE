@@ -100,14 +100,6 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("recent-food")]
-        [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> GetRecentFood()
-        {
-            var result = await _mealLogService.GetRecentFoods();
-            return StatusCode(result.StatusCode, result);
-        }
-
         [HttpGet("nutrition")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> NutritionSummary([FromQuery] DateTime date)
@@ -115,5 +107,14 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.GetNutritionSummary(date);
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpPost("detail/{detailId}/image")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> AddImageToMealLogDetail(int detailId, [FromForm] AddImageRequest request)
+        {
+            var result = await _mealLogService.AddImageToMealLogDetail(detailId, request);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }
