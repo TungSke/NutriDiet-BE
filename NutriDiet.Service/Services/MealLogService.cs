@@ -42,8 +42,6 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> AddOrUpdateMealLog(MealLogRequest request)
         {
             var userId = int.Parse(_userIdClaim);
-
-            // Kiểm tra người dùng tồn tại
             var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             if (existingUser == null)
             {
@@ -910,5 +908,73 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Image added to meal log detail successfully.");
         }
+        public async Task<IBusinessResult> GetMealLogDetail(int detailId)
+        {
+            int userId = int.Parse(_userIdClaim);
+            var mealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.MealLogDetails.Any(d => d.DetailId == detailId))
+                .Include(m => m.MealLogDetails)
+                .ThenInclude(d => d.Food)
+                .FirstOrDefaultAsync();
+
+            if (mealLog == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log not found.", null);
+            }
+            var mealLogDetail = mealLog.MealLogDetails.FirstOrDefault(d => d.DetailId == detailId);
+            if (mealLogDetail == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log detail not found.", null);
+            }
+            var response = new MealLogDetailResponse
+            {
+                DetailId = mealLogDetail.DetailId,
+                FoodName = mealLogDetail.Food?.FoodName ?? "Quick Add",
+                MealType = mealLogDetail.MealType,
+                ServingSize = mealLogDetail.ServingSize,
+                Quantity = mealLogDetail.Quantity,
+                Calories = mealLogDetail.Calories ?? 0,
+                Protein = mealLogDetail.Protein ?? 0,
+                Carbs = mealLogDetail.Carbs ?? 0,
+                Fat = mealLogDetail.Fat ?? 0,
+                ImageUrl = mealLogDetail.ImageUrl ?? ""
+            };
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail retrieved successfully.", response);
+        }
+
+        public async Task<IBusinessResult> UpdateMealLogDetailNutrition(int detailId, UpdateMealLogNutritionRequest request)
+        {
+            int userId = int.Parse(_userIdClaim);
+
+            var mealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.MealLogDetails.Any(d => d.DetailId == detailId))
+                .Include(m => m.MealLogDetails)
+                .FirstOrDefaultAsync();
+
+            if (mealLog == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log not found.", null);
+            }
+
+            var mealLogDetail = mealLog.MealLogDetails.FirstOrDefault(d => d.DetailId == detailId);
+            if (mealLogDetail == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log detail not found.", null);
+            }
+            mealLogDetail.Calories = request.Calorie;
+            mealLogDetail.Protein = request.Protein;
+            mealLogDetail.Carbs = request.Carbs;
+            mealLogDetail.Fat = request.Fat;
+            mealLog.TotalCalories = mealLog.MealLogDetails.Sum(d => d.Calories ?? 0);
+            mealLog.TotalProtein = mealLog.MealLogDetails.Sum(d => d.Protein ?? 0);
+            mealLog.TotalCarbs = mealLog.MealLogDetails.Sum(d => d.Carbs ?? 0);
+            mealLog.TotalFat = mealLog.MealLogDetails.Sum(d => d.Fat ?? 0);
+
+            await _unitOfWork.MealLogRepository.UpdateAsync(mealLog);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail and nutrition values updated successfully.");
+        }
+
     }
 }

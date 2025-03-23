@@ -36,6 +36,7 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.AddMealToMultipleDays(request);
             return StatusCode(result.StatusCode, result);
         }
+
         [HttpDelete("{mealLogId}")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> RemoveMealLog(int mealLogId)
@@ -116,5 +117,21 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpGet("detail/{detailId}")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> GetMealLogDetail(int detailId)
+        {
+            var result = await _mealLogService.GetMealLogDetail(detailId);
+            return StatusCode(result.StatusCode, result);
+        }
+        
+
+        [HttpPut("detail/{detailId}/nutrition")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> UpdateMealLogDetailNutrition(int detailId, [FromBody] UpdateMealLogNutritionRequest request)
+        {
+            var result = await _mealLogService.UpdateMealLogDetailNutrition(detailId,request);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }
