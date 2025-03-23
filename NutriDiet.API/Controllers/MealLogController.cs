@@ -128,7 +128,7 @@ namespace NutriDiet.API.Controllers
 
         [HttpPut("detail/{detailId}/nutrition")]
         [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> UpdateMealLogDetailNutrition(int detailId, [FromBody] UpdateMealLogNutritionRequest request)
+        public async Task<IActionResult> UpdateMealLogDetailNutrition(int detailId, [FromForm] UpdateMealLogNutritionRequest request)
         {
             var result = await _mealLogService.UpdateMealLogDetailNutrition(detailId,request);
             return StatusCode(result.StatusCode, result);
