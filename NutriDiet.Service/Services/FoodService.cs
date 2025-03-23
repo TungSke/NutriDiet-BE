@@ -203,28 +203,33 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
             }
 
-            var userError = await _unitOfWork.UserRepository
+            var userInfo = await _unitOfWork.UserRepository
                             .GetByWhere(x => x.UserId == userid)
-                            .Select(x => new
-                            {
-                                AllergyNames = x.Allergies.Select(a => a.AllergyName).ToList(),
-                                DiseaseNames = x.Diseases.Select(d => d.DiseaseName).ToList()
-                            })
+                            .Include(x => x.Allergies).Include(x => x.Diseases)
+                            .Include(x => x.UserIngreDientPreferences).ThenInclude(x => x.Ingredient)
                             .FirstOrDefaultAsync();
 
-            if (userError == null)
+            if (userInfo == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
             }
 
-            var allergyNames = userError?.AllergyNames ?? new List<string>();
-            var diseaseNames = userError?.DiseaseNames ?? new List<string>();
+            var allergyNames = userInfo.Allergies?.Select(a => a.AllergyName).ToList() ?? new List<string>();
+            var diseaseNames = userInfo.Diseases?.Select(d => d.DiseaseName).ToList() ?? new List<string>();
 
             var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
             var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
             var cuisineType = await _unitOfWork.CuisineRepository.GetByIdAsync(cuisineId);
+
+            var userIngredientsReference = userInfo.UserIngreDientPreferences.Select(x => new
+            {
+                x.Ingredient.IngredientName,
+                x.Level,
+            }).ToList();
+
+            string favoriteIngredientsFormatted = userIngredientsReference.Any() ? string.Join(", ", userIngredientsReference.Select(x => $"{x.IngredientName} ({x.Level})")) : "không có";
 
             if (food == null || cuisineType == null)
             {
@@ -238,16 +243,19 @@ namespace NutriDiet.Service.Services
 
             string rejectionReason = existingRecipe?.RejectionReason ?? "";
 
-            string input = $"Tôi có các bệnh này: {formattedDiseases} \n" +
-                           $"và dị ứng này: {formattedAllergies} \n" +
-                           $"Hãy gợi ý cho tôi công thức để nấu món {food.FoodName}, nấu theo phong cách {cuisineType.CuisineName}.\n";
+            string input = @$"Tôi có các bệnh sau: {formattedDiseases}.
+Tôi bị dị ứng với các thành phần sau: {formattedAllergies}.
+Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
+Mức độ yêu thích các nguyên liệu như sau: {favoriteIngredientsFormatted}.
+Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo phong cách {cuisineType.CuisineName}.";
 
             if (!string.IsNullOrEmpty(rejectionReason))
             {
-                input += $"Lưu ý: Trước đó tôi đã không thích một công thức vì lý do '{rejectionReason}', hãy điều chỉnh lại công thức cho phù hợp.\n";
+                input += $"\nLưu ý: Trước đó tôi đã không thích một công thức vì lý do: '{rejectionReason}'. Hãy điều chỉnh lại công thức sao cho phù hợp.";
             }
 
-            input += "Trả lời dưới dạng như này: Công thức của bạn là...";
+            input += "\nTrả lời dưới dạng: Công thức của bạn là... cho người dị ứng và ghét các nguyên liệu (tên nguyên liệu).";
+
 
             var airesponse = await _aIGeneratorService.AIResponseText(input);
 

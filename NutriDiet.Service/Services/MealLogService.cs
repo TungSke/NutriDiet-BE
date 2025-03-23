@@ -25,15 +25,13 @@ namespace NutriDiet.Service.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AIGeneratorService _aiGeneratorService;
         private readonly string _userIdClaim;
-        private readonly IUserService _userService;
 
-        public MealLogService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService, IUserService userService)
+        public MealLogService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _aiGeneratorService = aIGeneratorService;
             _userIdClaim = GetUserIdClaim();
-            _userService = userService;
         }
         private string GetUserIdClaim()
         {
@@ -441,17 +439,17 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateMealLogAI()
         {
-            var isPremiumResult = await _userService.IsPremium();
-            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
-                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            var userId = int.Parse(_userIdClaim);
+            var isPremiumResult = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+            if (!isPremiumResult)
             {
                 return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
             }
-            var userId = int.Parse(_userIdClaim);
 
             var userInfo = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userId)
                                                            .Include(x => x.GeneralHealthProfiles)
                                                            .Include(x => x.UserFoodPreferences)
+                                                           .Include(x => x.UserIngreDientPreferences).ThenInclude(x => x.Ingredient)
                                                            .Include(x => x.PersonalGoals)
                                                            .Include(x => x.Allergies)
                                                            .Include(x => x.Diseases)
@@ -479,6 +477,15 @@ namespace NutriDiet.Service.Services
             var dailyCarb = personalGoal?.DailyCarb ?? 0;
             var dailyFat = personalGoal?.DailyFat ?? 0;
             var dailyProtein = personalGoal?.DailyProtein ?? 0;
+
+            var userIngredientsReference = userInfo.UserIngreDientPreferences.Select(x => new
+            {
+                x.Ingredient.IngredientName,
+                x.Level,
+            }).ToList();
+
+            string favoriteIngredientsFormatted = userIngredientsReference.Any() ? string.Join(", ", userIngredientsReference.Select(x => $"{x.IngredientName} ({x.Level})")) : "không có";
+
 
             // Lấy Meal Log 7 ngày gần nhất
             var mealLogs = await GetMealLogsByDateRange(null, DateTime.Now.AddDays(-7), DateTime.Now);
@@ -620,13 +627,12 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> SaveMeallogAI(string? feedback)
         {
-            var isPremiumResult = await _userService.IsPremium();
-            if (isPremiumResult.StatusCode != Const.HTTP_STATUS_OK ||
-                !(bool)isPremiumResult.Data.GetType().GetProperty("IsPremium").GetValue(isPremiumResult.Data))
+            var userId = int.Parse(_userIdClaim);
+            var isPremiumResult = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+            if (!isPremiumResult)
             {
                 return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
             }
-            var userId = int.Parse(_userIdClaim);
 
             var airecommendMeallogExisted = await _unitOfWork.AIRecommendationMeallogRepository.GetByWhere(x => x.UserId == userId && x.Status.ToLower() == "pending").FirstOrDefaultAsync();
             if(airecommendMeallogExisted == null)

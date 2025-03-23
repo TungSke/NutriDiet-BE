@@ -8,10 +8,8 @@ namespace NutriDiet.Common.Enums
 {
     public enum PreferenceLevel
     {
-        Hate = -2,
         Dislike = -1,
         Neutral = 0,
-        Like = 1,
-        Love = 2
+        Like = 1
     }
 }

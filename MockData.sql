@@ -414,13 +414,20 @@ VALUES
 
 SET IDENTITY_INSERT Food OFF;
 
-INSERT INTO CuisineType (CuisineName) VALUES 
-(N'Ẩm thực miền Bắc'),
-(N'Ẩm thực miền Trung'),
-(N'Ẩm thực miền Nam'),
-(N'Ẩm thực Tây Nguyên'),
-(N'Ẩm thực Nam Bộ'),
-(N'Ẩm thực Trung Hoa');
+-- Bật chế độ IDENTITY_INSERT
+SET IDENTITY_INSERT CuisineType ON;
+
+-- Thực hiện chèn dữ liệu
+INSERT INTO CuisineType (CuisineID, CuisineName) VALUES
+(1, N'Ẩm thực miền Bắc'),
+(2, N'Ẩm thực miền Trung'),
+(3, N'Ẩm thực miền Nam'),
+(4, N'Ẩm thực Tây Nguyên'),
+(5, N'Ẩm thực Nam Bộ'),
+(6, N'Ẩm thực Trung Hoa');
+
+-- Tắt chế độ IDENTITY_INSERT
+SET IDENTITY_INSERT CuisineType OFF;
 
 -- Insert data into MealPlan
 -- Thêm 3 MealPlan

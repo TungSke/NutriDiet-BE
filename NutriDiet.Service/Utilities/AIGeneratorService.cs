@@ -70,9 +70,9 @@ namespace NutriDiet.Service.Utilities
                 generationConfig = new
                 {
                     temperature = 1,
-                    topK = 64,
+                    topK = 40,
                     topP = 0.95,
-                    maxOutputTokens = 1000,
+                    maxOutputTokens = 8192,
                     responseMimeType = "text/plain"
                 }
             };

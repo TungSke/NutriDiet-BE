@@ -8,6 +8,7 @@ using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
+using NutriDiet.Service.Helpers;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
@@ -23,14 +24,15 @@ namespace NutriDiet.Service.Services
     public class PackageService : IPackageService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public PackageService(IUnitOfWork unitOfWork)
+        private readonly TokenHandlerHelper _tokenHandlerHelper;
+        public PackageService(IUnitOfWork unitOfWork, TokenHandlerHelper tokenHandlerHelper)
         {
             _unitOfWork = unitOfWork;
+            _tokenHandlerHelper = tokenHandlerHelper;
         }
      
         public async Task<IBusinessResult> CreatePackage(PackageRequest request)
         {
-
             var existingPackage = await _unitOfWork.PackageRepository
                 .GetByWhere(p => p.PackageName == request.PackageName)
                 .FirstOrDefaultAsync();
@@ -135,12 +137,19 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
+        public async Task<IBusinessResult> UserPayment(int packageId)
+        {
+            var userid = await _tokenHandlerHelper.GetUserId();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
+        }
+
         //private async Task<IBusinessResult> CreatePaymentRequestAsync(Package package, string cancelUrl, string returnUrl, List<ItemData> itemdata)
         //{
         //    PayOS _payOS = new PayOS(Environment.GetEnvironmentVariable("PAYOS_CLIENTID"), Environment.GetEnvironmentVariable("PAYOS_APIKEY"), Environment.GetEnvironmentVariable("PAYOS_CHECKSUMKEY"));
 
         //    long orderCode = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-        //    PaymentData paymentData = new PaymentData(orderCode, (int)order.FinalAmount, "Thanh toan don hang", itemdata, cancelUrl+ $"?orderId={order.OrderId}", returnUrl+ $"?orderId={order.OrderId}", null, order.Account.Name, order.Account.Email, order.Account.PhoneNumber, order.Account.Address, DateTimeOffset.Now.AddMinutes(5).ToUnixTimeSeconds());
+        //    PaymentData paymentData = new PaymentData(orderCode, package.Price, "Thanh toan don hang", itemdata, cancelUrl+ $"?orderId={order.OrderId}", returnUrl+ $"?orderId={order.OrderId}", null, order.Account.Name, order.Account.Email, order.Account.PhoneNumber, order.Account.Address, DateTimeOffset.Now.AddMinutes(5).ToUnixTimeSeconds());
 
         //    CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
         //    return createPayment;

@@ -68,7 +68,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateMealPlan(MealPlanRequest mealPlanRequest)
         {
-            
+
             var userid = int.Parse(_userIdClaim);
 
             var existedUser = await _unitOfWork.UserRepository.GetByIdAsync(userid);
@@ -390,6 +390,7 @@ namespace NutriDiet.Service.Services
                                                        .Include(x => x.HealthcareIndicators)
                                                        .Include(x => x.PersonalGoals)
                                                        .Include(x => x.UserFoodPreferences)
+                                                       .Include(x => x.UserIngreDientPreferences).ThenInclude(x => x.Ingredient)
                                                        .Include(x => x.Allergies)
                                                        .Include(x => x.Diseases)
                                                        .FirstOrDefaultAsync();
@@ -409,19 +410,23 @@ namespace NutriDiet.Service.Services
             var diseaseIds = new List<int>(userAllergyDisease.DiseaseIds);
 
             var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
+            var foodResponse = foods.Adapt<List<FoodResponse>>();
+            var foodListText = JsonSerializer.Serialize(foodResponse);
 
+            //dị ứng và bệnh tật
             var allergyNames = userInfo?.Allergies.Select(x => x.AllergyName) ?? new List<string>();
             var diseaseNames = userInfo?.Diseases.Select(x => x.DiseaseName) ?? new List<string>();
 
             var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
-            var foodListText = JsonSerializer.Serialize(foods);
+
 
             var airecommendationResponse = await _unitOfWork.AIRecommendationRepository
                         .GetByWhere(x => x.Status.ToLower() == AIRecommendStatus.Pending.ToString().ToLower() && x.UserId == userid)
                         .FirstOrDefaultAsync();
 
+            //hồ sơ sức khỏe
             var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
             var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
             var height = userProfile?.Height ?? 0;
@@ -438,18 +443,41 @@ namespace NutriDiet.Service.Services
             var rejectionReason = airecommendationResponse?.RejectionReason;
             var rejectionText = string.IsNullOrEmpty(rejectionReason) ? "không có" : rejectionReason;
 
+            //thành phần user thích hay ghét
+            var userIngredientsReference = userInfo.UserIngreDientPreferences.Select(x => new
+            {
+                x.Ingredient.IngredientName,
+                x.Level,
+            }).ToList();
+
+            string favoriteIngredientsFormatted = userIngredientsReference.Any() ? string.Join(", ", userIngredientsReference.Select(x => $"{x.IngredientName} ({x.Level})")) : "không có";
+
             var mealPlanRequesttest = new MealPlanRequest
             {
-                PlanName = $"kế hoạch ăn (bệnh lý user) của {userInfo.FullName}",
+                PlanName = $"kế hoạch ăn của {userInfo.FullName} cho người ghét hành",
                 HealthGoal = "string",
                 MealPlanDetails = new List<MealPlanDetailRequest>
                 {
                     new MealPlanDetailRequest
                     {
-                        FoodId = 0,
+                        FoodId = 1,
                         Quantity = 1,
-                        MealType = "string",
-                        DayNumber = 0
+                        MealType = "Breakfast",
+                        DayNumber = 1
+                    },
+                    new MealPlanDetailRequest
+                    {
+                        FoodId = 2,
+                        Quantity = 1,
+                        MealType = "Lunch",
+                        DayNumber = 1
+                    },
+                    new MealPlanDetailRequest
+                    {
+                        FoodId = 3,
+                        Quantity = 1,
+                        MealType = "Dinner",
+                        DayNumber = 1
                     }
                 }
             };
@@ -468,6 +496,7 @@ namespace NutriDiet.Service.Services
                         - **Cân nặng:** {weight} kg
                         - **Mức độ vận động:** {activityLevel}
                         - **Mục tiêu:** {goalType} ({startDate} - {targetDate})
+                        - **Thành phần yêu thích:** {favoriteIngredientsFormatted}      
 
                         Yêu cầu cho Meal Plan:
                         - **Thực đơn 7 ngày** với 3 bữa chính mỗi ngày (Breakfast, Lunch, Dinner)
@@ -482,12 +511,15 @@ namespace NutriDiet.Service.Services
                         - **Protein:** {dailyProtein}
 
                         Lưu ý:
+                        - Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
                         - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}
                         - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
 
+
+
             // Xử lý dữ liệu đầu vào và gửi yêu cầu tạo Meal Plan phù hợp
             var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOutputSample);
-
+            //return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, airesponse);
             if (string.IsNullOrEmpty(airesponse))
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid format");
@@ -582,7 +614,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetMyMealPlan(int pageIndex, int pageSize, string? search)
         {
-            
+
             int userid = int.Parse(_userIdClaim);
 
             search = search?.ToLower() ?? string.Empty;
@@ -625,7 +657,7 @@ namespace NutriDiet.Service.Services
                 existingActiveMealPlan.Status = MealplanStatus.Inactive.ToString();
                 existingActiveMealPlan.StartAt = null;
             }
-            
+
 
             if (mealPlan.Status == MealplanStatus.Inactive.ToString() && mealPlan.StartAt == null)
             {
