@@ -60,7 +60,15 @@ namespace NutriDiet.API.Controllers
         [Authorize]
         public async Task<IActionResult> PreferenceIngredient(int ingredientId, PreferenceLevel preferenceLevel)
         {
-            var result = await _ingredientService.PreferenceIngredient(ingredientId, (int)preferenceLevel);
+            var result = await _ingredientService.UpdatePreferenceIngredient(ingredientId, (int)preferenceLevel);
+            return Ok(result);
+        }
+
+        [HttpGet("preference")]
+        [Authorize]
+        public async Task<IActionResult> GetPreferenceIngredient()
+        {
+            var result = await _ingredientService.GetPreferenceIngredient();
             return Ok(result);
         }
     }

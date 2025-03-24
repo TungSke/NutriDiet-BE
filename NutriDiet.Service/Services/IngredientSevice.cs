@@ -8,11 +8,6 @@ using NutriDiet.Service.Helpers;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Services
 {
@@ -101,7 +96,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
 
-        public async Task<IBusinessResult> PreferenceIngredient(int ingredientId, int preferenceLevel)
+        public async Task<IBusinessResult> UpdatePreferenceIngredient(int ingredientId, int preferenceLevel)
         {
             var userId = await _tokenHandlerHelper.GetUserId();
 
@@ -131,6 +126,13 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
+        }
+
+        public async Task<IBusinessResult> GetPreferenceIngredient()
+        {
+            var userId = await _tokenHandlerHelper.GetUserId();
+            var userIngredients = await _unitOfWork.UserIngredientPreferenceRepository.GetByWhere(x => x.UserId == userId).ToListAsync();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, userIngredients);
         }
     }
 }
