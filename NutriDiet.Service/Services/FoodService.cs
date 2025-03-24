@@ -321,5 +321,84 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodRecipe);
         }
+
+        public async Task<IBusinessResult> AddFavoriteFood(int foodId)
+        {
+            int userId = int.Parse(_userIdClaim);
+
+            var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
+            if (food == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
+            }
+
+            var existingPreference = await _unitOfWork.UserFoodPreferenceRepository
+                .GetByWhere(x => x.UserId == userId && x.FoodId == foodId)
+                .FirstOrDefaultAsync();
+
+            if (existingPreference != null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food is already in your favorite list");
+            }
+
+            var userFoodPreference = new UserFoodPreference
+            {
+                UserId = userId,
+                FoodId = foodId,
+                Preference = "Favorite"
+            };
+
+            await _unitOfWork.UserFoodPreferenceRepository.AddAsync(userFoodPreference);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
+        }
+
+        public async Task<IBusinessResult> RemoveFavoriteFood(int foodId)
+        {
+            int userId = int.Parse(_userIdClaim);
+
+            var preference = await _unitOfWork.UserFoodPreferenceRepository
+                .GetByWhere(x => x.UserId == userId && x.FoodId == foodId)
+                .FirstOrDefaultAsync();
+
+            if (preference == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found in your favorite list");
+            }
+
+            await _unitOfWork.UserFoodPreferenceRepository.DeleteAsync(preference);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
+        }
+
+        public async Task<IBusinessResult> GetFavoriteFoods(int pageIndex, int pageSize)
+        {
+            int userid = int.Parse(_userIdClaim);
+
+            var preference = await _unitOfWork.UserFoodPreferenceRepository.GetPagedAsync(
+                pageIndex,
+                pageSize,
+                x => x.UserId == userid,
+                null,
+                i => i.Include(x => x.Food).Include(x => x.User));
+
+            if (preference == null || !preference.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+
+            var response = preference.Select(p => new UserFoodPreferenceResponse
+            {
+                UserFoodPreferenceId = p.UserFoodPreferenceId,
+                UserId = p.UserId,
+                FullName = p.User.FullName,
+                FoodId = p.FoodId,
+                FoodName = p.Food.FoodName
+            }).ToList();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
     }
 }

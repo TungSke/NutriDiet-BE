@@ -101,7 +101,10 @@ namespace NutriDiet.Service.Services
                 }
 
                     var foodExistedInMeal = _unitOfWork.MealPlanDetailRepository
-                    .GetByWhere(x => x.FoodId == mealPlanDetailRequest.FoodId && x.MealType == mealPlanDetailRequest.MealType && x.DayNumber == mealPlanDetailRequest.DayNumber)
+                    .GetByWhere(x => x.MealPlanId == mealPlanId
+                     && x.FoodId == mealPlanDetailRequest.FoodId
+                     && x.MealType == mealPlanDetailRequest.MealType
+                     && x.DayNumber == mealPlanDetailRequest.DayNumber)
                     .FirstOrDefault();
                     if (foodExistedInMeal != null)
                     {

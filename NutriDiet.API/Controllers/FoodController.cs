@@ -85,5 +85,29 @@ namespace NutriDiet.API.Controllers
             var result = await _foodService.GetFoodRecipe(foodId);
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpGet("user-food-preference")]
+        [Authorize]
+        public async Task<IActionResult> GetFavoriteFoods(int pageIndex, int pageSize)
+        {
+            var result = await _foodService.GetFavoriteFoods(pageIndex, pageSize);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPost("user-food-preference/{foodId}")]
+        [Authorize]
+        public async Task<IActionResult> AddFavoriteFood(int foodId)
+        {
+            var result = await _foodService.AddFavoriteFood(foodId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpDelete("user-food-preference/{foodId}")]
+        [Authorize]
+        public async Task<IActionResult> RemoveFavoriteFood(int foodId)
+        {
+            var result = await _foodService.RemoveFavoriteFood(foodId);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

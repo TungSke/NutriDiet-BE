@@ -28,6 +28,7 @@ namespace NutriDiet.Repository
         private IPackageRepository _packageRepository;
         private IUserPackageRepository _userPackageRepository;
         private ISystemConfigurationRepository _systemConfigurationRepository;
+        private IUserFoodPreferenceRepository _userFoodPreferenceRepository;
 
         public UnitOfWork(NutriDietContext context)
         {
@@ -53,6 +54,7 @@ namespace NutriDiet.Repository
         public IPackageRepository PackageRepository => _packageRepository ??= new PackageRepository(_context);
         public IUserPackageRepository UserPackageRepository => _userPackageRepository ??= new UserPackageRepository(_context);
         public ISystemConfigurationRepository SystemConfigurationRepository => _systemConfigurationRepository ??= new SystemConfigurationRepository(_context);
+        public IUserFoodPreferenceRepository UserFoodPreferenceRepository => _userFoodPreferenceRepository ??= new UserFoodPreferenceRepository(_context);
 
         public async Task BeginTransaction()
         {
