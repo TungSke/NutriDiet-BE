@@ -100,7 +100,8 @@ namespace NutriDiet.API.Controllers
                     age = user.Age.ToString(),
                     phoneNumber = user.Phone ?? "0123456789",
                     address = user.Location ?? "Vietnam",
-                    avatar = user.Avatar ?? ""
+                    avatar = user.Avatar ?? "",
+                    package = user.UserPackages.FirstOrDefault().Package.PackageName,
                 });
             }
             return Unauthorized();

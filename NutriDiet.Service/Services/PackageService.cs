@@ -158,7 +158,7 @@ namespace NutriDiet.Service.Services
                 UserId = userid,
                 PackageId = packageId,
                 StartDate = DateTime.UtcNow,
-                ExpiryDate = DateTime.UtcNow.AddMonths(package.Duration.Value),
+                ExpiryDate = DateTime.UtcNow,
                 Status = "InActive"
             };
             await _unitOfWork.UserPackageRepository.AddAsync(userPackage);
@@ -169,6 +169,30 @@ namespace NutriDiet.Service.Services
             var result = await CreatePaymentRequestAsync(package, user, cancelUrl, returnUrl, itemdata);
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result.Data);
+        }
+
+        public async Task<IBusinessResult> PAYOSCallback(string status)
+        {
+            var userid = await _tokenHandlerHelper.GetUserId();
+            var userPackage = await _unitOfWork.UserPackageRepository.GetByWhere(x => x.UserId == userid && x.Status == "InActive").OrderByDescending(x => x.StartDate).FirstOrDefaultAsync();
+            if (userPackage == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại");
+            }
+
+            if (status.ToLower() == "success" || status.ToLower() == "paid")
+            {
+                userPackage.Status = "Active";
+                userPackage.ExpiryDate = userPackage.StartDate.Value.AddMonths(userPackage.Package.Duration.Value);
+                await _unitOfWork.UserPackageRepository.UpdateAsync(userPackage);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                await _unitOfWork.UserPackageRepository.DeleteAsync(userPackage);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
         private async Task<IBusinessResult> CreatePaymentRequestAsync(Package package, User user, string cancelUrl, string returnUrl, List<ItemData> itemdata)

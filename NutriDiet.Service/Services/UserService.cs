@@ -57,7 +57,7 @@ namespace NutriDiet.Service.Services
 
         public async Task<User> findUserById(int id)
         {
-            return await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == id).Include(x => x.Role).FirstOrDefaultAsync();
+            return await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == id).Include(x => x.Role).Include(x => x.UserPackages).ThenInclude(x => x.Package).FirstOrDefaultAsync();
         }
 
         public async Task<IBusinessResult> Register(RegisterRequest request)

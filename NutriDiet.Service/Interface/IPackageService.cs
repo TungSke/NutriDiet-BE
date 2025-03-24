@@ -15,5 +15,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> DeletePackage(int packageId);
         Task<IBusinessResult> GetUserPackage(int pageIndex, int pageSize, string? status, string? search);
         Task<IBusinessResult> PayforPackage(string cancelUrl, string returnUrl, int packageId);
+        Task<IBusinessResult> PAYOSCallback(string status);
     }
 }
