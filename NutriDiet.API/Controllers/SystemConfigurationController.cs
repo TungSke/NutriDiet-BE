@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Common.Enums;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
+using System.ComponentModel.DataAnnotations;
 
 namespace NutriDiet.API.Controllers
 {
@@ -23,6 +26,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
         public async Task<IActionResult> CreateSystemConfig(SystemConfigurationRequest request)
         {
             var result = await _systemConfigurationService.CreateSystemConfig(request);
@@ -30,6 +34,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPut("{configId}")]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
         public async Task<IActionResult> UpdateSystemConfig(int configId, SystemConfigurationRequest request)
         {
             var result = await _systemConfigurationService.UpdateSystemConfig(configId, request);
@@ -37,12 +42,20 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpDelete("{configId}")]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
         public async Task<IActionResult> DeleteSystemConfig(int configId)
         {
             var result = await _systemConfigurationService.DeleteSystemConfig(configId);
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpGet("checkme")]
+        [Authorize]
+        public async Task<IActionResult> CheckMySystemConfig([Required] SystemConfigEnum systemConfig)
+        {
+            var result = await _systemConfigurationService.CheckMySystemConfig(systemConfig);
+            return StatusCode(result.StatusCode, result);
+        }
 
     }
 }

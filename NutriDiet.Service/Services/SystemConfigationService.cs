@@ -1,27 +1,26 @@
 ﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
+using NutriDiet.Service.Helpers;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Services
 {
     public class SystemConfigationService : ISystemConfigurationService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly TokenHandlerHelper _tokenHandlerHelper;
 
-        public SystemConfigationService(IUnitOfWork unitOfWork)
+        public SystemConfigationService(IUnitOfWork unitOfWork, TokenHandlerHelper tokenHandlerHelper)
         {
             _unitOfWork=unitOfWork;
+            _tokenHandlerHelper=tokenHandlerHelper;
         }
 
         public async Task<IBusinessResult> GetSystemConfig(int pageIndex, int pageSize, string search)
@@ -45,7 +44,7 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> UpdateSystemConfig(int configId, SystemConfigurationRequest request)
         {
             var config = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(configId);
-            if(config == null)
+            if (config == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "config not found");
             }
@@ -66,9 +65,27 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG);
         }
 
-        public async Task<IBusinessResult> CheckMySystemConfig()
+        public async Task<IBusinessResult> CheckMySystemConfig(SystemConfigEnum systemConfig)
         {
-            return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG);
+            var userid = await _tokenHandlerHelper.GetUserId();
+            switch (systemConfig)
+            {
+                case SystemConfigEnum.MinAge:
+                    var user = await _unitOfWork.UserRepository.GetByIdAsync(userid);
+                    var config = await _unitOfWork.SystemConfigurationRepository.GetByWhere(x => x.Name == SystemConfigEnum.MinAge.ToString()).FirstOrDefaultAsync();
+                    if (user == null)
+                    {
+                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "user not found");
+                    }
+                    if (user.Age < config.MinValue)
+                    {
+                        return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"user age is {user.Age} is not valid, system required {config.MinValue}");
+                    }
+                    return new BusinessResult(Const.HTTP_STATUS_OK, $"user age is {user.Age} valid");
+                    break;
+                default:
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "system config not found");
+            }
         }
 
 

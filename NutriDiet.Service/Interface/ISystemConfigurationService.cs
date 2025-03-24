@@ -1,4 +1,5 @@
 ﻿using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Service.ModelDTOs.Request;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> CreateSystemConfig(SystemConfigurationRequest request);
         Task<IBusinessResult> UpdateSystemConfig(int configId, SystemConfigurationRequest request);
         Task<IBusinessResult> DeleteSystemConfig(int configId);
-        Task<IBusinessResult> CheckMySystemConfig();
+        Task<IBusinessResult> CheckMySystemConfig(SystemConfigEnum systemConfig);
     }
 }

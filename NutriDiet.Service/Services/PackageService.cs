@@ -30,7 +30,7 @@ namespace NutriDiet.Service.Services
             _unitOfWork = unitOfWork;
             _tokenHandlerHelper = tokenHandlerHelper;
         }
-     
+
         public async Task<IBusinessResult> CreatePackage(PackageRequest request)
         {
             var existingPackage = await _unitOfWork.PackageRepository
@@ -40,7 +40,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Tên gói đã tồn tại");
             }
-            
+
             var package = request.Adapt<Package>();
             package.CreatedAt = DateTime.UtcNow;
             package.UpdatedAt = DateTime.UtcNow;
@@ -107,7 +107,7 @@ namespace NutriDiet.Service.Services
                       (string.IsNullOrEmpty(search) || x.User.FullName.ToLower().Contains(search)
                                                    || x.Package.PackageName.ToLower().Contains(search)),
                 q => q.OrderByDescending(x => x.StartDate),
-                i => i.Include(x => x.User).Include(x=>x.Package)
+                i => i.Include(x => x.User).Include(x => x.Package)
                 );
             if (userPackages == null || !userPackages.Any())
             {
@@ -137,23 +137,50 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task<IBusinessResult> UserPayment(int packageId)
+        public async Task<IBusinessResult> PayforPackage(string cancelUrl, string returnUrl, int packageId)
         {
             var userid = await _tokenHandlerHelper.GetUserId();
+            var userPackagecheck = await _unitOfWork.UserPackageRepository.GetByWhere(x => x.UserId == userid && x.PackageId == packageId).FirstOrDefaultAsync();
+            if (userPackagecheck != null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Gói đã tồn tại");
+            }
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userid);
+            var package = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
+            if (package == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại");
+            }
+
+            var userPackage = new UserPackage
+            {
+                UserId = userid,
+                PackageId = packageId,
+                StartDate = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddMonths(package.Duration.Value),
+                Status = "InActive"
+            };
+            await _unitOfWork.UserPackageRepository.AddAsync(userPackage);
+            await _unitOfWork.SaveChangesAsync();
+
+            List<ItemData> itemdata = new List<ItemData>();
+            itemdata.Add(new ItemData(package.PackageName, 1, Convert.ToInt32(package.Price.Value)));
+            var result = await CreatePaymentRequestAsync(package, user, cancelUrl, returnUrl, itemdata);
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result.Data);
         }
 
-        //private async Task<IBusinessResult> CreatePaymentRequestAsync(Package package, string cancelUrl, string returnUrl, List<ItemData> itemdata)
-        //{
-        //    PayOS _payOS = new PayOS(Environment.GetEnvironmentVariable("PAYOS_CLIENTID"), Environment.GetEnvironmentVariable("PAYOS_APIKEY"), Environment.GetEnvironmentVariable("PAYOS_CHECKSUMKEY"));
+        private async Task<IBusinessResult> CreatePaymentRequestAsync(Package package, User user, string cancelUrl, string returnUrl, List<ItemData> itemdata)
+        {
+            PayOS _payOS = new PayOS(Environment.GetEnvironmentVariable("PAYOS_CLIENTID"), Environment.GetEnvironmentVariable("PAYOS_APIKEY"), Environment.GetEnvironmentVariable("PAYOS_CHECKSUMKEY"));
 
-        //    long orderCode = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-        //    PaymentData paymentData = new PaymentData(orderCode, package.Price, "Thanh toan don hang", itemdata, cancelUrl+ $"?orderId={order.OrderId}", returnUrl+ $"?orderId={order.OrderId}", null, order.Account.Name, order.Account.Email, order.Account.PhoneNumber, order.Account.Address, DateTimeOffset.Now.AddMinutes(5).ToUnixTimeSeconds());
+            long orderCode = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            PaymentData paymentData = new PaymentData(orderCode, Convert.ToInt32(package.Price.Value * 1000), "Thanh toan don hang", itemdata, cancelUrl, returnUrl, null, user.FullName, user.Email, user.Phone, "Không có", DateTimeOffset.Now.AddMinutes(5).ToUnixTimeSeconds());
 
-        //    CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
-        //    return createPayment;
-        //}
+            CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, createPayment.checkoutUrl);
+        }
 
     }
 }

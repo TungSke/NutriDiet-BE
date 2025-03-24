@@ -48,6 +48,12 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-
+        [HttpPost("pay")]
+        [Authorize]
+        public async Task<IActionResult> PayforPackage(string cancelUrl, string returnUrl, int packageId)
+        {
+            var result = await _packageService.PayforPackage(cancelUrl, returnUrl, packageId);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

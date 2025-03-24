@@ -69,7 +69,7 @@ CREATE TABLE UserPackage (
     PackageID INT NOT NULL,
     StartDate DATETIME DEFAULT GETDATE(),
     ExpiryDate DATETIME NOT NULL,
-    Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')),
+    Status NVARCHAR(50),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
     FOREIGN KEY (PackageID) REFERENCES Package(PackageID) ON DELETE CASCADE
 );
