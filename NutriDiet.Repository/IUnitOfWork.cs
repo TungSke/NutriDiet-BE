@@ -28,5 +28,6 @@ namespace NutriDiet.Repository.Interface
         IPackageRepository PackageRepository { get; }
         IUserPackageRepository UserPackageRepository { get; }
         ISystemConfigurationRepository SystemConfigurationRepository { get; }
+        IUserFoodPreferenceRepository UserFoodPreferenceRepository { get; }
     }
 }

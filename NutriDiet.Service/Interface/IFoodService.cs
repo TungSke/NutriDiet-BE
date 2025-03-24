@@ -27,5 +27,8 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> RejectRecipe(RejectRecipeRequest request);
 
         Task<IBusinessResult> GetFoodRecipe(int foodId);
+        Task<IBusinessResult> GetFavoriteFoods(int pageIndex, int pageSize);
+        Task<IBusinessResult> AddFavoriteFood(int foodId);
+        Task<IBusinessResult> RemoveFavoriteFood(int foodId);
     }
 }
