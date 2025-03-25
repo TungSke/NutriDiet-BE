@@ -57,7 +57,7 @@ namespace NutriDiet.Service.Services
 
             // Kiểm tra MealLog theo ngày
             var existingMealLog = await _unitOfWork.MealLogRepository
-                .GetByWhere(m => m.UserId == userId && m.LogDate == logDate)
+                .GetByWhere(m => m.UserId == userId && m.LogDate.Value.Date == logDate)
                 .Include(m => m.MealLogDetails)
                 .FirstOrDefaultAsync();
 
