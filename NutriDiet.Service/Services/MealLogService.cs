@@ -15,6 +15,7 @@ using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text.Json;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -613,6 +614,7 @@ namespace NutriDiet.Service.Services
 
         private async Task SaveMeallogOneDay(List<MealLogRequest> requests)
         {
+
             if (requests == null || !requests.Any())
             {
                 throw new ArgumentException("Meal log request list cannot be empty.");
@@ -645,7 +647,15 @@ namespace NutriDiet.Service.Services
                 airecommendMeallogExisted.Feedback = feedback;
             }         
             var aiResponse = JsonSerializer.Deserialize<List<MealLogRequest>>(airecommendMeallogExisted.AirecommendMealLogResponse);
+            var logDate = DateTime.Now;
 
+            var existingMealLog = await _unitOfWork.MealLogRepository.GetByWhere(
+                        x => x.UserId == userId && x.LogDate.Value.Date == logDate.Date).AsNoTracking().FirstOrDefaultAsync();
+
+            if (existingMealLog != null)
+            {
+                await _unitOfWork.MealLogRepository.DeleteAsync(existingMealLog);
+            }
             await SaveMeallogOneDay(aiResponse);
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log AI saved successfully.");
