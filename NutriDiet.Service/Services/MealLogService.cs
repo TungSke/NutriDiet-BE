@@ -647,14 +647,15 @@ namespace NutriDiet.Service.Services
                 airecommendMeallogExisted.Feedback = feedback;
             }         
             var aiResponse = JsonSerializer.Deserialize<List<MealLogRequest>>(airecommendMeallogExisted.AirecommendMealLogResponse);
-            var logDate = DateTime.Now;
-
-            var existingMealLog = await _unitOfWork.MealLogRepository.GetByWhere(
-                        x => x.UserId == userId && x.LogDate.Value.Date == logDate.Date).AsNoTracking().FirstOrDefaultAsync();
-
+            var today = DateTime.Now.Date;
+            var existingMealLog = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.UserId == userId && m.LogDate.Value.Date == today)
+                .Include(m => m.MealLogDetails)
+                .FirstOrDefaultAsync();
             if (existingMealLog != null)
             {
                 await _unitOfWork.MealLogRepository.DeleteAsync(existingMealLog);
+                await _unitOfWork.SaveChangesAsync();
             }
             await SaveMeallogOneDay(aiResponse);
 
