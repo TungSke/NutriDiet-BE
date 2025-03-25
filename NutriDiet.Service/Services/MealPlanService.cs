@@ -648,14 +648,14 @@ namespace NutriDiet.Service.Services
 
             int userId = int.Parse(_userIdClaim);
 
-            var existingActiveMealPlan = await _unitOfWork.MealPlanRepository.GetByWhere(
-                    x => x.UserId == userId
-                    && x.Status == MealplanStatus.Active.ToString()
-                    && x.StartAt != null).FirstOrDefaultAsync();
-            if (existingActiveMealPlan != null)
+            var existingActiveMealPlan = _unitOfWork.MealPlanRepository.GetAll()
+                 .Any(x => x.UserId == userId // any: check true false
+                     && x.Status == MealplanStatus.Active.ToString()
+                     && x.StartAt != null);
+
+            if (existingActiveMealPlan && mealPlan.Status == MealplanStatus.Inactive.ToString())
             {
-                existingActiveMealPlan.Status = MealplanStatus.Inactive.ToString();
-                existingActiveMealPlan.StartAt = null;
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đã có một thực đơn đang được áp dụng");
             }
 
 
