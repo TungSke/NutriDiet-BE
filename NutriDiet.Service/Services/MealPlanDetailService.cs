@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
@@ -72,6 +73,10 @@ namespace NutriDiet.Service.Services
                 {
                     mealPlan.Duration = remainingDetails.Select(d => d.DayNumber).Distinct().Count();
                     await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+
+                    // Đồng bộ MealLog nếu MealPlan đang Active
+                    await SyncActiveMealPlanWithMealLog(mealPlanId);
+
                     await _unitOfWork.SaveChangesAsync();
                     await _unitOfWork.CommitTransaction();
                 }
@@ -139,6 +144,9 @@ namespace NutriDiet.Service.Services
                 mealPlan.Duration = uniqueDays.Count();
                 await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
 
+                // Đồng bộ MealLog nếu MealPlan đang Active
+                await SyncActiveMealPlanWithMealLog(mealPlanId);
+
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransaction();
 
@@ -182,8 +190,8 @@ namespace NutriDiet.Service.Services
 
                 //update meal plan duration
 
-                var mealplanId = mealPlanDetail.MealPlanId;
-                var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealplanId);
+                var mealPlanId = mealPlanDetail.MealPlanId;
+                var mealPlan = await _unitOfWork.MealPlanRepository.GetByIdAsync(mealPlanId);
                 if (mealPlan != null)
                 {
                     var existedDetail = _unitOfWork.MealPlanDetailRepository.GetAll().Where(x => x.MealPlanId == mealPlan.MealPlanId);
@@ -193,6 +201,10 @@ namespace NutriDiet.Service.Services
                     mealPlan.Duration = uniqueDays.Count();
                     await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
                 }
+
+                // Đồng bộ MealLog nếu MealPlan đang Active
+                await SyncActiveMealPlanWithMealLog(mealPlanId);
+
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransaction();
 
@@ -246,6 +258,65 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
+        public async Task SyncActiveMealPlanWithMealLog(int mealPlanId)
+        {
+            var mealPlan = await _unitOfWork.MealPlanRepository
+                .GetByWhere(x=>x.MealPlanId == mealPlanId)
+                .Include(x=>x.MealPlanDetails)
+                .FirstOrDefaultAsync();
 
+            if (mealPlan == null || mealPlan.Status != MealplanStatus.Active.ToString() || !mealPlan.StartAt.HasValue)
+            {
+                return;
+            }
+
+            var userId = mealPlan.UserId;
+            
+            var startDay = mealPlan.StartAt.Value.Date;
+            var currentDay = DateTime.Now.Date;
+
+            // only sync từ ngày hiện tại trở đi
+            foreach(var meaplandetail in mealPlan.MealPlanDetails.GroupBy(x => x.DayNumber))
+            {
+                var dayNumber = meaplandetail.Key;
+                var logDate = startDay.AddDays(dayNumber - 1);
+                if(logDate < currentDay) continue; // bỏ qua ngày trong quá khứ
+
+                var existingMealLog = await _unitOfWork.MealLogRepository
+                    .GetByWhere(x=>x.UserId == userId && x.LogDate.Value.Date == logDate.Date)
+                    .Include(x=>x.MealLogDetails)
+                    .FirstOrDefaultAsync();
+
+                if(existingMealLog != null)
+                {
+                    await _unitOfWork.MealLogRepository.DeleteAsync(existingMealLog);
+                }
+
+                //tạo meallogdetail
+                var mealLogDetails = meaplandetail.Select( detail => new MealLogDetail
+                {
+                    FoodId = detail.FoodId,
+                    Quantity = detail.Quantity,
+                    MealType = detail.MealType,
+                    Calories = detail.TotalCalories,
+                    Carbs = detail.TotalCarbs,
+                    Fat = detail.TotalFat,
+                    Protein = detail.TotalProtein
+                }).ToList();
+
+                //tạo meallog
+                var mealLog = new MealLog
+                {
+                    UserId = userId,
+                    LogDate = logDate,
+                    TotalCalories = mealLogDetails.Sum(x => x.Calories ?? 0),
+                    TotalProtein = mealLogDetails.Sum(x => x.Protein ?? 0),
+                    TotalCarbs = mealLogDetails.Sum(x => x.Carbs ?? 0),
+                    TotalFat = mealLogDetails.Sum(x => x.Fat ?? 0),
+                    MealLogDetails = mealLogDetails
+                };
+                await _unitOfWork.MealLogRepository.AddAsync(mealLog);
+            }
+        }
     }
 }
