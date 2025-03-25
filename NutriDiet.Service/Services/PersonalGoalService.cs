@@ -98,10 +98,10 @@ namespace NutriDiet.Service.Services
             personalGoal.ProgressRate = (int)(currentWeight - request.TargetWeight);
             personalGoal.DailyCalories = (int)dailyCalories;
             personalGoal.TargetDate = targetDate ?? DateTime.Now;
-            // Chuyển đổi từ % sang gam dựa trên dailyCalories:
-            personalGoal.DailyCarb = dailyCalories * (macronutrients.CarbRatio / 100.0) / 4.0;
-            personalGoal.DailyProtein = dailyCalories * (macronutrients.ProteinRatio / 100.0) / 4.0;
-            personalGoal.DailyFat = dailyCalories * (macronutrients.FatRatio / 100.0) / 9.0;
+            // Chuyển đổi từ % sang gam dựa trên dailyCalories và làm tròn 2 chữ số:
+            personalGoal.DailyCarb = Math.Round(dailyCalories * (macronutrients.CarbRatio / 100.0) / 4.0, 2);
+            personalGoal.DailyProtein = Math.Round(dailyCalories * (macronutrients.ProteinRatio / 100.0) / 4.0, 2);
+            personalGoal.DailyFat = Math.Round(dailyCalories * (macronutrients.FatRatio / 100.0) / 9.0, 2);
 
             await _unitOfWork.PersonalGoalRepository.AddAsync(personalGoal);
             await _unitOfWork.SaveChangesAsync();
@@ -243,6 +243,7 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+
         public async Task<IBusinessResult> UpdatePersonalGoal(PersonalGoalRequest request)
         {
             var userId = int.Parse(_userIdClaim);
@@ -303,10 +304,10 @@ namespace NutriDiet.Service.Services
                 request.Adapt(existingGoal);
                 existingGoal.DailyCalories = (int)dailyCalories;
                 existingGoal.TargetDate = targetDate ?? DateTime.Now;
-                // Chuyển đổi % sang gam:
-                existingGoal.DailyCarb = dailyCalories * (macronutrients.CarbRatio / 100.0) / 4.0;
-                existingGoal.DailyProtein = dailyCalories * (macronutrients.ProteinRatio / 100.0) / 4.0;
-                existingGoal.DailyFat = dailyCalories * (macronutrients.FatRatio / 100.0) / 9.0;
+                // Chuyển đổi % sang gam và làm tròn 2 chữ số:
+                existingGoal.DailyCarb = Math.Round(dailyCalories * (macronutrients.CarbRatio / 100.0) / 4.0, 2);
+                existingGoal.DailyProtein = Math.Round(dailyCalories * (macronutrients.ProteinRatio / 100.0) / 4.0, 2);
+                existingGoal.DailyFat = Math.Round(dailyCalories * (macronutrients.FatRatio / 100.0) / 9.0, 2);
                 existingGoal.ProgressRate = (int)(currentWeight - request.TargetWeight);
                 existingGoal.ProgressPercentage = 0;
 
@@ -340,10 +341,11 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Personal goal not found.", null);
             }
 
-            // Dựa vào DailyCalories đã tính, chuyển đổi % sang gam:
-            existingGoal.DailyCarb = existingGoal.DailyCalories * (request.DailyCarb / 100.0) / 4.0;
-            existingGoal.DailyProtein = existingGoal.DailyCalories * (request.DailyProtein / 100.0) / 4.0;
-            existingGoal.DailyFat = existingGoal.DailyCalories * (request.DailyFat / 100.0) / 9.0;
+            // Dựa vào DailyCalories đã tính, chuyển đổi % sang gam và làm tròn 2 chữ số:
+            double dailyCalories = Convert.ToDouble(existingGoal.DailyCalories);
+            existingGoal.DailyCarb = Math.Round(dailyCalories * (request.DailyCarb / 100.0) / 4.0, 2);
+            existingGoal.DailyProtein = Math.Round(dailyCalories * (request.DailyProtein / 100.0) / 4.0, 2);
+            existingGoal.DailyFat = Math.Round(dailyCalories * (request.DailyFat / 100.0) / 9.0, 2);
 
             await _unitOfWork.PersonalGoalRepository.UpdateAsync(existingGoal);
             await _unitOfWork.SaveChangesAsync();
