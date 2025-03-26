@@ -12,5 +12,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public string? Notes { get; set; }
 
+        public List<int> ingredientIds { get; set; } = new List<int>();
+
     }
 }

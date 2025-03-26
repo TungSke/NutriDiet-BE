@@ -42,7 +42,7 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid request");
             }
 
-            // Check if a disease with the same name already exists (case-insensitive)
+            // Kiểm tra tên bệnh đã tồn tại hay chưa (không phân biệt chữ hoa chữ thường)
             var existingDisease = await _unitOfWork.DiseaseRepository.GetByWhere(
                 d => d.DiseaseName.ToLower() == request.DiseaseName.ToLower()).FirstOrDefaultAsync();
 
@@ -51,12 +51,33 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Disease already exists.");
             }
 
-            // Map the request to a Disease entity
+            // Map dữ liệu từ request sang entity
             var diseaseEntity = request.Adapt<Disease>();
-
             diseaseEntity.CreatedAt = DateTime.Now;
             diseaseEntity.UpdatedAt = DateTime.Now;
-            // Add the new Disease to the repository
+
+            // Nếu có danh sách Ingredient cần tránh thì xử lý thêm vào Disease
+            if (request.ingredientIds != null && request.ingredientIds.Any())
+            {
+                // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
+                var ingredients = await _unitOfWork.IngredientRepository
+                    .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
+                    .ToListAsync();
+
+                // Kiểm tra nếu không tìm thấy một hoặc nhiều Ingredient theo yêu cầu
+                if (ingredients.Count != request.ingredientIds.Count)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Một hoặc nhiều Ingredient không tồn tại.");
+                }
+
+                // Thêm các Ingredient vào Disease
+                foreach (var ingredient in ingredients)
+                {
+                    diseaseEntity.Ingredients.Add(ingredient);
+                }
+            }
+
+            // Thêm Disease mới vào repository
             await _unitOfWork.DiseaseRepository.AddAsync(diseaseEntity);
             await _unitOfWork.SaveChangesAsync();
 
@@ -127,7 +148,7 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Disease not found");
             }
 
-            // Check for duplicate disease names on other records (case-insensitive)
+            // Kiểm tra xem có tồn tại disease với tên giống request (ngoại trừ bản ghi hiện tại)
             var conflictDisease = await _unitOfWork.DiseaseRepository.GetByWhere(
                 d => d.DiseaseName.ToLower() == request.DiseaseName.ToLower() && d.DiseaseId != diseaseId)
                 .FirstOrDefaultAsync();
@@ -138,8 +159,32 @@ namespace NutriDiet.Service.Services
 
             disease.UpdatedAt = DateTime.Now;
 
-            // Map updated properties from the request into the existing entity
+            // Map các thông tin được cập nhật từ request sang entity hiện tại
             request.Adapt(disease);
+
+            // Nếu có danh sách Ingredient cần tránh thì cập nhật lại danh sách Ingredient cho Disease
+            if (request.ingredientIds != null)
+            {
+                // Xóa toàn bộ Ingredient hiện có của Disease
+                disease.Ingredients.Clear();
+
+                // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
+                var ingredients = await _unitOfWork.IngredientRepository
+                    .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
+                    .ToListAsync();
+
+                // Kiểm tra nếu số lượng Ingredient lấy được không bằng số lượng yêu cầu
+                if (ingredients.Count != request.ingredientIds.Count)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Một hoặc nhiều Ingredient không tồn tại.");
+                }
+
+                // Thêm các Ingredient mới vào Disease
+                foreach (var ingredient in ingredients)
+                {
+                    disease.Ingredients.Add(ingredient);
+                }
+            }
 
             await _unitOfWork.DiseaseRepository.UpdateAsync(disease);
             await _unitOfWork.SaveChangesAsync();
@@ -152,7 +197,7 @@ namespace NutriDiet.Service.Services
         {
             var disease = await _unitOfWork.DiseaseRepository
                 .GetByWhere(d => d.DiseaseId == diseaseId)
-                .Include(a => a.Ingredients)
+                .Include(d => d.Ingredients)
                 .FirstOrDefaultAsync();
 
             if (disease == null)
@@ -160,62 +205,13 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Disease not found");
             }
 
-            // Lấy danh sách Ingredient cần tránh từ thuộc tính Ingredients của Allergy
+            // Lấy danh sách Ingredient cần tránh từ thuộc tính Ingredients của Disease
             var avoidIngredients = disease.Ingredients.ToList();
 
-            // Nếu cần, map sang DTO (ví dụ: IngredientResponse)
+            // Map sang DTO nếu cần (ví dụ: IngredientResponse)
             var response = avoidIngredients.Adapt<List<IngredientResponse>>();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
-
-
-        public async Task<IBusinessResult> AddAvoidIngredientsForDisease(int diseaseId, IngredientAvoidRequest request)
-        {
-            // Kiểm tra đầu vào
-            if (request.ingredientIds == null || !request.ingredientIds.Any())
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Danh sách ingredient rỗng.");
-            }
-
-            // Lấy Disease theo diseaseId, kèm theo các Ingredient đã có
-            var disease = await _unitOfWork.DiseaseRepository
-                .GetByWhere(d => d.DiseaseId == diseaseId)
-                .Include(d => d.Ingredients)
-                .FirstOrDefaultAsync();
-
-            if (disease == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Disease not found.");
-            }
-
-            // Xóa toàn bộ Ingredient hiện có của Disease
-            disease.Ingredients.Clear();
-
-            // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
-            var ingredients = await _unitOfWork.IngredientRepository
-                .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
-                .ToListAsync();
-
-            // Nếu số lượng Ingredient lấy được không bằng danh sách yêu cầu thì báo lỗi
-            if (ingredients.Count != request.ingredientIds.Count)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Một hoặc nhiều Ingredient không tồn tại.");
-            }
-
-            // Thêm tất cả các Ingredient vào Disease
-            foreach (var ingredient in ingredients)
-            {
-                disease.Ingredients.Add(ingredient);
-            }
-
-            disease.UpdatedAt = DateTime.Now;
-            await _unitOfWork.DiseaseRepository.UpdateAsync(disease);
-            await _unitOfWork.SaveChangesAsync();
-
-            var response = disease.Adapt<DiseaseResponse>();
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Danh sách Ingredient cần tránh cho Disease được cập nhật thành công.", response);
-        }
-
     }
 }

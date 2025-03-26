@@ -51,15 +51,37 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Allergy already exists.");
             }
 
+            // Map dữ liệu từ request sang entity
             var allergyEntity = request.Adapt<Allergy>();
             allergyEntity.CreatedAt = DateTime.Now;
             allergyEntity.UpdatedAt = DateTime.Now;
+
+            // Nếu có danh sách Ingredient cần tránh thì xử lý thêm vào Allergy
+            if (request.ingredientIds != null && request.ingredientIds.Any())
+            {
+                // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
+                var ingredients = await _unitOfWork.IngredientRepository
+                    .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
+                    .ToListAsync();
+
+                // Kiểm tra nếu không tìm thấy một hoặc nhiều Ingredient theo yêu cầu
+                if (ingredients.Count != request.ingredientIds.Count)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found.");
+                }
+
+                // Thêm các Ingredient vào Allergy
+                foreach (var ingredient in ingredients)
+                {
+                    allergyEntity.Ingredients.Add(ingredient);
+                }
+            }
+
             await _unitOfWork.AllergyRepository.AddAsync(allergyEntity);
             await _unitOfWork.SaveChangesAsync();
             var response = allergyEntity.Adapt<AllergyResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, response);
         }
-
 
         public async Task<IBusinessResult> DeleteAllergy(int allergyId)
         {
@@ -109,7 +131,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task<IBusinessResult> UpdateAllergy(AllergyRequest request,int allergyId)
+        public async Task<IBusinessResult> UpdateAllergy(AllergyRequest request, int allergyId)
         {
             if (request == null || allergyId <= 0)
             {
@@ -127,8 +149,34 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Another allergy with the same name already exists.");
             }
+
+            // Cập nhật thông tin của allergy
             allergy.UpdatedAt = DateTime.Now;
             request.Adapt(allergy);
+
+            // Nếu có danh sách Ingredient cần tránh thì cập nhật lại danh sách Ingredient cho Allergy
+            if (request.ingredientIds != null)
+            {
+                // Xóa toàn bộ Ingredient hiện có của Allergy
+                allergy.Ingredients.Clear();
+
+                // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
+                var ingredients = await _unitOfWork.IngredientRepository
+                    .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
+                    .ToListAsync();
+
+                // Kiểm tra nếu không tìm thấy một hoặc nhiều Ingredient theo yêu cầu
+                if (ingredients.Count != request.ingredientIds.Count)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found.");
+                }
+
+                // Thêm tất cả các Ingredient vào Allergy
+                foreach (var ingredient in ingredients)
+                {
+                    allergy.Ingredients.Add(ingredient);
+                }
+            }
 
             await _unitOfWork.AllergyRepository.UpdateAsync(allergy);
             await _unitOfWork.SaveChangesAsync();
@@ -136,6 +184,7 @@ namespace NutriDiet.Service.Services
             var response = allergy.Adapt<AllergyResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response);
         }
+
         public async Task<IBusinessResult> GetAvoidIngredientsByAllergyId(int allergyId)
         {
             // Truy vấn Allergy kèm theo các Ingredient được liên kết
@@ -157,56 +206,5 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
-
-        public async Task<IBusinessResult> AddAvoidIngredientsForAllergy(int allergyId, IngredientAvoidRequest request)
-        {
-            // Kiểm tra đầu vào
-            if (request.ingredientIds == null || !request.ingredientIds.Any())
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Ingredient list is empty.");
-            }
-
-            // Lấy Allergy theo allergyId, bao gồm các Ingredient đã có
-            var allergy = await _unitOfWork.AllergyRepository
-                .GetByWhere(a => a.AllergyId == allergyId)
-                .Include(a => a.Ingredients)
-                .FirstOrDefaultAsync();
-
-            if (allergy == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Allergy not found.");
-            }
-
-            // Xóa toàn bộ Ingredient hiện có của Allergy
-            allergy.Ingredients.Clear();
-
-            // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
-            var ingredients = await _unitOfWork.IngredientRepository
-                .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
-                .ToListAsync();
-
-            // Kiểm tra nếu không tìm thấy một hoặc nhiều Ingredient theo yêu cầu
-            if (ingredients.Count != request.ingredientIds.Count)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found.");
-            }
-
-            // Thêm tất cả các Ingredient vào Allergy
-            foreach (var ingredient in ingredients)
-            {
-                allergy.Ingredients.Add(ingredient);
-            }
-
-            allergy.UpdatedAt = DateTime.Now;
-            await _unitOfWork.AllergyRepository.UpdateAsync(allergy);
-            await _unitOfWork.SaveChangesAsync();
-
-            var response = allergy.Adapt<AllergyResponse>();
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Ingredients updated successfully.", response);
-        }
-
-
-
     }
-
 }
