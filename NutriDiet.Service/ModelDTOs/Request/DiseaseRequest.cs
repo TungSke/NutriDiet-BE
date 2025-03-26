@@ -11,5 +11,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public string DiseaseName { get; set; } = null!;
 
         public string? Description { get; set; }
+
+        public List<int> ingredientIds { get; set; } = new List<int>();
     }
 }

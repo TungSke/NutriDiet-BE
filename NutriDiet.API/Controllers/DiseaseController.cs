@@ -32,12 +32,6 @@ namespace NutriDiet.API.Controllers
             var result = await _diseaseService.GetAvoidFoodsForDisease(diseaseId);
             return StatusCode(result.StatusCode, result);
         }
-        [HttpPost("ingredient/{diseaseId}")]
-        public async Task<IActionResult> AddIngredient(int diseaseId, [FromForm] IngredientAvoidRequest request)
-        {
-            var result = await _diseaseService.AddAvoidIngredientsForDisease(diseaseId, request);
-            return StatusCode(result.StatusCode, result);
-        }
 
         [HttpGet("{diseaseId}")]
         public async Task<IActionResult> GetDiseaseById(int diseaseId)
@@ -59,7 +53,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateDisease([FromBody] DiseaseRequest request, int diseaseId)
+        public async Task<IActionResult> UpdateDisease([FromForm] DiseaseRequest request, int diseaseId)
         {
             if (!ModelState.IsValid)
             {
