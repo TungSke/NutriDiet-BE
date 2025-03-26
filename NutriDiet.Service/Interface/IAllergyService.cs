@@ -17,5 +17,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> UpdateAllergy(AllergyRequest request, int allergyId);
         Task<IBusinessResult> DeleteAllergy(int AllergyId);
         Task<IBusinessResult> GetAvoidIngredientsByAllergyId(int allergyId);
+        Task<IBusinessResult> AddAvoidIngredientsForAllergy(int allergyId, IngredientAvoidRequest request);
     }
 }

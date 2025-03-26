@@ -22,6 +22,13 @@ namespace NutriDiet.API.Controllers
             var result = await _foodService.GetAllFood(pageindex, pagesize, foodType, search);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpGet("avoid")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> GetAvoidFoods()
+        {
+            var result = await _foodService.GetAvoidFoods();
+            return StatusCode(result.StatusCode, result);
+        }
 
         [HttpGet("{foodId}")]
         public async Task<IActionResult> GetFoodById(int foodId)
