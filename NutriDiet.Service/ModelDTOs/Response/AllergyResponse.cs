@@ -16,5 +16,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public DateTime? CreatedAt { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
+
+        public List<IngredientResponse> Ingredients { get; set; } = new List<IngredientResponse>();
     }
 }
