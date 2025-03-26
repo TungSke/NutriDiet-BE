@@ -473,7 +473,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
             }
             else
             {
-                return new BusinessResult(Const.HTTP_STATUS_OK, "Không cần tránh");
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không cần tránh");
             }
         }
 
