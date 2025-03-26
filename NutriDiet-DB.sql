@@ -385,3 +385,21 @@ CREATE TABLE SystemConfiguration (
     CreatedAt DATETIME DEFAULT GETDATE(),         -- Thời gian tạo
     UpdatedAt DATETIME DEFAULT GETDATE()          -- Thời gian cập nhật
 );
+
+-- Bảng trung gian AllergyIngredient (quan hệ n-n giữa Allergy và Ingredient)
+CREATE TABLE AllergyIngredient (
+    AllergyID INT NOT NULL,
+    IngredientID INT NOT NULL,
+    PRIMARY KEY (AllergyID, IngredientID),
+    FOREIGN KEY (AllergyID) REFERENCES Allergy(AllergyID) ON DELETE CASCADE,
+    FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID) ON DELETE CASCADE
+);
+
+-- Bảng trung gian DiseaseIngredient (quan hệ n-n giữa Disease và Ingredient)
+CREATE TABLE DiseaseIngredient (
+    DiseaseID INT NOT NULL,
+    IngredientID INT NOT NULL,
+    PRIMARY KEY (DiseaseID, IngredientID),
+    FOREIGN KEY (DiseaseID) REFERENCES Disease(DiseaseID) ON DELETE CASCADE,
+    FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID) ON DELETE CASCADE
+);

@@ -136,6 +136,28 @@ namespace NutriDiet.Service.Services
             var response = allergy.Adapt<AllergyResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response);
         }
+        public async Task<IBusinessResult> GetAvoidIngredientsByAllergyId(int allergyId)
+        {
+            // Truy vấn Allergy kèm theo các Ingredient được liên kết
+            var allergy = await _unitOfWork.AllergyRepository
+                .GetByWhere(a => a.AllergyId == allergyId)
+                .Include(a => a.Ingredients)
+                .FirstOrDefaultAsync();
+
+            if (allergy == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Allergy not found");
+            }
+
+            // Lấy danh sách Ingredient cần tránh từ thuộc tính Ingredients của Allergy
+            var avoidIngredients = allergy.Ingredients.ToList();
+
+            // Nếu cần, map sang DTO (ví dụ: IngredientResponse)
+            var response = avoidIngredients.Adapt<List<IngredientResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+
     }
 
 }
