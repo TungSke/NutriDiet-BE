@@ -143,51 +143,67 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid request or missing AllergyId");
             }
 
-            var allergy = await _unitOfWork.AllergyRepository.GetByIdAsync(allergyId);
+            var allergy = await _unitOfWork.AllergyRepository
+                        .GetByWhere(a => a.AllergyId == allergyId)
+                        .Include(a => a.Ingredients)
+                        .FirstOrDefaultAsync();
+
             if (allergy == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Allergy not found");
             }
+
             var conflictAllergy = await _unitOfWork.AllergyRepository.GetByWhere(
-                a => a.AllergyName.ToLower() == request.AllergyName.ToLower() && a.AllergyId != allergyId).FirstOrDefaultAsync();
+                a => a.AllergyName.ToLower() == request.AllergyName.ToLower() && a.AllergyId != allergyId)
+                .FirstOrDefaultAsync();
             if (conflictAllergy != null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Another allergy with the same name already exists.");
             }
 
-            // Cập nhật thông tin của allergy
+            // Nếu dùng mapping, hãy đảm bảo không map property Ingredients (ví dụ, cấu hình Ignore)
+            // Cập nhật các thuộc tính khác của allergy
             allergy.UpdatedAt = DateTime.Now;
-            request.Adapt(allergy);
+            allergy.AllergyName = request.AllergyName;
+            allergy.Notes = request.Notes;
+            // Nếu có các property khác cần cập nhật, thực hiện thêm ở đây
 
-            // Nếu có danh sách Ingredient cần tránh thì cập nhật lại danh sách Ingredient cho Allergy
-            if (request.ingredientIds != null)
+            await _unitOfWork.BeginTransaction();
+            try
             {
-                // Xóa toàn bộ Ingredient hiện có của Allergy
-                allergy.Ingredients.Clear();
-
-                // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
-                var ingredients = await _unitOfWork.IngredientRepository
-                    .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
-                    .ToListAsync();
-
-                // Kiểm tra nếu không tìm thấy một hoặc nhiều Ingredient theo yêu cầu
-                if (ingredients.Count != request.ingredientIds.Count)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found.");
-                }
-
-                // Thêm tất cả các Ingredient vào Allergy
-                foreach (var ingredient in ingredients)
-                {
-                    allergy.Ingredients.Add(ingredient);
-                }
+                await UpdateIngredientAsync(allergy, request.ingredientIds);
+                await _unitOfWork.AllergyRepository.UpdateAsync(allergy);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransaction();
             }
-
-            await _unitOfWork.AllergyRepository.UpdateAsync(allergy);
-            await _unitOfWork.SaveChangesAsync();
-
+            catch
+            {
+                await _unitOfWork.RollbackTransaction();
+                throw;
+            }
             var response = allergy.Adapt<AllergyResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response);
         }
+
+        private async Task UpdateIngredientAsync(Allergy allergy, List<int> ingredientIds)
+        {
+            if (ingredientIds == null || !ingredientIds.Any())
+            {
+                allergy.Ingredients.Clear();
+                return;
+            }
+
+            allergy.Ingredients.Clear();
+
+            var ingredients = await _unitOfWork.IngredientRepository
+                .GetByWhere(i => ingredientIds.Contains(i.IngredientId))
+                .ToListAsync();
+
+            foreach (var ingredient in ingredients)
+            {
+                allergy.Ingredients.Add(ingredient);
+            }
+        }
+
     }
 }
