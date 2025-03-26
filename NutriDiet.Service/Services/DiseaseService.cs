@@ -147,5 +147,75 @@ namespace NutriDiet.Service.Services
             var response = disease.Adapt<DiseaseResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response);
         }
+
+        public async Task<IBusinessResult> GetAvoidFoodsForDisease(int diseaseId)
+        {
+            var disease = await _unitOfWork.DiseaseRepository
+                .GetByWhere(d => d.DiseaseId == diseaseId)
+                .Include(a => a.Ingredients)
+                .FirstOrDefaultAsync();
+
+            if (disease == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Disease not found");
+            }
+
+            // Lấy danh sách Ingredient cần tránh từ thuộc tính Ingredients của Allergy
+            var avoidIngredients = disease.Ingredients.ToList();
+
+            // Nếu cần, map sang DTO (ví dụ: IngredientResponse)
+            var response = avoidIngredients.Adapt<List<IngredientResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+
+
+        public async Task<IBusinessResult> AddAvoidIngredientsForDisease(int diseaseId, IngredientAvoidRequest request)
+        {
+            // Kiểm tra đầu vào
+            if (request.ingredientIds == null || !request.ingredientIds.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Danh sách ingredient rỗng.");
+            }
+
+            // Lấy Disease theo diseaseId, kèm theo các Ingredient đã có
+            var disease = await _unitOfWork.DiseaseRepository
+                .GetByWhere(d => d.DiseaseId == diseaseId)
+                .Include(d => d.Ingredients)
+                .FirstOrDefaultAsync();
+
+            if (disease == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Disease not found.");
+            }
+
+            // Xóa toàn bộ Ingredient hiện có của Disease
+            disease.Ingredients.Clear();
+
+            // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
+            var ingredients = await _unitOfWork.IngredientRepository
+                .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
+                .ToListAsync();
+
+            // Nếu số lượng Ingredient lấy được không bằng danh sách yêu cầu thì báo lỗi
+            if (ingredients.Count != request.ingredientIds.Count)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Một hoặc nhiều Ingredient không tồn tại.");
+            }
+
+            // Thêm tất cả các Ingredient vào Disease
+            foreach (var ingredient in ingredients)
+            {
+                disease.Ingredients.Add(ingredient);
+            }
+
+            disease.UpdatedAt = DateTime.Now;
+            await _unitOfWork.DiseaseRepository.UpdateAsync(disease);
+            await _unitOfWork.SaveChangesAsync();
+
+            var response = disease.Adapt<DiseaseResponse>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Danh sách Ingredient cần tránh cho Disease được cập nhật thành công.", response);
+        }
+
     }
 }

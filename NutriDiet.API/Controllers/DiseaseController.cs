@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
+using NutriDiet.Service.Services;
 using System.Threading.Tasks;
 
 namespace NutriDiet.API.Controllers
@@ -23,6 +24,18 @@ namespace NutriDiet.API.Controllers
             [FromQuery] string diseaseName = null)
         {
             var result = await _diseaseService.GetAllDisease(pageIndex, pageSize, diseaseName);
+            return StatusCode(result.StatusCode, result);
+        }
+        [HttpGet("avoid/{diseaseId}")]
+        public async Task<IActionResult> Getavoid(int diseaseId)
+        {
+            var result = await _diseaseService.GetAvoidFoodsForDisease(diseaseId);
+            return StatusCode(result.StatusCode, result);
+        }
+        [HttpPost("ingredient/{diseaseId}")]
+        public async Task<IActionResult> AddIngredient(int diseaseId, [FromForm] IngredientAvoidRequest request)
+        {
+            var result = await _diseaseService.AddAvoidIngredientsForDisease(diseaseId, request);
             return StatusCode(result.StatusCode, result);
         }
 

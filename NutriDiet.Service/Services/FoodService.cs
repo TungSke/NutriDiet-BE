@@ -477,6 +477,68 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
             }
         }
 
+        public async Task<IBusinessResult> GetAvoidFoods()
+        {
+            int userId = int.Parse(_userIdClaim);
+            var user = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.Allergies)
+                    .ThenInclude(a => a.Ingredients)
+                .Include(u => u.Diseases)
+                    .ThenInclude(d => d.Ingredients)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
+            var avoidIngredientIds = new HashSet<int>();
+
+            if (user.Allergies != null)
+            {
+                foreach (var allergy in user.Allergies)
+                {
+                    if (allergy.Ingredients != null)
+                    {
+                        foreach (var ingredient in allergy.Ingredients)
+                        {
+                            avoidIngredientIds.Add(ingredient.IngredientId);
+                        }
+                    }
+                }
+            }
+
+            if (user.Diseases != null)
+            {
+                foreach (var disease in user.Diseases)
+                {
+                    if (disease.Ingredients != null)
+                    {
+                        foreach (var ingredient in disease.Ingredients)
+                        {
+                            avoidIngredientIds.Add(ingredient.IngredientId);
+                        }
+                    }
+                }
+            }
+            if (!avoidIngredientIds.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_OK, "User không có dị ứng hoặc bệnh cần tránh nguyên liệu nào", new List<FoodResponse>());
+            }
+            var foodsToAvoid = await _unitOfWork.FoodRepository
+                .GetByWhere(f => f.Ingredients.Any(i => avoidIngredientIds.Contains(i.IngredientId)))
+                .Include(f => f.Ingredients)
+                .ToListAsync();
+
+            if (foodsToAvoid == null || !foodsToAvoid.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Không tìm thấy món ăn nào cần tránh", new List<FoodResponse>());
+            }
+            var response = foodsToAvoid.Adapt<List<FoodResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Danh sách món ăn cần tránh", response);
+        }
+
 
     }
 }
