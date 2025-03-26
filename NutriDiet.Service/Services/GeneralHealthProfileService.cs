@@ -91,27 +91,6 @@ namespace NutriDiet.Service.Services
                 throw;
             }
         }
-
-
-        private async Task UpdateGoalProgress(double? weight, int userId)
-        {
-            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).FirstOrDefaultAsync();
-            if (existgoal == null)
-            {
-                return;
-            }
-            var newrate = weight - existgoal.TargetWeight.Value;
-            var percentage = 100 - (int)((newrate / existgoal.ProgressRate) * 100);
-            if(percentage < 0)
-            {
-                return;
-            }else if(percentage > 100)
-            {
-                percentage = 100;
-            }
-            existgoal.ProgressPercentage = percentage;
-        }
-
         private async Task UpdateUserAllergiesAsync(User existingUser, List<int> allergyIds)
         {
             // Nếu danh sách mới rỗng, xóa toàn bộ dị ứng cũ
@@ -135,6 +114,27 @@ namespace NutriDiet.Service.Services
                 existingUser.Allergies.Add(allergy);
             }
         }
+
+        private async Task UpdateGoalProgress(double? weight, int userId)
+        {
+            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).FirstOrDefaultAsync();
+            if (existgoal == null)
+            {
+                return;
+            }
+            var newrate = weight - existgoal.TargetWeight.Value;
+            var percentage = 100 - (int)((newrate / existgoal.ProgressRate) * 100);
+            if(percentage < 0)
+            {
+                return;
+            }else if(percentage > 100)
+            {
+                percentage = 100;
+            }
+            existgoal.ProgressPercentage = percentage;
+        }
+
+        
         private async Task UpdateUserDiseasesAsync(User existingUser, List<int> diseaseIds)
         {
             if (diseaseIds == null || !diseaseIds.Any())

@@ -142,7 +142,9 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid request or missing DiseaseId");
             }
 
-            var disease = await _unitOfWork.DiseaseRepository.GetByIdAsync(diseaseId);
+            var disease = await _unitOfWork.DiseaseRepository.GetByWhere(d => d.DiseaseId == diseaseId)
+                        .Include(a => a.Ingredients)
+                        .FirstOrDefaultAsync();
             if (disease == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Disease not found");
@@ -158,29 +160,41 @@ namespace NutriDiet.Service.Services
 
             disease.UpdatedAt = DateTime.Now;
             request.Adapt(disease);
-            if (request.ingredientIds != null)
+            await _unitOfWork.BeginTransaction();
+            try
             {
-                disease.Ingredients.Clear();
-
-                var ingredients = await _unitOfWork.IngredientRepository
-                    .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
-                    .ToListAsync();
-
-                if (ingredients.Count != request.ingredientIds.Count)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Một hoặc nhiều Ingredient không tồn tại.");
-                }
-                foreach (var ingredient in ingredients)
-                {
-                    disease.Ingredients.Add(ingredient);
-                }
+                await UpdateIngredientAsync(disease, request.ingredientIds);
+                await _unitOfWork.DiseaseRepository.UpdateAsync(disease);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransaction();
             }
-
-            await _unitOfWork.DiseaseRepository.UpdateAsync(disease);
-            await _unitOfWork.SaveChangesAsync();
-
+            catch
+            {
+                await _unitOfWork.RollbackTransaction();
+                throw;
+            }
             var response = disease.Adapt<DiseaseResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response);
+        }
+
+        private async Task UpdateIngredientAsync(Disease disease, List<int> ingredientIds)
+        {
+            if (ingredientIds == null || !ingredientIds.Any())
+            {
+                disease.Ingredients.Clear();
+                return;
+            }
+
+            disease.Ingredients.Clear();
+
+            var ingredients = await _unitOfWork.IngredientRepository
+                .GetByWhere(i => ingredientIds.Contains(i.IngredientId))
+                .ToListAsync();
+
+            foreach (var ingredient in ingredients)
+            {
+                disease.Ingredients.Add(ingredient);
+            }
         }
     }
 }
