@@ -26,12 +26,6 @@ namespace NutriDiet.API.Controllers
             var result = await _diseaseService.GetAllDisease(pageIndex, pageSize, diseaseName);
             return StatusCode(result.StatusCode, result);
         }
-        [HttpGet("avoid/{diseaseId}")]
-        public async Task<IActionResult> Getavoid(int diseaseId)
-        {
-            var result = await _diseaseService.GetAvoidFoodsForDisease(diseaseId);
-            return StatusCode(result.StatusCode, result);
-        }
 
         [HttpGet("{diseaseId}")]
         public async Task<IActionResult> GetDiseaseById(int diseaseId)

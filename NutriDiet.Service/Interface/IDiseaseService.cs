@@ -15,6 +15,5 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetAllDisease(int pageIndex, int pageSize, string diseaseName);
         Task<IBusinessResult> GetDiseaseById(int diseaseId);
         Task<IBusinessResult> UpdateDisease(DiseaseRequest request, int diseaseId);
-        Task<IBusinessResult> GetAvoidFoodsForDisease(int diseaseId);
     }
 }

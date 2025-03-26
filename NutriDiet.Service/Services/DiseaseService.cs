@@ -98,16 +98,15 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
-
         public async Task<IBusinessResult> GetAllDisease(int pageIndex, int pageSize, string diseaseName)
         {
             string searchTerm = diseaseName?.ToLower() ?? string.Empty;
-
-            var diseases = await _unitOfWork.DiseaseRepository.GetPagedAsync(
-                pageIndex,
-                pageSize,
-                x => string.IsNullOrEmpty(searchTerm) || x.DiseaseName.ToLower().Contains(searchTerm)
-            );
+            var query = _unitOfWork.DiseaseRepository
+                .GetByWhere(x => string.IsNullOrEmpty(searchTerm) || x.DiseaseName.ToLower().Contains(searchTerm));
+            var diseases = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             diseases = diseases.Distinct().ToList();
 
@@ -124,6 +123,7 @@ namespace NutriDiet.Service.Services
         {
             var disease = await _unitOfWork.DiseaseRepository
                 .GetByWhere(x => x.DiseaseId == diseaseId)
+                .Include(x => x.Ingredients)
                 .FirstOrDefaultAsync();
 
             if (disease == null)
@@ -148,7 +148,6 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Disease not found");
             }
 
-            // Kiểm tra xem có tồn tại disease với tên giống request (ngoại trừ bản ghi hiện tại)
             var conflictDisease = await _unitOfWork.DiseaseRepository.GetByWhere(
                 d => d.DiseaseName.ToLower() == request.DiseaseName.ToLower() && d.DiseaseId != diseaseId)
                 .FirstOrDefaultAsync();
@@ -158,28 +157,19 @@ namespace NutriDiet.Service.Services
             }
 
             disease.UpdatedAt = DateTime.Now;
-
-            // Map các thông tin được cập nhật từ request sang entity hiện tại
             request.Adapt(disease);
-
-            // Nếu có danh sách Ingredient cần tránh thì cập nhật lại danh sách Ingredient cho Disease
             if (request.ingredientIds != null)
             {
-                // Xóa toàn bộ Ingredient hiện có của Disease
                 disease.Ingredients.Clear();
 
-                // Lấy danh sách Ingredient từ IngredientRepository dựa trên ingredientIds
                 var ingredients = await _unitOfWork.IngredientRepository
                     .GetByWhere(i => request.ingredientIds.Contains(i.IngredientId))
                     .ToListAsync();
 
-                // Kiểm tra nếu số lượng Ingredient lấy được không bằng số lượng yêu cầu
                 if (ingredients.Count != request.ingredientIds.Count)
                 {
                     return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Một hoặc nhiều Ingredient không tồn tại.");
                 }
-
-                // Thêm các Ingredient mới vào Disease
                 foreach (var ingredient in ingredients)
                 {
                     disease.Ingredients.Add(ingredient);
@@ -191,27 +181,6 @@ namespace NutriDiet.Service.Services
 
             var response = disease.Adapt<DiseaseResponse>();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response);
-        }
-
-        public async Task<IBusinessResult> GetAvoidFoodsForDisease(int diseaseId)
-        {
-            var disease = await _unitOfWork.DiseaseRepository
-                .GetByWhere(d => d.DiseaseId == diseaseId)
-                .Include(d => d.Ingredients)
-                .FirstOrDefaultAsync();
-
-            if (disease == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Disease not found");
-            }
-
-            // Lấy danh sách Ingredient cần tránh từ thuộc tính Ingredients của Disease
-            var avoidIngredients = disease.Ingredients.ToList();
-
-            // Map sang DTO nếu cần (ví dụ: IngredientResponse)
-            var response = avoidIngredients.Adapt<List<IngredientResponse>>();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
     }
 }
