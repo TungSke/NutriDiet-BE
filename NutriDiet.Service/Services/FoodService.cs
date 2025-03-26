@@ -400,5 +400,83 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+
+        public async Task<IBusinessResult> CheckFoodAvoidance(int foodId)
+        {
+            int userId = int.Parse(_userIdClaim);
+            var user = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.Allergies)
+                    .ThenInclude(a => a.Ingredients)
+                .Include(u => u.Diseases)
+                    .ThenInclude(d => d.Ingredients)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
+
+            var food = await _unitOfWork.FoodRepository
+                .GetByWhere(f => f.FoodId == foodId)
+                .Include(f => f.Ingredients)
+                .FirstOrDefaultAsync();
+
+            if (food == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
+            }
+
+            var avoidReasons = new List<string>();
+
+            if (user.Allergies != null)
+            {
+                foreach (var allergy in user.Allergies)
+                {
+                    if (allergy.Ingredients != null && allergy.Ingredients.Any())
+                    {
+                        var matchedIngredients = food.Ingredients
+                            .Where(i => allergy.Ingredients.Any(ai => ai.IngredientId == i.IngredientId))
+                            .Select(i => i.IngredientName)
+                            .ToList();
+
+                        if (matchedIngredients.Any())
+                        {
+                            avoidReasons.Add($"({allergy.AllergyName}) với nguyên liệu: {string.Join(", ", matchedIngredients)}");
+                        }
+                    }
+                }
+            }
+
+            if (user.Diseases != null)
+            {
+                foreach (var disease in user.Diseases)
+                {
+                    if (disease.Ingredients != null && disease.Ingredients.Any())
+                    {
+                        var matchedIngredients = food.Ingredients
+                            .Where(i => disease.Ingredients.Any(di => di.IngredientId == i.IngredientId))
+                            .Select(i => i.IngredientName)
+                            .ToList();
+
+                        if (matchedIngredients.Any())
+                        {
+                            avoidReasons.Add($"({disease.DiseaseName}) với nguyên liệu: {string.Join(", ", matchedIngredients)}");
+                        }
+                    }
+                }
+            }
+            if (avoidReasons.Any())
+            {
+                string message = $"Đây là món ăn cần tránh: Do {string.Join(" và ", avoidReasons)}.";
+                return new BusinessResult(Const.HTTP_STATUS_OK, message);
+            }
+            else
+            {
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Không cần tránh");
+            }
+        }
+
+
     }
 }

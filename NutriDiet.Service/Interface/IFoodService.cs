@@ -30,5 +30,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetFavoriteFoods(int pageIndex, int pageSize);
         Task<IBusinessResult> AddFavoriteFood(int foodId);
         Task<IBusinessResult> RemoveFavoriteFood(int foodId);
+        Task<IBusinessResult> CheckFoodAvoidance(int foodId);
     }
 }

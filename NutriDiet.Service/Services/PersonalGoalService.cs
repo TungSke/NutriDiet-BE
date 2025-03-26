@@ -326,12 +326,6 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> UpdateDailyMacronutrients(EditDailyMacronutrientsRequest request)
         {
             var userId = int.Parse(_userIdClaim);
-
-            // Đầu vào của request được giả định là tỷ lệ phần trăm
-            if (request.DailyCarb + request.DailyProtein + request.DailyFat != 100)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Sum Macronutrients must be 100%.");
-            }
             var existingGoal = await _unitOfWork.PersonalGoalRepository
                 .GetByWhere(pg => pg.UserId == userId)
                 .FirstOrDefaultAsync();

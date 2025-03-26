@@ -29,6 +29,13 @@ namespace NutriDiet.API.Controllers
             var result = await _allergyService.GetAllergyById(allergyId);
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpGet("avoid/{allergyId}")]
+        public async Task<IActionResult> Getavoid(int allergyId)
+        {
+            var result = await _allergyService.GetAvoidIngredientsByAllergyId(allergyId);
+            return StatusCode(result.StatusCode, result);
+        }
         [HttpPost]
         public async Task<IActionResult> CreateAllergy([FromForm] AllergyRequest request)
         {

@@ -23,5 +23,9 @@ public partial class Ingredient
 
     public virtual ICollection<UserIngreDientPreference> UserIngreDientPreferences { get; set; } = new List<UserIngreDientPreference>();
 
+    public virtual ICollection<Allergy> Allergies { get; set; } = new List<Allergy>();
+
+    public virtual ICollection<Disease> Diseases { get; set; } = new List<Disease>();
+
     public virtual ICollection<Food> Foods { get; set; } = new List<Food>();
 }
