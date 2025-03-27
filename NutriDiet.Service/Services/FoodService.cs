@@ -13,6 +13,7 @@ using NutriDiet.Service.Utilities;
 using System.Security.Claims;
 using OfficeOpenXml;
 using System.IO;
+using System.Text;
 
 namespace NutriDiet.Service.Services
 {
@@ -561,9 +562,9 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
                         // Lấy danh sách foodName hiện có trong database
                         var existingFoodNames = await _unitOfWork.FoodRepository
-                            .GetAll()
-                            .Select(f => f.FoodName.ToLower().Trim())
-                            .ToListAsync();
+                        .GetAll()
+                        .Select(f => f.FoodName.ToLower().Trim())
+                        .ToListAsync();
 
                         for (int row = 2; row <= rowCount; row++)
                         {
@@ -584,11 +585,21 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 continue; // Bỏ qua nếu dữ liệu không hợp lệ
                             }
 
-                            // Kiểm tra xem foodName đã tồn tại chưa (không phân biệt hoa thường)
+                            // Chuẩn hóa foodName
+                            foodName = foodName.Normalize(NormalizationForm.FormC);
+
+                            // Kiểm tra trùng lặp trong database
                             if (existingFoodNames.Contains(foodName.ToLower().Trim()))
                             {
-                                continue; // Bỏ qua nếu foodName đã tồn tại
+                                continue; // Bỏ qua nếu foodName đã tồn tại trong database
                             }
+
+                            // Kiểm tra trùng lặp trong danh sách foodsToImport
+                            if (foodsToImport.Any(f => f.FoodName.Equals(foodName, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                continue; // Bỏ qua nếu foodName đã tồn tại trong foodsToImport
+                            }
+
 
                             foodsToImport.Add(new Food
                             {

@@ -23,22 +23,29 @@ namespace NutriDiet.API.Middleware
             {
                 _logger.LogError(ex, "An unhandled exception occurred");
 
-                context.Response.ContentType = "application/json";
-                context.Response.StatusCode = 500;
-
-                var response = new
+                if (!context.Response.HasStarted)
                 {
-                    Code = 500,
-                    Message = ex.Message,
-                    Detailed = ex.StackTrace
-                };
+                    context.Response.ContentType = "application/json";
+                    context.Response.StatusCode = 500;
 
-                var responseText = System.Text.Json.JsonSerializer.Serialize(response);
+                    var response = new
+                    {
+                        Code = 500,
+                        Message = ex.Message,
+                        Detailed = ex.StackTrace
+                    };
 
-                await context.Response.WriteAsync(responseText);
+                    var responseText = System.Text.Json.JsonSerializer.Serialize(response);
+
+                    await context.Response.WriteAsync(responseText);
+                }
+                else
+                {
+                    _logger.LogWarning("Response has already started, unable to write error response.");
+                }
             }
 
-            if (context.Response.StatusCode == 401 || context.Response.StatusCode == 403)
+            if (!context.Response.HasStarted && (context.Response.StatusCode == 401 || context.Response.StatusCode == 403))
             {
                 var statusCode = context.Response.StatusCode;
                 var message = statusCode == 401 ? "Unauthorized access" : "Forbidden access";
