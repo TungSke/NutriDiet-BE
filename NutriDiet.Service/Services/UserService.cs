@@ -342,7 +342,8 @@ namespace NutriDiet.Service.Services
                       (string.IsNullOrEmpty(search) || x.FullName.ToLower().Contains(search)
                                                    || x.Email.ToLower().Contains(search)
                                                    || x.Phone.ToLower().Contains(search)) &&
-                                                   x.RoleId != 1
+                                                   x.RoleId != 1,
+                include: i=>i.Include(x=>x.UserPackages).ThenInclude(x=>x.Package)
             );
 
             if (users == null || !users.Any())
@@ -350,18 +351,58 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }
 
-            var response = users.Adapt<List<UserResponse>>();
+            var response = users.Select(user => new UserResponse
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Age = user.Age,
+                Gender = user.Gender,
+                Location = user.Location,
+                Avatar = user.Avatar,
+                Status = user.Status,
+                UserPackages = user.UserPackages?.Select(up => new UserPackages
+                {
+                    UserPackageId = up.UserPackageId,
+                    PackageId = up.PackageId,
+                    PackageName = up.Package?.PackageName ?? null,
+                    StartDate = up.StartDate,
+                    ExpiryDate = up.ExpiryDate,
+                    Status = up.Status
+                }).ToList()
+            }).ToList();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
         public async Task<IBusinessResult> GetUserById(int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.UserRepository.GetByWhere(x=>x.UserId == id).Include(x=>x.UserPackages).ThenInclude(x=>x.Package).FirstOrDefaultAsync();
             if (user == null || user.RoleId == 1)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }
-            var response = user.Adapt<UserResponse>();
+            var response = new UserResponse
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Age = user.Age,
+                Gender = user.Gender,
+                Location = user.Location,
+                Avatar = user.Avatar,
+                Status = user.Status,
+                UserPackages = user.UserPackages?.Select(up => new UserPackages
+                {
+                    UserPackageId = up.UserPackageId,
+                    PackageId = up.PackageId,
+                    PackageName = up.Package?.PackageName ?? null,
+                    StartDate = up.StartDate,
+                    ExpiryDate = up.ExpiryDate,
+                    Status = up.Status
+                }).ToList()
+            };
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
