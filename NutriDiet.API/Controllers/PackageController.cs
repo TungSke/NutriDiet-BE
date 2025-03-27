@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace NutriDiet.API.Controllers
 {
@@ -51,10 +50,6 @@ namespace NutriDiet.API.Controllers
 
         [HttpPost("payment")]
         [Authorize]
-        [SwaggerOperation(
-            Summary = "Thanh toán gói dịch vụ",
-            Description = "API cho phép người dùng thanh toán một gói dịch vụ dựa trên PackageId. Cung cấp `cancelUrl` để huỷ thanh toán và `returnUrl` để xử lý khi thanh toán thành công."
-        )]
         public async Task<IActionResult> PayforPackage(string cancelUrl, string returnUrl, int packageId)
         {
             var result = await _packageService.PayforPackage(cancelUrl, returnUrl, packageId);
