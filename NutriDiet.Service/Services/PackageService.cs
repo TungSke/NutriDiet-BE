@@ -139,37 +139,65 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> PayforPackage(string cancelUrl, string returnUrl, int packageId)
         {
-            var userid = await _tokenHandlerHelper.GetUserId();
-            var userPackagecheck = await _unitOfWork.UserPackageRepository.GetByWhere(x => x.UserId == userid && x.PackageId == packageId).FirstOrDefaultAsync();
+            var userId = await _tokenHandlerHelper.GetUserId();
+            var userPackagecheck = await _unitOfWork.UserPackageRepository
+                .GetByWhere(x => x.UserId == userId && x.PackageId == packageId)
+                .FirstOrDefaultAsync();
+
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+
+            // Nếu gói đã tồn tại nhưng trạng thái là "InActive", cập nhật và thực hiện lại
             if (userPackagecheck != null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Gói đã tồn tại");
-            }
+                if (userPackagecheck.Status == "InActive")
+                {
+                    
+                    var package = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
+                    if (package == null)
+                    {
+                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại");
+                    }
 
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(userid);
-            var package = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
-            if (package == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại");
-            }
+                    // Tạo yêu cầu thanh toán mới
+                    List<ItemData> itemData = new List<ItemData>
+                                            {
+                                                new ItemData(package.PackageName, 1, Convert.ToInt32(package.Price.Value))
+                                            };
+                    var result = await CreatePaymentRequestAsync(package, user, cancelUrl, returnUrl, itemData);
 
-            var userPackage = new UserPackage
+                    return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result.Data);
+                }
+
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Gói đã tồn tại và đang hoạt động");
+            }
+            // Nếu gói chưa tồn tại, tạo mới
+            var newUserPackage = new UserPackage
             {
-                UserId = userid,
+                UserId = userId,
                 PackageId = packageId,
                 StartDate = DateTime.UtcNow,
                 ExpiryDate = DateTime.UtcNow,
                 Status = "InActive"
             };
-            await _unitOfWork.UserPackageRepository.AddAsync(userPackage);
+            await _unitOfWork.UserPackageRepository.AddAsync(newUserPackage);
             await _unitOfWork.SaveChangesAsync();
 
-            List<ItemData> itemdata = new List<ItemData>();
-            itemdata.Add(new ItemData(package.PackageName, 1, Convert.ToInt32(package.Price.Value)));
-            var result = await CreatePaymentRequestAsync(package, user, cancelUrl, returnUrl, itemdata);
+            var packageNew = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result.Data);
+            if (packageNew == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại");
+            }
+
+            List<ItemData> newItemData = new List<ItemData>
+            {
+                new ItemData(packageNew.PackageName, 1, Convert.ToInt32(packageNew.Price.Value))
+            };
+            var newResult = await CreatePaymentRequestAsync(packageNew, user, cancelUrl, returnUrl, newItemData);
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, newResult.Data);
         }
+
 
         public async Task<IBusinessResult> PAYOSCallback(string status)
         {

@@ -556,7 +556,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                     await excelFile.CopyToAsync(stream);
                     using (var package = new ExcelPackage(stream))
                     {
-                        var worksheet = package.Workbook.Worksheets[0];
+                        var worksheet = package.Workbook.Worksheets[1];
                         var rowCount = worksheet.Dimension.Rows;
 
                         // Lấy danh sách foodName hiện có trong database
@@ -567,17 +567,17 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
                         for (int row = 2; row <= rowCount; row++)
                         {
-                            var foodName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
-                            var mealType = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
-                            var foodType = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
-                            var servingSize = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
-                            var calories = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
-                            var protein = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
-                            var carbs = worksheet.Cells[row, 8].Value?.ToString()?.Trim();
-                            var fat = worksheet.Cells[row, 9].Value?.ToString()?.Trim();
-                            var glucide = worksheet.Cells[row, 10].Value?.ToString()?.Trim();
-                            var fiber = worksheet.Cells[row, 11].Value?.ToString()?.Trim();
-                            var description = worksheet.Cells[row, 12].Value?.ToString()?.Trim();
+                            var foodName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                            var mealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                            var foodType = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+                            var servingSize = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+                            var calories = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+                            var protein = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
+                            var carbs = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
+                            var fat = worksheet.Cells[row, 8].Value?.ToString()?.Trim();
+                            var glucide = worksheet.Cells[row, 9].Value?.ToString()?.Trim();
+                            var fiber = worksheet.Cells[row, 10].Value?.ToString()?.Trim();
+                            var description = worksheet.Cells[row, 11].Value?.ToString()?.Trim();
 
                             if (string.IsNullOrEmpty(foodName) || string.IsNullOrEmpty(foodType))
                             {
