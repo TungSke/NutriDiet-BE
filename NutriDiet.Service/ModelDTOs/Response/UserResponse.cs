@@ -24,9 +24,9 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public string? Avatar { get; set; }
 
         public string? Status { get; set; }
-        public List<UserPackages> UserPackages { get; set; }
+        public List<UserPackagesResponse> UserPackages { get; set; }
     }
-    public class UserPackages
+    public class UserPackagesResponse
     {
         public int UserPackageId { get; set; }
 
