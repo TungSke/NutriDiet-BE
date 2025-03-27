@@ -104,7 +104,7 @@ namespace NutriDiet.API.Controllers
                     package = user.UserPackages?.FirstOrDefault()?.Package?.PackageName ?? null,
                 });
             }
-            return Unauthorized(new {message = "Unauthorizw"});
+            return Unauthorized(new {message = "Unauthorize"});
         }
 
         [HttpPost("forgot-password")]

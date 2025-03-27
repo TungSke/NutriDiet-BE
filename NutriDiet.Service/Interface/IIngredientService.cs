@@ -1,4 +1,5 @@
-﻿using NutriDiet.Common.BusinessResult;
+﻿using Microsoft.AspNetCore.Http;
+using NutriDiet.Common.BusinessResult;
 using NutriDiet.Service.ModelDTOs.Request;
 using System;
 using System.Collections.Generic;
@@ -23,5 +24,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> UpdatePreferenceIngredient(int ingredientId, int preferenceLevel);
 
         Task<IBusinessResult> GetPreferenceIngredient();
+
+        Task<IBusinessResult> ImportIngredientsFromExcel(IFormFile excelFile);
     }
 }

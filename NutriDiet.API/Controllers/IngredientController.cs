@@ -71,5 +71,13 @@ namespace NutriDiet.API.Controllers
             var result = await _ingredientService.GetPreferenceIngredient();
             return Ok(result);
         }
+
+        [HttpPost("excel")]
+        //[Authorize(Roles = nameof(RoleEnum.Admin))]
+        public async Task<IActionResult> ImportIngredientsFromExcel(IFormFile excelFile)
+        {
+            var result = await _ingredientService.ImportIngredientsFromExcel(excelFile);
+            return Ok(result);
+        }
     }
 }
