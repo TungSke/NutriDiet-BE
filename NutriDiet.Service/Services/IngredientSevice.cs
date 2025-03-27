@@ -165,11 +165,11 @@ namespace NutriDiet.Service.Services
 
                         for (int row = 2; row <= rowCount; row++)
                         {
-                            var ingredientName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
-                            var calories = worksheet.Cells[row, 3].Value?.ToString()?.Trim();     
-                            var protein = worksheet.Cells[row, 4].Value?.ToString()?.Trim();      
-                            var carbs = worksheet.Cells[row, 5].Value?.ToString()?.Trim();         
-                            var fat = worksheet.Cells[row, 6].Value?.ToString()?.Trim();           
+                            var ingredientName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                            var calories = worksheet.Cells[row, 2].Value?.ToString()?.Trim();     
+                            var protein = worksheet.Cells[row, 3].Value?.ToString()?.Trim();      
+                            var carbs = worksheet.Cells[row, 4].Value?.ToString()?.Trim();         
+                            var fat = worksheet.Cells[row, 5].Value?.ToString()?.Trim();           
 
                             // Kiểm tra dữ liệu hợp lệ
                             if (string.IsNullOrEmpty(ingredientName))

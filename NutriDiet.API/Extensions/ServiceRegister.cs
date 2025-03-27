@@ -17,6 +17,7 @@ using NutriDiet.Service.Services;
 using Mapster;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.ModelDTOs.Request;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace NutriDiet.API.Extensions
 {
@@ -99,7 +100,17 @@ namespace NutriDiet.API.Extensions
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "NutriDiet_API" });
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "NutriDiet API",
+                    Version = "v1",
+                    Description = "API for NutriDiet application",
+                    //Contact = new OpenApiContact
+                    //{
+                    //    Name = "Your Name",
+                    //    Email = "your-email@example.com"
+                    //}
+                });
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -125,6 +136,8 @@ namespace NutriDiet.API.Extensions
                         Array.Empty<string>()
                     }
                 });
+
+                c.EnableAnnotations();
             });
 
             return services;
