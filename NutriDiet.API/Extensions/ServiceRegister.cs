@@ -99,7 +99,7 @@ namespace NutriDiet.API.Extensions
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "NutriDiet_API" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "NutriDiet_API",Version = "3.1.0" });
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
