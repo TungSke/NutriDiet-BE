@@ -219,8 +219,8 @@ namespace NutriDiet.Service.Services
 
             var existingUser = await _unitOfWork.UserRepository
                 .GetByWhere(u => u.UserId == userid)
-                .Include(u => u.Allergies)
-                .Include(u => u.Diseases)
+                .Include(u => u.Allergies).ThenInclude(a => a.Ingredients)
+                .Include(u => u.Diseases).ThenInclude(a => a.Ingredients)
                 .Include(u => u.HealthcareIndicators.OrderByDescending(hi => hi.CreatedAt))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();

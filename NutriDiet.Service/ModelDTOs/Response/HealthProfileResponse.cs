@@ -20,10 +20,9 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public string? Aisuggestion { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public virtual ICollection<HealthcareIndicatorResponse> HealthcareIndicators { get; set; } = new List<HealthcareIndicatorResponse>();
         public virtual ICollection<AllergyResponse> Allergies { get; set; } = new List<AllergyResponse>();
         public virtual ICollection<DiseaseResponse> Diseases { get; set; } = new List<DiseaseResponse>();
-
-        public virtual ICollection<HealthcareIndicatorResponse> HealthcareIndicators { get; set; } = new List<HealthcareIndicatorResponse>();
     }
 
 }
