@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
+using System.Xml.Serialization;
 
 namespace NutriDiet.API.Controllers
 {
@@ -122,6 +124,14 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> RemoveFavoriteFood(int foodId)
         {
             var result = await _foodService.RemoveFavoriteFood(foodId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPost("excel")]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        public async Task<IActionResult> ImportFoodFromExcel(IFormFile excelFile)
+        {
+            var result = await _foodService.ImportFoodFromExcel(excelFile);
             return StatusCode(result.StatusCode, result);
         }
     }

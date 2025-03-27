@@ -2,7 +2,6 @@
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Repository.Interface;
@@ -12,7 +11,8 @@ using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
 using System.Security.Claims;
-using System.Text.Json;
+using OfficeOpenXml;
+using System.IO;
 
 namespace NutriDiet.Service.Services
 {
@@ -539,6 +539,91 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
             return new BusinessResult(Const.HTTP_STATUS_OK, "Danh sách món ăn cần tránh", response);
         }
 
+        public async Task<IBusinessResult> ImportFoodFromExcel(IFormFile excelFile)
+        {
+            if (excelFile == null || excelFile.Length <= 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "File không hợp lệ");
+            }
 
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var foodsToImport = new List<Food>();
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets[0];
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        // Lấy danh sách foodName hiện có trong database
+                        var existingFoodNames = await _unitOfWork.FoodRepository
+                            .GetAll()
+                            .Select(f => f.FoodName.ToLower().Trim())
+                            .ToListAsync();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var foodName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                            var mealType = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+                            var foodType = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+                            var servingSize = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+                            var calories = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
+                            var protein = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
+                            var carbs = worksheet.Cells[row, 8].Value?.ToString()?.Trim();
+                            var fat = worksheet.Cells[row, 9].Value?.ToString()?.Trim();
+                            var glucide = worksheet.Cells[row, 10].Value?.ToString()?.Trim();
+                            var fiber = worksheet.Cells[row, 11].Value?.ToString()?.Trim();
+                            var description = worksheet.Cells[row, 12].Value?.ToString()?.Trim();
+
+                            if (string.IsNullOrEmpty(foodName) || string.IsNullOrEmpty(foodType))
+                            {
+                                continue; // Bỏ qua nếu dữ liệu không hợp lệ
+                            }
+
+                            // Kiểm tra xem foodName đã tồn tại chưa (không phân biệt hoa thường)
+                            if (existingFoodNames.Contains(foodName.ToLower().Trim()))
+                            {
+                                continue; // Bỏ qua nếu foodName đã tồn tại
+                            }
+
+                            foodsToImport.Add(new Food
+                            {
+                                FoodName = foodName,
+                                MealType = mealType,
+                                FoodType = foodType,
+                                ServingSize = servingSize,
+                                Calories = double.TryParse(calories, out var cal) ? cal : 0,
+                                Protein = double.TryParse(protein, out var prot) ? prot : 0,
+                                Carbs = double.TryParse(carbs, out var carb) ? carb : 0,
+                                Fat = double.TryParse(fat, out var fats) ? fats : 0,
+                                Glucid = double.TryParse(glucide, out var gluc) ? gluc : 0,
+                                Fiber = double.TryParse(fiber, out var fib) ? fib : 0,
+                                Description = description
+                            });
+                        }
+                    }
+                }
+
+                if (foodsToImport.Any())
+                {
+                    await _unitOfWork.FoodRepository.AddRangeAsync(foodsToImport);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    return new BusinessResult(Const.HTTP_STATUS_OK, $"Import thành công {foodsToImport.Count} món ăn mới");
+                }
+                else
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_OK, "Không có món ăn mới nào được import (có thể tất cả đã tồn tại)");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {ex.Message}");
+            }
+        }
     }
 }

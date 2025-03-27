@@ -1,4 +1,5 @@
 ﻿using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
@@ -8,6 +9,7 @@ using NutriDiet.Service.Helpers;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
+using OfficeOpenXml;
 
 namespace NutriDiet.Service.Services
 {
@@ -133,6 +135,85 @@ namespace NutriDiet.Service.Services
             var userId = await _tokenHandlerHelper.GetUserId();
             var userIngredients = await _unitOfWork.UserIngredientPreferenceRepository.GetByWhere(x => x.UserId == userId).ToListAsync();
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, userIngredients);
+        }
+
+        public async Task<IBusinessResult> ImportIngredientsFromExcel(IFormFile excelFile)
+        {
+            if (excelFile == null || excelFile.Length <= 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "File không hợp lệ");
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var ingredientsToImport = new List<Ingredient>();
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets[0];
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        // Lấy danh sách IngredientName hiện có trong database
+                        var existingIngredientNames = await _unitOfWork.IngredientRepository
+                            .GetAll()
+                            .Select(i => i.IngredientName.ToLower().Trim())
+                            .ToListAsync();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var ingredientName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                            var calories = worksheet.Cells[row, 3].Value?.ToString()?.Trim();     
+                            var protein = worksheet.Cells[row, 4].Value?.ToString()?.Trim();      
+                            var carbs = worksheet.Cells[row, 5].Value?.ToString()?.Trim();         
+                            var fat = worksheet.Cells[row, 6].Value?.ToString()?.Trim();           
+
+                            // Kiểm tra dữ liệu hợp lệ
+                            if (string.IsNullOrEmpty(ingredientName))
+                            {
+                                continue; // Bỏ qua nếu tên nguyên liệu rỗng
+                            }
+
+                            // Kiểm tra xem IngredientName đã tồn tại chưa (không phân biệt hoa thường)
+                            if (existingIngredientNames.Contains(ingredientName.ToLower().Trim()))
+                            {
+                                continue;
+                            }
+
+                            // Tạo mới Ingredient
+                            ingredientsToImport.Add(new Ingredient
+                            {
+                                IngredientName = ingredientName,
+                                Calories = double.TryParse(calories, out var cal) ? cal : 0,
+                                Protein = double.TryParse(protein, out var prot) ? prot : 0,
+                                Carbs = double.TryParse(carbs, out var carb) ? carb : 0,
+                                Fat = double.TryParse(fat, out var fats) ? fats : 0,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            });
+                        }
+                    }
+                }
+
+                if (ingredientsToImport.Any())
+                {
+                    await _unitOfWork.IngredientRepository.AddRangeAsync(ingredientsToImport);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    return new BusinessResult(Const.HTTP_STATUS_OK, $"Import thành công {ingredientsToImport.Count} nguyên liệu mới");
+                }
+                else
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_OK, "Không có nguyên liệu mới nào được import (có thể tất cả đã tồn tại)");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {ex.Message}");
+            }
         }
     }
 }

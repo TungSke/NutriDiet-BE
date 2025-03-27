@@ -1,4 +1,5 @@
-﻿using NutriDiet.Common.BusinessResult;
+﻿using Microsoft.AspNetCore.Http;
+using NutriDiet.Common.BusinessResult;
 using NutriDiet.Service.ModelDTOs.Request;
 using System;
 using System.Collections.Generic;
@@ -24,5 +25,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> RemoveFavoriteFood(int foodId);
         Task<IBusinessResult> CheckFoodAvoidance(int foodId);
         Task<IBusinessResult> GetAvoidFoods();
+        Task<IBusinessResult> ImportFoodFromExcel(IFormFile excelFile);
     }
 }
