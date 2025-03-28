@@ -17,6 +17,7 @@ using NutriDiet.Service.Services;
 using Mapster;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.ModelDTOs.Request;
+using NutriDiet.Service.BackgroundServices;
 
 namespace NutriDiet.API.Extensions
 {
@@ -66,6 +67,7 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<IIngreDientService, IngreDientSevice>();        
             services.AddScoped<IPackageService, PackageService>();
             services.AddScoped<ISystemConfigurationService, SystemConfigationService>();
+            services.AddHostedService<NotificationBackgroundService>();
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)

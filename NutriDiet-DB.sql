@@ -235,7 +235,7 @@ CREATE TABLE Notification (
     UserId INT NOT NULL,
     Title NVARCHAR(255),
     Description NVARCHAR(255),
-    Status NVARCHAR(50) CHECK (Status IN ('Unread', 'Read')),
+    Status NVARCHAR(50),
     Date DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserId) REFERENCES [User](UserID) ON DELETE CASCADE
 );
