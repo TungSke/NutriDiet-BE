@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NutriDiet.Repository.Models;
 using NutriDiet.Service.Utilities;
 
 namespace NutriDiet.API.Controllers
@@ -19,6 +20,28 @@ namespace NutriDiet.API.Controllers
         {
             await _firebaseService.SendNotification(fcmToken, title, body);
             return Ok();
+        }
+
+        [HttpPost("enable-reminder")]
+        public async Task<IActionResult> EnableReminder(string mealType,[FromBody] string fcmToken)
+        {
+            try
+            {
+                var (success, message) = await _firebaseService.EnableReminderAsync(mealType, fcmToken);
+                if (!success)
+                {
+                    return NotFound(message);
+                }
+                return Ok(new { Message = message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

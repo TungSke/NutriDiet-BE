@@ -29,6 +29,7 @@ namespace NutriDiet.Repository
         private IUserPackageRepository _userPackageRepository;
         private ISystemConfigurationRepository _systemConfigurationRepository;
         private IUserFoodPreferenceRepository _userFoodPreferenceRepository;
+        private INotificationRepository _notificationRepository;
 
         public UnitOfWork(NutriDietContext context)
         {
@@ -55,6 +56,7 @@ namespace NutriDiet.Repository
         public IUserPackageRepository UserPackageRepository => _userPackageRepository ??= new UserPackageRepository(_context);
         public ISystemConfigurationRepository SystemConfigurationRepository => _systemConfigurationRepository ??= new SystemConfigurationRepository(_context);
         public IUserFoodPreferenceRepository UserFoodPreferenceRepository => _userFoodPreferenceRepository ??= new UserFoodPreferenceRepository(_context);
+        public INotificationRepository NotificationRepository => _notificationRepository ??= new NotificationRepository(_context);
 
         public async Task BeginTransaction()
         {
