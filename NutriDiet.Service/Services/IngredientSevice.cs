@@ -154,7 +154,13 @@ namespace NutriDiet.Service.Services
                     await excelFile.CopyToAsync(stream);
                     using (var package = new ExcelPackage(stream))
                     {
-                        var worksheet = package.Workbook.Worksheets[0];
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals("Ingredient", StringComparison.OrdinalIgnoreCase));
+
+                        if (worksheet == null)
+                        {
+                            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Food'");
+                        }
+
                         var rowCount = worksheet.Dimension.Rows;
 
                         // Lấy danh sách IngredientName hiện có trong database
@@ -168,8 +174,8 @@ namespace NutriDiet.Service.Services
                             var ingredientName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
                             var calories = worksheet.Cells[row, 2].Value?.ToString()?.Trim();     
                             var protein = worksheet.Cells[row, 3].Value?.ToString()?.Trim();      
-                            var carbs = worksheet.Cells[row, 4].Value?.ToString()?.Trim();         
-                            var fat = worksheet.Cells[row, 5].Value?.ToString()?.Trim();           
+                            var fat = worksheet.Cells[row, 4].Value?.ToString()?.Trim();           
+                            var carbs = worksheet.Cells[row, 5].Value?.ToString()?.Trim();         
 
                             // Kiểm tra dữ liệu hợp lệ
                             if (string.IsNullOrEmpty(ingredientName))

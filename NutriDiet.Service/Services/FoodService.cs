@@ -13,6 +13,8 @@ using NutriDiet.Service.Utilities;
 using System.Security.Claims;
 using OfficeOpenXml;
 using System.IO;
+using System.Text;
+using Microsoft.Data.SqlClient;
 
 namespace NutriDiet.Service.Services
 {
@@ -556,7 +558,11 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                     await excelFile.CopyToAsync(stream);
                     using (var package = new ExcelPackage(stream))
                     {
-                        var worksheet = package.Workbook.Worksheets[1];
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals("Food", StringComparison.OrdinalIgnoreCase));
+                        if (worksheet == null)
+                        {
+                            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Food'");
+                        }
                         var rowCount = worksheet.Dimension.Rows;
 
                         // Lấy danh sách foodName hiện có trong database
@@ -584,10 +590,19 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 continue; // Bỏ qua nếu dữ liệu không hợp lệ
                             }
 
-                            // Kiểm tra xem foodName đã tồn tại chưa (không phân biệt hoa thường)
+                            // Chuẩn hóa foodName
+                            foodName = foodName.Normalize(NormalizationForm.FormC);
+
+                            // Kiểm tra trùng lặp trong database
                             if (existingFoodNames.Contains(foodName.ToLower().Trim()))
                             {
-                                continue; // Bỏ qua nếu foodName đã tồn tại
+                                continue; // Bỏ qua nếu foodName đã tồn tại trong database
+                            }
+
+                            // Kiểm tra trùng lặp trong danh sách foodsToImport
+                            if (foodsToImport.Any(f => f.FoodName.Equals(foodName, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                continue; // Bỏ qua nếu foodName đã tồn tại trong foodsToImport
                             }
 
                             foodsToImport.Add(new Food
@@ -620,10 +635,21 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                     return new BusinessResult(Const.HTTP_STATUS_OK, "Không có món ăn mới nào được import (có thể tất cả đã tồn tại)");
                 }
             }
+            catch (DbUpdateException dbEx)
+            {
+                var sqlEx = dbEx.InnerException as SqlException;
+                if (sqlEx != null && sqlEx.Number == 2627) // 2627 là lỗi trùng lặp UNIQUE KEY
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Dữ liệu bị trùng lặp trong database.");
+                }
+
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {dbEx.Message}");
+            }
             catch (Exception ex)
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {ex.Message}");
             }
         }
+
     }
 }
