@@ -101,7 +101,7 @@ namespace NutriDiet.API.Controllers
                     phoneNumber = user.Phone ?? "0123456789",
                     address = user.Location ?? "Vietnam",
                     avatar = user.Avatar ?? "",
-                    package = user.UserPackages?.FirstOrDefault()?.Package?.PackageName ?? null,
+                    package = user.UserPackages?.FirstOrDefault(x => x.Status.ToLower() == "active")?.Package?.PackageName ?? null,
                 });
             }
             return Unauthorized(new {message = "Unauthorize"});
