@@ -19,6 +19,7 @@ namespace NutriDiet.Service.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -31,6 +32,7 @@ namespace NutriDiet.Service.BackgroundServices
                 }
                 await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
             }
+
         }
 
         private async Task SendMealReminders()
