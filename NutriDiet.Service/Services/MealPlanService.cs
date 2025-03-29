@@ -1,4 +1,5 @@
-﻿using CloudinaryDotNet;
+﻿using Azure;
+using CloudinaryDotNet;
 using Google.Apis.Drive.v3.Data;
 using Mapster;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,7 @@ using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -758,6 +760,61 @@ namespace NutriDiet.Service.Services
             var response = currentMealPlan.Adapt<MealPlanResponse>();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+
+        public async Task<IBusinessResult> GetFeedback(int pageIndex, int pageSize)
+        {
+
+            var mealLogFeedback = await _unitOfWork.AIRecommendationMeallogRepository.GetPagedAsync(
+                pageIndex,
+                pageSize,
+                predicate: log => log.Feedback != null,
+                x => x.OrderByDescending(x => x.RecommendedAt)
+                );
+
+            var mealPlanFeedback = await _unitOfWork.AIRecommendationRepository.GetPagedAsync(
+                pageIndex,
+                pageSize,
+                predicate: log => log.Feedback != null,
+                x => x.OrderByDescending(x => x.RecommendedAt)
+                );
+
+            var mealLogFeedbackResponse =  mealLogFeedback
+                .Select(log => new FeedbackResponse
+                {
+                    Id = log.AirecommendMealLogId,
+                    Type = "MealLog",
+                    UserId = log.UserId,
+                    RecommendedAt = log.RecommendedAt,
+                    Response = log.AirecommendMealLogResponse,
+                    Status = log.Status,
+                    RejectionReason = log.RejectionReason,
+                    Feedback = log.Feedback
+                })
+                .ToList();
+
+            var mealPlanFeedbackResponse = mealPlanFeedback
+                .Select(plan => new FeedbackResponse
+                {
+                    Id = plan.AirecommendMealPlanId,
+                    Type = "MealPlan",
+                    UserId = plan.UserId,
+                    RecommendedAt = plan.RecommendedAt,
+                    Response = plan.AirecommendMealPlanResponse,
+                    Status = plan.Status,
+                    RejectionReason = plan.RejectionReason,
+                    Feedback = plan.Feedback
+                })
+                .ToList();
+
+            var allFeedback = mealLogFeedbackResponse.Concat(mealPlanFeedbackResponse).ToList();
+
+            if(allFeedback == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, allFeedback);
         }
     }
 }

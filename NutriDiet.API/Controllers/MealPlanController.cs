@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.API.Extensions;
 using NutriDiet.Common.Enums;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
+using Sprache;
 using System.ComponentModel.DataAnnotations;
 
 namespace NutriDiet.API.Controllers
@@ -72,15 +74,6 @@ namespace NutriDiet.API.Controllers
             return Ok("Cập nhật thực đơn thành công");
         }
 
-        [HttpPut("status")]
-        [Authorize]
-        public async Task<IActionResult> ChangStatusMealPlan(int mealPlanId, [Required] MealplanStatus status)
-        {
-            await _mealPlanService.ChangStatusMealPlan(mealPlanId, status.ToString());
-            return Ok("Cập nhật trạng thái thành công");
-        }
-
-
         [HttpPost("clone")]
         [Authorize]
         public async Task<IActionResult> CloneSampleMealPlan(int mealPlanId)
@@ -134,6 +127,14 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> UpdateMealPlanMobile(int mealPlanId, string planName, string healthGoal)
         {
             var result = await _mealPlanService.UpdateMealPlanMobile(mealPlanId, planName, healthGoal);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("feedback")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllFeedback(int pageIndex, int pageSize)
+        {
+            var result = await _mealPlanService.GetFeedback(pageIndex, pageSize);
             return StatusCode(result.StatusCode, result);
         }
     }
