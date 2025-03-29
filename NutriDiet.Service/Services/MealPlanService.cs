@@ -729,9 +729,10 @@ namespace NutriDiet.Service.Services
             var mealPlans = await _unitOfWork.MealPlanRepository.GetPagedAsync(
                 pageIndex,
             pageSize,
-            x => x.UserId == 2 && x.CreatedBy.ToLower() == "admin" && x.Status.ToLower() == MealplanStatus.Active.ToString().ToLower() &&
+            x => x.UserId == 2 && x.CreatedBy.ToLower() == "admin" &&
                       (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
-                                                   || x.HealthGoal.ToLower().Contains(search)));
+                                                   || x.HealthGoal.ToLower().Contains(search)),
+            q => q.OrderByDescending(x => x.CreatedAt));
 
             if (mealPlans == null || !mealPlans.Any())
             {
