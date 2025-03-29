@@ -2,6 +2,7 @@
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
+using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
@@ -75,37 +76,38 @@ namespace NutriDiet.Service.Utilities
             }
         }
 
-        public async Task<IBusinessResult> EnableReminder(string mealType, string fcmToken)
+        public async Task<IBusinessResult> EnableReminder(string fcmToken)
         {
             var userId = await GetUserIdByFcmToken(fcmToken);
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
 
             if (user == null)
             {
-                return new BusinessResult(404, "User not found");
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
             }
 
             if (string.IsNullOrEmpty(fcmToken))
             {
-                return new BusinessResult(400, "FCM token is required");
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "FCM token is required");
             }
 
-            // Update user's FCM token if it's not set
+
             if (string.IsNullOrEmpty(user.FcmToken))
             {
                 user.FcmToken = fcmToken;
                 await _unitOfWork.UserRepository.UpdateAsync(user);
             }
 
-            // Toggle EnableReminder flag
+            // EnableReminder flag
             user.EnableReminder = !(user.EnableReminder ?? false);
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
             string message = user.EnableReminder.Value
-                ? $"Reminder enabled for {mealType}"
-                : $"Reminder disabled for {mealType}";
-            return new BusinessResult(200, message);
+                ? $"Reminder enabled"
+                : $"Reminder disabled";
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, message);
         }
     }
 }
