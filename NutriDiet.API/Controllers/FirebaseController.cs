@@ -23,20 +23,16 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("enable-reminder")]
-        public async Task<IActionResult> EnableReminder(string mealType,[FromBody] string fcmToken)
+        public async Task<IActionResult> EnableReminder(string mealType, [FromBody] string fcmToken)
         {
             try
             {
-                var (success, message) = await _firebaseService.EnableReminderAsync(mealType, fcmToken);
-                if (!success)
+                var result = await _firebaseService.EnableReminder(mealType, fcmToken);
+                if (result.StatusCode != 200)
                 {
-                    return NotFound(message);
+                    return StatusCode(result.StatusCode, result.Message);
                 }
-                return Ok(new { Message = message });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
+                return Ok(new { Message = result.Message });
             }
             catch (Exception ex)
             {

@@ -17,5 +17,8 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public int? Duration { get; set; }
 
         public string? Description { get; set; }
+        public DateTime? CreatedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
     }
 }

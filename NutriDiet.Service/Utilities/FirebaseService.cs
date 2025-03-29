@@ -2,6 +2,8 @@
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
+using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
 
 namespace NutriDiet.Service.Utilities
@@ -32,7 +34,7 @@ namespace NutriDiet.Service.Utilities
                 Notification = new Notification
                 {
                     Title = title,
-                    Body = body
+                    Body = body,
                 }
             };
 
@@ -50,31 +52,10 @@ namespace NutriDiet.Service.Utilities
                 string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
                 Console.WriteLine("Notification sent successfully: " + response);
 
-                var notification = new Repository.Models.Notification
-                {
-                    UserId = userId,
-                    Title = title,
-                    Description = body,
-                    Status = "Sent",
-                    Date = DateTime.UtcNow
-                };
-                await _unitOfWork.NotificationRepository.AddAsync(notification);
-                await _unitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error sending notification: " + ex.Message);
-                // Lưu thông báo lỗi nếu gửi thất bại
-                var notification = new Repository.Models.Notification
-                {
-                    UserId = userId,
-                    Title = title,
-                    Description = body,
-                    Status = "Failed",
-                    Date = DateTime.UtcNow
-                };
-                await _unitOfWork.NotificationRepository.AddAsync(notification);
-                await _unitOfWork.SaveChangesAsync();
             }
         }
 
@@ -94,53 +75,37 @@ namespace NutriDiet.Service.Utilities
             }
         }
 
-        public async Task<(bool Success, string Message)> EnableReminderAsync(string mealType, string fcmToken)
+        public async Task<IBusinessResult> EnableReminder(string mealType, string fcmToken)
         {
             var userId = await GetUserIdByFcmToken(fcmToken);
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+
             if (user == null)
             {
-                return (false, "User not found");
+                return new BusinessResult(404, "User not found");
             }
 
             if (string.IsNullOrEmpty(fcmToken))
             {
-                throw new ArgumentException("FCM token is required to enable reminders.");
+                return new BusinessResult(400, "FCM token is required");
             }
 
+            // Update user's FCM token if it's not set
             if (string.IsNullOrEmpty(user.FcmToken))
             {
                 user.FcmToken = fcmToken;
                 await _unitOfWork.UserRepository.UpdateAsync(user);
             }
 
-            // Kiểm tra xem đã có bản ghi Pending cho mealType này chưa
-            var existingReminder = await _unitOfWork.NotificationRepository
-                .GetByWhere(n => n.UserId == userId && n.Title == mealType.ToLower() && n.Status == "Pending")
-                .FirstOrDefaultAsync();
+            // Toggle EnableReminder flag
+            user.EnableReminder = !(user.EnableReminder ?? false);
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
 
-            if (existingReminder == null)
-            {
-                // Nếu chưa có, tạo mới bản ghi Pending
-                var notification = new Repository.Models.Notification
-                {
-                    UserId = userId,
-                    Title = mealType.ToLower(),
-                    Description = $"Reminder enabled for {mealType}",
-                    Status = "Pending",
-                    Date = DateTime.UtcNow
-                };
-                await _unitOfWork.NotificationRepository.AddAsync(notification);
-                await _unitOfWork.SaveChangesAsync();
-                return (true, $"Reminder enabled for {mealType}");
-            }
-            else
-            {
-                // Nếu đã có, xóa bản ghi để hủy nhắc nhở
-                await _unitOfWork.NotificationRepository.DeleteAsync(existingReminder);
-                await _unitOfWork.SaveChangesAsync();
-                return (true, $"Reminder disabled for {mealType}");
-            }
+            string message = user.EnableReminder.Value
+                ? $"Reminder enabled for {mealType}"
+                : $"Reminder disabled for {mealType}";
+            return new BusinessResult(200, message);
         }
     }
 }

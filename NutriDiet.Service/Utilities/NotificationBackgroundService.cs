@@ -34,49 +34,31 @@ namespace NutriDiet.Service.BackgroundServices
 
         private async Task SendMealReminders()
         {
-            // Tạo scope mới cho mỗi lần chạy
             using var scope = _scopeFactory.CreateScope();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             var firebaseService = scope.ServiceProvider.GetRequiredService<FirebaseService>();
 
             var timeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // UTC+7
             var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
-            var users = await unitOfWork.UserRepository.GetAll().ToListAsync();
+            var users = await unitOfWork.UserRepository
+                .GetByWhere(u => u.EnableReminder == true && !string.IsNullOrEmpty(u.FcmToken))
+                .ToListAsync();
 
             foreach (var user in users)
             {
-                if (string.IsNullOrEmpty(user.FcmToken))
-                    continue;
-
-                var reminders = await unitOfWork.NotificationRepository
-                    .GetByWhere(n => n.UserId == user.UserId && n.Status == "Pending")
+                var mealLogs = await unitOfWork.MealLogRepository
+                    .GetByWhere(ml => ml.UserId == user.UserId && ml.LogDate.HasValue && ml.LogDate.Value.Date == now.Date)
+                    .Include(ml => ml.MealLogDetails)
                     .ToListAsync();
 
-                foreach (var reminder in reminders)
+                foreach (var mealLog in mealLogs)
                 {
-                    var mealType = reminder.Title;
-                    var mealLogs = await unitOfWork.MealLogRepository
-                        .GetByWhere(ml => ml.UserId == user.UserId && ml.LogDate.HasValue && ml.LogDate.Value.Date == now.Date)
-                        .Include(ml => ml.MealLogDetails)
-                        .ToListAsync();
-
-                    foreach (var mealLog in mealLogs)
+                    foreach (var detail in mealLog.MealLogDetails)
                     {
-                        var details = mealLog.MealLogDetails
-                            .Where(d => d.MealType.ToLower() == mealType)
-                            .ToList();
-
-                        if (details.Any())
+                        var (title, body, shouldSend) = GetNotificationDetails(detail.MealType?.ToLower(), now);
+                        if (shouldSend)
                         {
-                            var (title, body, shouldSend) = GetNotificationDetails(mealType, now);
-                            if (shouldSend)
-                            {
-                                await firebaseService.SendNotification(user.FcmToken, title, body);
-                                reminder.Status = "Sent";
-                                reminder.Date = DateTime.UtcNow;
-                                await unitOfWork.NotificationRepository.UpdateAsync(reminder);
-                                await unitOfWork.SaveChangesAsync();
-                            }
+                            await firebaseService.SendNotification(user.FcmToken, title, body);
                         }
                     }
                 }
@@ -93,23 +75,19 @@ namespace NutriDiet.Service.BackgroundServices
                 "breakfast" => (
                     "Đến giờ ăn rồi!",
                     "Hãy ăn bữa sáng của bạn. Bỏ qua nếu bạn đã ăn sáng",
-                    hour == 6 && minute >= 30 || (hour == 7) || (hour == 8 && minute <= 0)
-                ),
+                    hour == 14 && minute >= 15),
                 "lunch" => (
                     "Đến giờ ăn rồi!",
                     "Hãy ăn bữa trưa của bạn. Bỏ qua nếu bạn đã ăn trưa",
-                    hour == 11 && minute >= 30 || (hour == 12) || (hour == 13 && minute <= 30)
-                ),
+                    hour == 12),
                 "dinner" => (
                     "Đến giờ ăn rồi!",
                     "Hãy ăn bữa tối của bạn. Bỏ qua nếu bạn đã ăn tối",
-                    hour == 18 || (hour == 19 && minute <= 30)
-                ),
+                    hour == 18),
                 "snacks" => (
                     "Đến giờ ăn rồi!",
                     "Hãy ăn bữa phụ của bạn. Bỏ qua nếu bạn đã ăn",
-                    hour == 15 || (hour == 16 && minute <= 0)
-                ),
+                    hour == 15 && minute == 30),
                 _ => ("", "", false)
             };
         }

@@ -46,6 +46,7 @@ CREATE TABLE [User] (
     Avatar NVARCHAR(MAX) NULL,
     fcmToken NVARCHAR(255) NULL,
     Status NVARCHAR(50) CHECK (Status IN ('Active', 'Inactive')) DEFAULT 'Active',
+	EnableReminder BIT NULL, -- bật thông báo nhắc nhở
     RoleID INT NOT NULL,
     RefreshToken NVARCHAR(MAX) NULL,
 	RefreshTokenExpiryTime DATETIME NULL,

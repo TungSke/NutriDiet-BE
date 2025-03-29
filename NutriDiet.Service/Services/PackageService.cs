@@ -31,6 +31,16 @@ namespace NutriDiet.Service.Services
             _tokenHandlerHelper = tokenHandlerHelper;
         }
 
+        public async Task<IBusinessResult> GetPackage()
+        {
+            var package = await _unitOfWork.PackageRepository.GetAll().OrderByDescending(x=>x.CreatedAt).ToListAsync();
+            if(package == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+            var result = package.Adapt<List<PackageResponse>>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result);
+        }
         public async Task<IBusinessResult> CreatePackage(PackageRequest request)
         {
             var existingPackage = await _unitOfWork.PackageRepository
