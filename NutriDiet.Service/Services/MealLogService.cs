@@ -642,10 +642,10 @@ namespace NutriDiet.Service.Services
             }
 
             airecommendMeallogExisted.Status = "Accepted";
-            if (feedback.IsNullOrEmpty() == false)
+            if (!string.IsNullOrWhiteSpace(feedback))
             {
                 airecommendMeallogExisted.Feedback = feedback;
-            }         
+            }
             var aiResponse = JsonSerializer.Deserialize<List<MealLogRequest>>(airecommendMeallogExisted.AirecommendMealLogResponse);
             var today = DateTime.Now.Date;
             var existingMealLog = await _unitOfWork.MealLogRepository
