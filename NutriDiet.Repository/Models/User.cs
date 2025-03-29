@@ -27,6 +27,8 @@ public partial class User
 
     public string? Status { get; set; }
 
+    public bool? EnableReminder { get; set; }
+
     public int RoleId { get; set; }
 
     public string? RefreshToken { get; set; }
