@@ -17,6 +17,7 @@ using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
 using System.Linq;
+using System.Numerics;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -768,15 +769,17 @@ namespace NutriDiet.Service.Services
             var mealLogFeedback = await _unitOfWork.AIRecommendationMeallogRepository.GetPagedAsync(
                 pageIndex,
                 pageSize,
-                predicate: log => log.Feedback != null,
-                x => x.OrderByDescending(x => x.RecommendedAt)
+                log => log.Feedback != null,
+                x => x.OrderByDescending(x => x.RecommendedAt),
+                include: log => log.Include(x => x.User)
                 );
 
             var mealPlanFeedback = await _unitOfWork.AIRecommendationRepository.GetPagedAsync(
                 pageIndex,
                 pageSize,
-                predicate: log => log.Feedback != null,
-                x => x.OrderByDescending(x => x.RecommendedAt)
+                log => log.Feedback != null,
+                x => x.OrderByDescending(x => x.RecommendedAt),
+                include: log => log.Include(x=>x.User)
                 );
 
             var mealLogFeedbackResponse =  mealLogFeedback
@@ -785,6 +788,7 @@ namespace NutriDiet.Service.Services
                     Id = log.AirecommendMealLogId,
                     Type = "MealLog",
                     UserId = log.UserId,
+                    FullName = log.User.FullName,
                     RecommendedAt = log.RecommendedAt,
                     Response = log.AirecommendMealLogResponse,
                     Status = log.Status,
@@ -799,6 +803,7 @@ namespace NutriDiet.Service.Services
                     Id = plan.AirecommendMealPlanId,
                     Type = "MealPlan",
                     UserId = plan.UserId,
+                    FullName = plan.User.FullName,
                     RecommendedAt = plan.RecommendedAt,
                     Response = plan.AirecommendMealPlanResponse,
                     Status = plan.Status,
@@ -807,7 +812,11 @@ namespace NutriDiet.Service.Services
                 })
                 .ToList();
 
-            var allFeedback = mealLogFeedbackResponse.Concat(mealPlanFeedbackResponse).ToList();
+            var allFeedback = mealLogFeedbackResponse
+                .Concat(mealPlanFeedbackResponse)
+                .OrderByDescending(f => f.RecommendedAt)
+                .Take(pageSize)
+                .ToList();
 
             if(allFeedback == null)
             {

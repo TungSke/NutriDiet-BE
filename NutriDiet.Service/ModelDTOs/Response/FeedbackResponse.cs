@@ -11,6 +11,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public int Id { get; set; }
         public string Type { get; set; }
         public int UserId { get; set; }
+        public string FullName { get; set; }
         public DateTime? RecommendedAt { get; set; }
         public string? Response { get; set; }
         public string Status { get; set; }
