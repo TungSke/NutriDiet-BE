@@ -18,18 +18,18 @@ namespace NutriDiet.Service.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    await SendMealReminders();
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
-            }
+            //while (!stoppingToken.IsCancellationRequested)
+            //{
+            //    try
+            //    {
+            //        await SendMealReminders();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        throw ex;
+            //    }
+            //    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            //}
         }
 
         private async Task SendMealReminders()
