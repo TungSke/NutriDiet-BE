@@ -763,13 +763,14 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task<IBusinessResult> GetFeedback(int pageIndex, int pageSize)
+        public async Task<IBusinessResult> GetFeedback(int pageIndex, int pageSize, string? search)
         {
+            search = search?.ToLower() ?? string.Empty;
 
             var mealLogFeedback = await _unitOfWork.AIRecommendationMeallogRepository.GetPagedAsync(
                 pageIndex,
                 pageSize,
-                log => log.Feedback != null,
+                predicate: log => log.Feedback != null && (string.IsNullOrEmpty(search) || log.User.FullName.ToLower().Contains(search)),
                 x => x.OrderByDescending(x => x.RecommendedAt),
                 include: log => log.Include(x => x.User)
                 );
@@ -777,7 +778,7 @@ namespace NutriDiet.Service.Services
             var mealPlanFeedback = await _unitOfWork.AIRecommendationRepository.GetPagedAsync(
                 pageIndex,
                 pageSize,
-                log => log.Feedback != null,
+                predicate: log => log.Feedback != null && (string.IsNullOrEmpty(search) || log.User.FullName.ToLower().Contains(search)),
                 x => x.OrderByDescending(x => x.RecommendedAt),
                 include: log => log.Include(x=>x.User)
                 );

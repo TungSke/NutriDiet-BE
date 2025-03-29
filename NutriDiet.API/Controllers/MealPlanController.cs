@@ -132,9 +132,9 @@ namespace NutriDiet.API.Controllers
 
         [HttpGet("feedback")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllFeedback(int pageIndex, int pageSize)
+        public async Task<IActionResult> GetAllFeedback(int pageIndex = 1, int pageSize = 10, string? search = "")
         {
-            var result = await _mealPlanService.GetFeedback(pageIndex, pageSize);
+            var result = await _mealPlanService.GetFeedback(pageIndex, pageSize, search);
             return StatusCode(result.StatusCode, result);
         }
     }
