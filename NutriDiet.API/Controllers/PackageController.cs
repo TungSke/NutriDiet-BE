@@ -24,6 +24,14 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpGet("{packageId}")]
+        [Authorize]
+        public async Task<IActionResult> GetPackageById(int packageId)
+        {
+            var result = await _packageService.GetPackageById(packageId);
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpGet("user-package")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUserPackages(int pageIndex, int pageSize, string? status, string? search)
