@@ -54,6 +54,12 @@ namespace NutriDiet.API.Controllers
             var result = await _healthprofileService.TrackingHealthProfile(field);
             return StatusCode(result.StatusCode, result);
         }
-
+        [HttpPost("ai-suggestion")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> CreateAISuggestion()
+        {
+            var result = await _healthprofileService.CreateAISuggestion();
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

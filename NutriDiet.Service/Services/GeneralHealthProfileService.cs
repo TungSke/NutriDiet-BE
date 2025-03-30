@@ -10,8 +10,10 @@ using NutriDiet.Repository.Models;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
+using NutriDiet.Service.Utilities;
 using System;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Services
@@ -21,11 +23,13 @@ namespace NutriDiet.Service.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _userIdClaim;
+        private readonly AIGeneratorService _aiGeneratorService;
 
-        public GeneralHealthProfileService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
+        public GeneralHealthProfileService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
+            _aiGeneratorService = aIGeneratorService;
             _userIdClaim = GetUserIdClaim();
         }
 
@@ -326,6 +330,111 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
+
+        public async Task<IBusinessResult> CreateAISuggestion()
+        {
+            var userId = int.Parse(_userIdClaim);
+            var isPremiumResult = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+            if (!isPremiumResult)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
+
+            var userInfo = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userId)
+                                       .Include(x => x.GeneralHealthProfiles)
+                                       .Include(x => x.UserFoodPreferences)
+                                       .Include(x => x.UserIngreDientPreferences).ThenInclude(x => x.Ingredient)
+                                       .Include(x => x.PersonalGoals)
+                                       .Include(x => x.Allergies)
+                                       .Include(x => x.Diseases)
+                                       .FirstOrDefaultAsync();
+
+            if (userInfo == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
+
+            var allergyNames = userInfo.Allergies?.Select(x => x.AllergyName).ToList() ?? new List<string>();
+            var diseaseNames = userInfo.Diseases?.Select(x => x.DiseaseName).ToList() ?? new List<string>();
+
+            var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
+            var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
+
+            var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
+            var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
+
+            var height = userProfile?.Height ?? 0;
+            var weight = userProfile?.Weight ?? 0;
+            var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
+            var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
+
+            // Định nghĩa JSON mẫu cho lời khuyên cải thiện sức khỏe
+            var jsonSampleOutput = JsonSerializer.Serialize(new
+            {
+                advice = "Ví dụ: Hãy duy trì chế độ ăn cân bằng, tập thể dục đều đặn và ngủ đủ giấc.",
+                tips = new string[] {
+            "Tăng cường rau xanh",
+            "Giảm đường và chất béo bão hòa",
+            "Tham gia hoạt động thể chất hàng ngày từ 30 phút đến 1 tiếng"
+        }
+            });
+
+            // Xây dựng input cho AI với thông tin người dùng và yêu cầu cải thiện sức khỏe
+            var input = $@"Bạn là một chuyên gia dinh dưỡng và sức khỏe. Nhiệm vụ của bạn là đưa ra lời khuyên để cải thiện sức khỏe cho người dùng dựa trên hồ sơ sức khỏe và mục tiêu cá nhân của họ.
+
+Thông tin người dùng:
+- **Họ tên:** {userInfo.FullName}
+- **Giới tính:** {userInfo.Gender}
+- **Tuổi:** {userInfo.Age}
+- **Chiều cao:** {height} cm
+- **Cân nặng:** {weight} kg
+- **Mức độ vận động:** {activityLevel}
+- **Mục tiêu:** {goalType}
+
+Yêu cầu:
+- Cung cấp lời khuyên chi tiết để cải thiện sức khỏe, bao gồm các khuyến nghị về dinh dưỡng, luyện tập và lối sống.
+- Lưu ý các dị ứng thực phẩm: {formattedAllergies}
+- Lưu ý các bệnh lý: {formattedDiseases}
+
+Lưu ý:
+- Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
+";
+
+            // Gọi dịch vụ AI để nhận phản hồi dưới dạng JSON
+            var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
+
+            // Tìm bản ghi GeneralHealthProfile gần nhất của người dùng
+            var healthProfileRecord = await _unitOfWork.HealthProfileRepository
+                                          .GetByWhere(hp => hp.UserId == userId)
+                                          .OrderByDescending(hp => hp.CreatedAt)
+                                          .FirstOrDefaultAsync();
+
+            if (healthProfileRecord == null)
+            {
+                // Nếu không tồn tại, tạo mới bản ghi với Aisuggestion
+                healthProfileRecord = new GeneralHealthProfile
+                {
+                    UserId = userId,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    Aisuggestion = airesponse
+                };
+
+                await _unitOfWork.HealthProfileRepository.AddAsync(healthProfileRecord);
+            }
+            else
+            {
+                // Cập nhật trường Aisuggestion của bản ghi hiện có
+                healthProfileRecord.Aisuggestion = airesponse;
+                healthProfileRecord.UpdatedAt = DateTime.Now;
+                await _unitOfWork.HealthProfileRepository.UpdateAsync(healthProfileRecord);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Lời khuyên tư vấn đã được tạo và lưu thành công", airesponse);
+        }
+
 
     }
 }

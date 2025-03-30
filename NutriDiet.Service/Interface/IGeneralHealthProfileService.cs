@@ -15,5 +15,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetHealthProfile();
         Task<IBusinessResult> DeleteHealthProfile(int userId);
         Task<IBusinessResult> TrackingHealthProfile(HealProfileFields field);
+        Task<IBusinessResult> GetSuggestionImproveFromAI();
+        Task<IBusinessResult> CreateAISuggestion();
     }
 }

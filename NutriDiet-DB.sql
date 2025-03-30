@@ -82,7 +82,7 @@ CREATE TABLE GeneralHealthProfile (
     Height FLOAT CHECK (Height > 0),
     Weight FLOAT CHECK (Weight > 0),
     ActivityLevel NVARCHAR(50),
-	AISuggestion NVARCHAR(255),
+	AISuggestion NVARCHAR(MAX),
 	Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')), 
 	IsActive BIT,
 	ImageUrl NVARCHAR(MAX) NULL,
