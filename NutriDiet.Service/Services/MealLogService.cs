@@ -283,7 +283,6 @@ namespace NutriDiet.Service.Services
 
             var logDate = request.LogDate.Value.Date;
 
-            // Lấy MealLog theo ngày, nếu chưa có thì tạo mới
             var mealLog = await _unitOfWork.MealLogRepository
                 .GetByWhere(m => m.UserId == userId && m.LogDate.Value.Date == logDate)
                 .Include(m => m.MealLogDetails)
@@ -473,7 +472,7 @@ namespace NutriDiet.Service.Services
             var weight = userProfile?.Weight ?? 0;
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
             var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
-            var dailyCalories = personalGoal?.DailyCalories ?? 0;
+            var targetDailyCalories = personalGoal?.DailyCalories ?? 0; // Mục tiêu calories mỗi ngày ban đầu
             var dailyCarb = personalGoal?.DailyCarb ?? 0;
             var dailyFat = personalGoal?.DailyFat ?? 0;
             var dailyProtein = personalGoal?.DailyProtein ?? 0;
@@ -484,81 +483,118 @@ namespace NutriDiet.Service.Services
                 x.Level,
             }).ToList();
 
-            string favoriteIngredientsFormatted = userIngredientsReference.Any() ? string.Join(", ", userIngredientsReference.Select(x => $"{x.IngredientName} ({x.Level})")) : "không có";
+            string favoriteIngredientsFormatted = userIngredientsReference.Any()
+                ? string.Join(", ", userIngredientsReference.Select(x => $"{x.IngredientName} ({x.Level})"))
+                : "không có";
 
-
-            // Lấy Meal Log 7 ngày gần nhất
             var mealLogs = await GetMealLogsByDateRange(null, DateTime.Now.AddDays(-7), DateTime.Now);
-
             var formattedMealLogs = JsonSerializer.Serialize(mealLogs.Data);
+
+            var mealLogsList = mealLogs.Data as List<MealLog> ?? new List<MealLog>();
+
+            var dailyCaloriesDictionary = mealLogsList
+                .GroupBy(m => m.LogDate.Value.Date)
+                .ToDictionary(g => g.Key, g => g.Sum(m => m.TotalCalories));
+
+            int sumCalories = 0;
+            for (int i = 1; i <= 7; i++)
+            {
+                var date = DateTime.Today.AddDays(-i);
+                if (dailyCaloriesDictionary.ContainsKey(date))
+                {
+                    sumCalories += (int)dailyCaloriesDictionary[date];
+                }
+                else
+                {
+                    sumCalories += (int)targetDailyCalories;
+                }
+            }
+
+            // Tổng mục tiêu calories cho 7 ngày
+            int totalTargetFor7Days = (int)(targetDailyCalories * 7);
+            int totalDifference = totalTargetFor7Days - sumCalories;
+            int adjustment = Math.Clamp(totalDifference, -200, 500);
+            int recommendedTodayCalories = (int)(targetDailyCalories + adjustment);
+            // ------------------------------
 
             // Lấy danh sách thực phẩm có thể ăn
             var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
             var foodListText = JsonSerializer.Serialize(foods);
 
             var mealogrequestSample = new List<MealLogRequest>
-            {
-                new MealLogRequest
-                {
-                    LogDate = DateTime.Now,
-                    FoodId = 1,
-                    MealType = MealType.Breakfast,
-                    Quantity = 1,
-                    ServingSize = "1 tô"
-                },
-                new MealLogRequest
-                {
-                    LogDate = DateTime.Now,
-                    FoodId = 2,
-                    MealType = MealType.Lunch,
-                    Quantity = 1,
-                    ServingSize = "1 bát"
-                },
-                new MealLogRequest
-                {
-                    LogDate = DateTime.Now,
-                    FoodId = 3,
-                    MealType = MealType.Dinner,
-                    Quantity = 1,
-                    ServingSize = "1 phần"
-                }
-            };
+    {
+        new MealLogRequest
+        {
+            LogDate = DateTime.Now.Date,
+            FoodId = 1,
+            MealType = MealType.Breakfast,
+            Quantity = 1,
+            ServingSize = "1 tô"
+        },
+        new MealLogRequest
+        {
+            LogDate = DateTime.Now.Date,
+            FoodId = 2,
+            MealType = MealType.Lunch,
+            Quantity = 1,
+            ServingSize = "1 bát"
+        },
+        new MealLogRequest
+        {
+            LogDate = DateTime.Now.Date,
+            FoodId = 3,
+            MealType = MealType.Dinner,
+            Quantity = 1,
+            ServingSize = "1 phần"
+        },
+        new MealLogRequest
+        {
+            LogDate = DateTime.Now.Date,
+            FoodId = 4,
+            MealType = MealType.Snacks,
+            Quantity = 1,
+            ServingSize = "1 phần"
+        }
+    };
 
             var jsonSampleOutput = JsonSerializer.Serialize(mealogrequestSample);
 
+            // Cập nhật chuỗi prompt cho AI, thay dailyCalories ban đầu bằng recommendedTodayCalories
             var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
 
-                        Thông tin người dùng:
-                        - **Họ tên:** {userInfo.FullName}
-                        - **Giới tính:** {userInfo.Gender}
-                        - **Tuổi:** {userInfo.Age}
-                        - **Chiều cao:** {height} cm
-                        - **Cân nặng:** {weight} kg
-                        - **Mức độ vận động:** {activityLevel}
-                        - **Mục tiêu:** {goalType}
+                Thông tin người dùng:
+                - **Họ tên:** {userInfo.FullName}
+                - **Giới tính:** {userInfo.Gender}
+                - **Tuổi:** {userInfo.Age}
+                - **Chiều cao:** {height} cm
+                - **Cân nặng:** {weight} kg
+                - **Mức độ vận động:** {activityLevel}
+                - **Mục tiêu:** {goalType}
 
-                        Dữ liệu Meal Log 7 ngày gần nhất:
-                        {formattedMealLogs}
+                Dữ liệu Meal Log 7 ngày gần nhất:
+                {formattedMealLogs}
 
-                        Yêu cầu cho Meallog ngày hôm nay:
-                        - **Meallog 1 ngày** với 3 bữa chính (Breakfast, Lunch, Dinner)
-                        - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
-                        - **Dị ứng thực phẩm:** {formattedAllergies}
-                        - **Bệnh lý cần lưu ý:** {formattedDiseases}
+                Yêu cầu cho Meal Log ngày hôm nay:
+                - **Meal Log 1 ngày** với 3 bữa chính (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks) Mỗi bữa có 2 món 
+                - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
+                - **Dị ứng thực phẩm:** {formattedAllergies}
+                - **Bệnh lý cần lưu ý:** {formattedDiseases}
 
-                        Giá trị dinh dưỡng đề xuất cho user nạp:
-                        - **Calories:** {dailyCalories}
-                        - **Carb:** {dailyCarb}
-                        - **Fat:** {dailyFat}
-                        - **Protein:** {dailyProtein}
+                Giá trị dinh dưỡng đề xuất cho user nạp đủ:
+                - **Calories:** {recommendedTodayCalories} 
+                - **Carb:** {dailyCarb}
+                - **Fat:** {dailyFat}
+                - **Protein:** {dailyProtein}
 
-                        Lưu ý:
-                        - Hạn chế chọn các món đã ăn quá nhiều trong tuần hôm nay là ngày {DateTime.UtcNow.Date}
-                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
+                Lưu ý:
+                - Hạn chế chọn các món đã ăn quá nhiều trong tuần.
+                - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
 
             var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
 
-            var airecommendMeallogExisted = await _unitOfWork.AIRecommendationMeallogRepository.GetByWhere(x => x.UserId == userId && x.Status.ToLower() == "pending").FirstOrDefaultAsync();
+            var airecommendMeallogExisted = await _unitOfWork.AIRecommendationMeallogRepository
+                .GetByWhere(x => x.UserId == userId && x.Status.ToLower() == "pending")
+                .FirstOrDefaultAsync();
             if (airecommendMeallogExisted == null)
             {
                 var airecommendmealog = new AirecommendMealLog
@@ -570,13 +606,11 @@ namespace NutriDiet.Service.Services
                 };
 
                 await _unitOfWork.AIRecommendationMeallogRepository.AddAsync(airecommendmealog);
-
             }
             else
             {
                 airecommendMeallogExisted.AirecommendMealLogResponse = airesponse;
                 await _unitOfWork.AIRecommendationMeallogRepository.UpdateAsync(airecommendMeallogExisted);
-
             }
             await _unitOfWork.SaveChangesAsync();
 
@@ -611,6 +645,7 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Input đã tạo thành công", mealLogDetails);
         }
+
 
         private async Task SaveMeallogOneDay(List<MealLogRequest> requests)
         {
