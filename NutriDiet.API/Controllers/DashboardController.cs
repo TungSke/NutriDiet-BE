@@ -17,7 +17,7 @@ namespace NutriDiet.API.Controllers
         {
             _dashboardService = dashboardService;
         }
-        [HttpGet("dashboard")]
+        [HttpGet]
         [Authorize(Roles = nameof(RoleEnum.Admin))]
         public async Task<IActionResult> Dashboard()
         {
