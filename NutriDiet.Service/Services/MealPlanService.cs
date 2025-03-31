@@ -642,7 +642,12 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> ApplyMealPlan(int mealPlanId)
         {
-            var mealPlan = await _unitOfWork.MealPlanRepository.GetByWhere(x => x.MealPlanId == mealPlanId).Include(x => x.MealPlanDetails).AsNoTracking().FirstOrDefaultAsync();
+            var mealPlan = await _unitOfWork.MealPlanRepository
+                .GetByWhere(x => x.MealPlanId == mealPlanId)
+                .Include(x => x.MealPlanDetails)
+                .ThenInclude(x=>x.Food)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
             if (mealPlan == null)
             {
@@ -690,6 +695,7 @@ namespace NutriDiet.Service.Services
                         FoodId = detail.FoodId,
                         Quantity = detail.Quantity,
                         MealType = detail.MealType,
+                        ServingSize = detail.Food.ServingSize,
                         Calories = detail.TotalCalories,
                         Carbs = detail.TotalCarbs,
                         Fat = detail.TotalFat,
