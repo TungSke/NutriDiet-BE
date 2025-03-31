@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Repository.Interface;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Response;
 using System;
@@ -22,11 +24,32 @@ namespace NutriDiet.Service.Services
         }
         public async Task<IBusinessResult> Dashboard()
         {
+            var totalFeedbackMealPlan = await _unitOfWork.AIRecommendationRepository
+                .GetAll()
+                .Where(x => x.Feedback != null)
+                .CountAsync();
+            var totalFeedbackMealLog = await _unitOfWork.AIRecommendationMeallogRepository
+                .GetAll()
+                .Where(x => x.Feedback != null)
+                .CountAsync();
+
             var dashboard = new DashboardResponse
             {
-                TotalUser = await _unitOfWork.UserRepository.CountAsync(),
-                MealPlanNumber = await _unitOfWork.MealPlanRepository.CountAsync(),
-                //PackageNumber = await _unitOfWork.PackageRepository.CountAsync(),
+                TotalUser = await _unitOfWork.UserRepository
+                    .GetAll()
+                    .Where(x=>x.RoleId != (int)RoleEnum.Admin)
+                    .CountAsync(),
+                TotalPremiumUser = await _unitOfWork.UserRepository
+                    .GetAll()
+                    .Where(x => x.UserPackages.Any(x => x.ExpiryDate >= DateTime.UtcNow && x.Status == "Active") && x.RoleId!= (int)RoleEnum.Admin)
+                    .CountAsync(),
+                TotalPackage = await _unitOfWork.PackageRepository.CountAsync(),
+                TotalAllergy = await _unitOfWork.AllergyRepository.CountAsync(),
+                TotalDisease = await _unitOfWork.DiseaseRepository.CountAsync(),
+                TotalIngredient = await _unitOfWork.IngredientRepository.CountAsync(),
+                TotalFood = await _unitOfWork.FoodRepository.CountAsync(),
+                TotalMealPlan = await _unitOfWork.MealPlanRepository.CountAsync(),
+                TotalFeedbackAI = totalFeedbackMealPlan + totalFeedbackMealLog
             };
             return new BusinessResult(Const.HTTP_STATUS_OK,Const.SUCCESS_READ_MSG,dashboard);
         }
