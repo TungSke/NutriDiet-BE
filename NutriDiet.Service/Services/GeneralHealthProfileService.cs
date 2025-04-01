@@ -298,8 +298,10 @@ namespace NutriDiet.Service.Services
                 .OrderBy(hp => hp.CreatedAt)
                 .Select(hp => new
                 {
+                    hp.ProfileId,
                     hp.CreatedAt,
-                    Value = EF.Property<object>(hp, field.ToString())
+                    Value = EF.Property<object>(hp, field.ToString()),
+                    hp.ImageUrl
                 })
                 .AsNoTracking()
                 .ToListAsync();
@@ -311,8 +313,10 @@ namespace NutriDiet.Service.Services
 
             var response = healthProfiles.Select(hp => new
             {
+                ProfileId = hp.ProfileId,
                 Date = hp.CreatedAt,
-                Value = hp.Value
+                Value = hp.Value,
+                ImageUrl = hp.ImageUrl
             }).ToList();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
