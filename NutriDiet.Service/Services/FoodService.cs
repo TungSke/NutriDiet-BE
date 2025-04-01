@@ -22,9 +22,9 @@ namespace NutriDiet.Service.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly AIGeneratorService _aIGeneratorService;
-
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _userIdClaim;
+
         public FoodService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, AIGeneratorService aIGeneratorService)
         {
             _unitOfWork = unitOfWork;
