@@ -17,6 +17,16 @@ namespace NutriDiet.Service.Utilities
             _cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
             _cloudinary.Api.Secure = true;
         }
+        public async Task DeleteImage(string publicId)
+        {
+            var deletionParams = new DeletionParams(publicId);
+            var result = await _cloudinary.DestroyAsync(deletionParams);
+
+            if (result.Result != "ok")
+            {
+                throw new Exception($"Failed to delete image from Cloudinary: {result.Error?.Message}");
+            }
+        }
 
         public async Task<string> UploadImageWithCloudDinary(IFormFile file)
         {
