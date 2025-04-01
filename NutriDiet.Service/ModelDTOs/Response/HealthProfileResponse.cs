@@ -9,6 +9,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
 {
     public class HealthProfileResponse
     {
+        public int ProfileId { get; set; }
         public string FullName { get; set; } = null!;
         public string? Avatar { get; set; }
         public int? Age { get; set; }

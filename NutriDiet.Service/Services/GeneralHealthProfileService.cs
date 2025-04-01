@@ -336,6 +336,152 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
+        public async Task<IBusinessResult> GetHealthProfiles()
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            var profiles = await _unitOfWork.HealthProfileRepository
+                                .GetByWhere(hp => hp.UserId == userId)
+                                .Include(hp => hp.HealthcareIndicators)
+                                .OrderByDescending(hp => hp.CreatedAt)
+                                .AsNoTracking()
+                                .ToListAsync();
+
+            if (profiles == null || !profiles.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Không tìm thấy hồ sơ sức khỏe nào");
+            }
+
+            var response = profiles.Adapt<List<HealthProfileResponse>>();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+
+
+        public async Task<IBusinessResult> DeleteProfileById(int profileId)
+        {
+            var profile = await _unitOfWork.HealthProfileRepository
+                                .GetByWhere(p => p.ProfileId == profileId)
+                                .Include(p => p.HealthcareIndicators)
+                                .FirstOrDefaultAsync();
+
+            if (profile == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Profile not found");
+            }
+
+            var profileCount = await _unitOfWork.HealthProfileRepository
+                                    .GetByWhere(p => p.UserId == profile.UserId)
+                                    .CountAsync();
+
+            if (profileCount <= 1)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Không thể xóa vì đây là hồ sơ duy nhất của người dùng");
+            }
+            await _unitOfWork.HealthProfileRepository.DeleteAsync(profile);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Profile deleted successfully along with its healthcare indicators");
+        }
+
+        public async Task<IBusinessResult> AddImageToHealthProfile(int profileId, AddImageRequest request)
+        {
+            if (request.Image == null || request.Image.Length == 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Image file is required.", null);
+            }
+
+            int userId = int.Parse(_userIdClaim);
+
+            var profile = await _unitOfWork.HealthProfileRepository
+                .GetByWhere(p => p.ProfileId == profileId && p.UserId == userId)
+                .FirstOrDefaultAsync();
+
+            if (profile == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Health profile not found.", null);
+            }
+
+            try
+            {
+                var cloudinaryHelper = new CloudinaryHelper();
+
+                if (!string.IsNullOrEmpty(profile.ImageUrl))
+                {
+                    var publicId = ExtractPublicIdFromUrl(profile.ImageUrl);
+                    profile.ImageUrl = await cloudinaryHelper.UpdateImageWithCloudinary(publicId, request.Image);
+                }
+                else
+                {
+                    profile.ImageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.Image);
+                }
+
+                profile.UpdatedAt = DateTime.Now;
+            }
+            catch (Exception)
+            {
+                return new BusinessResult(Const.ERROR_EXCEPTION, "Error uploading image.", null);
+            }
+
+            await _unitOfWork.HealthProfileRepository.UpdateAsync(profile);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Image added/replaced successfully.", profile.ImageUrl);
+        }
+
+        private string ExtractPublicIdFromUrl(string imageUrl)
+        {
+            var uri = new Uri(imageUrl);
+            var segments = uri.AbsolutePath.Split('/');
+            var folderIndex = Array.IndexOf(segments, "upload") + 1;
+            var pathParts = segments.Skip(folderIndex).ToArray();
+
+            var fullPath = string.Join("/", pathParts);
+            return Path.Combine(Path.GetDirectoryName(fullPath) ?? "", Path.GetFileNameWithoutExtension(fullPath)).Replace("\\", "/");
+        }
+
+        public async Task<IBusinessResult> DeleteImageFromHealthProfile(int profileId)
+        {
+            int userId = int.Parse(_userIdClaim);
+
+            var profile = await _unitOfWork.HealthProfileRepository
+                .GetByWhere(p => p.ProfileId == profileId && p.UserId == userId)
+                .FirstOrDefaultAsync();
+
+            if (profile == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Health profile not found.", null);
+            }
+
+            if (string.IsNullOrEmpty(profile.ImageUrl))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "No image to delete.", null);
+            }
+
+            try
+            {
+                var cloudinaryHelper = new CloudinaryHelper();
+
+                // Xoá ảnh trên Cloudinary
+                //var publicId = ExtractPublicIdFromUrl(profile.ImageUrl);
+                //await cloudinaryHelper.DeleteImage(publicId);
+
+                // Xoá ảnh trong hệ thống
+                profile.ImageUrl = null;
+                profile.UpdatedAt = DateTime.Now;
+
+                await _unitOfWork.HealthProfileRepository.UpdateAsync(profile);
+                await _unitOfWork.SaveChangesAsync();
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Image deleted successfully.");
+            }
+            catch (Exception)
+            {
+                return new BusinessResult(Const.ERROR_EXCEPTION, "Error deleting image.", null);
+            }
+        }
+
+
         public async Task<IBusinessResult> CreateAISuggestion()
         {
             var userId = int.Parse(_userIdClaim);
@@ -373,7 +519,6 @@ namespace NutriDiet.Service.Services
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
             var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
 
-            // Xây dựng input cho AI, yêu cầu trả về text thuần túy (không JSON)
             var input = $@"Bạn là một chuyên gia dinh dưỡng và sức khỏe. Nhiệm vụ của bạn là đưa ra lời khuyên chi tiết giúp cải thiện sức khỏe cho người dùng dựa trên hồ sơ sức khỏe và mục tiêu cá nhân của họ.
 
 Thông tin người dùng:

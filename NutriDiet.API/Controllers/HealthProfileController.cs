@@ -34,14 +34,6 @@ namespace NutriDiet.API.Controllers
             return Ok();
         }
 
-        [HttpDelete("{userid}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteFood(int userid)
-        {
-            var result = await _healthprofileService.DeleteHealthProfile(userid);
-            return StatusCode(result.StatusCode, result);
-        }
-
         [HttpGet("reports")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> Tracking([FromQuery] HealProfileFields field)
@@ -61,5 +53,38 @@ namespace NutriDiet.API.Controllers
             var result = await _healthprofileService.CreateAISuggestion();
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpGet("list")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> GetHealthProfiles()
+        {
+            var result = await _healthprofileService.GetHealthProfiles();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpDelete("{profileId}")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> DeleteProfileById(int profileId)
+        {
+            var result = await _healthprofileService.DeleteProfileById(profileId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPost("{profileId}/image")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> AddImageToHealthProfile(int profileId, [FromForm] AddImageRequest request)
+        {
+            var result = await _healthprofileService.AddImageToHealthProfile(profileId, request);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpDelete("{profileId}/image")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> DeleteImageFromHealthProfile(int profileId)
+        {
+            var result = await _healthprofileService.DeleteImageFromHealthProfile(profileId);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }
