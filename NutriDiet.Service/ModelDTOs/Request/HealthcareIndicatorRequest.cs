@@ -8,7 +8,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class HealthcareIndicatorRequest
     {
-        public int UserId { get; set; }
+        public int ProfileID { get; set; }
         public string Code { get; set; } = null!;
 
         public string Name { get; set; } = null!;

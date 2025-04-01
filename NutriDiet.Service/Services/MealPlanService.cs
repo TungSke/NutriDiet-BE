@@ -390,7 +390,7 @@ namespace NutriDiet.Service.Services
             // Lấy thông tin sức khỏe, mục tiêu cá nhân, thói quen ăn uống, dị ứng, bệnh lý của user
             var userInfo = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userid)
                                                        .Include(x => x.GeneralHealthProfiles)
-                                                       .Include(x => x.HealthcareIndicators)
+                                                       .ThenInclude(x => x.HealthcareIndicators)
                                                        .Include(x => x.PersonalGoals)
                                                        .Include(x => x.UserFoodPreferences)
                                                        .Include(x => x.UserIngreDientPreferences).ThenInclude(x => x.Ingredient)
