@@ -46,6 +46,7 @@ namespace NutriDiet.Service.Services
                 .GetByWhere(x => x.UserId == userId)
                 .Include(u => u.Allergies)
                 .Include(u => u.Diseases)
+                .Include(u => u.GeneralHealthProfiles)
                 .FirstOrDefaultAsync();
 
             if (existingUser == null)
@@ -53,36 +54,39 @@ namespace NutriDiet.Service.Services
                 throw new Exception("User does not exist.");
             }
 
-            var healthProfile = request.Adapt<GeneralHealthProfile>();
-            healthProfile.CreatedAt = DateTime.Now;
-            healthProfile.UpdatedAt = DateTime.Now;
-            // Cập nhật tiến trình giảm cân
             if (request.Weight != null)
             {
                 await UpdateGoalProgress(request.Weight, userId);
             }
 
-            if (IsValidHealthData(request))
-            {
-                await SaveHealthIndicatorsAsync(userId, request, existingUser);
-            }
+            // Chuyển đổi request thành GeneralHealthProfile
+            var healthProfile = request.Adapt<GeneralHealthProfile>();
+            healthProfile.CreatedAt = DateTime.Now;
+            healthProfile.UpdatedAt = DateTime.Now;
+            healthProfile.UserId = userId;
 
             await _unitOfWork.BeginTransaction();
             try
             {
-                // Kiểm tra nếu đã tồn tại record HealthProfile với CreatedAt là ngày hôm nay thì xóa trước
+                // Kiểm tra và xóa hồ sơ sức khỏe của ngày hiện tại nếu có
                 var today = DateTime.Today.Date;
                 var existingRecord = await _unitOfWork.HealthProfileRepository
                     .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.Value.Date == today)
                     .FirstOrDefaultAsync();
-
                 if (existingRecord != null)
                 {
                     await _unitOfWork.HealthProfileRepository.DeleteAsync(existingRecord);
                 }
-                // Lưu hồ sơ sức khỏe mới
-                healthProfile.UserId = existingUser.UserId;
+
+                // Lưu hồ sơ sức khỏe mới (để sinh ra ProfileID)
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
+
+                // Sau khi có ProfileID, lưu các chỉ số sức khỏe nếu dữ liệu hợp lệ
+                if (IsValidHealthData(request))
+                {
+                    await SaveHealthIndicatorsAsync(healthProfile, request, existingUser);
+                }
+
                 await UpdateUserAllergiesAsync(existingUser, request.AllergyIds);
                 await UpdateUserDiseasesAsync(existingUser, request.DiseaseIds);
 
@@ -95,6 +99,7 @@ namespace NutriDiet.Service.Services
                 throw;
             }
         }
+
         private async Task UpdateUserAllergiesAsync(User existingUser, List<int> allergyIds)
         {
             // Nếu danh sách mới rỗng, xóa toàn bộ dị ứng cũ
@@ -172,8 +177,9 @@ namespace NutriDiet.Service.Services
         /// <summary>
         /// Tính toán và lưu các chỉ số sức khỏe (BMI, TDEE)
         /// </summary>
-        private async Task SaveHealthIndicatorsAsync(int userId, HealthProfileRequest request, User user)
+        private async Task SaveHealthIndicatorsAsync(GeneralHealthProfile healthProfile, HealthProfileRequest request, User user)
         {
+            // Tính toán các chỉ số sức khỏe
             var tdee = _unitOfWork.HealthcareIndicatorRepository.CalculateTDEE(
                 request.Weight.Value, request.Height.Value, user.Age.Value,
                 user.Gender.ToString().ToLower(), (double)request.ActivityLevel);
@@ -184,12 +190,21 @@ namespace NutriDiet.Service.Services
             // Phân loại BMI
             var bmiCategory = GetBMICategory(bmi);
 
-            var bmiIndicator = CreateHealthIndicator(userId, "Body mass index", bmiCategory, "BMI", bmi);
-            var tdeeIndicator = CreateHealthIndicator(userId, "Total daily energy expenditure", "Energy", "TDEE", tdee);
+            // Tạo các đối tượng HealthcareIndicator
+            var bmiIndicator = CreateHealthIndicator(healthProfile.ProfileId, "Body mass index", bmiCategory, "BMI", bmi);
+            var tdeeIndicator = CreateHealthIndicator(healthProfile.ProfileId, "Total daily energy expenditure", "Energy", "TDEE", tdee);
 
-            await _unitOfWork.HealthcareIndicatorRepository.AddAsync(bmiIndicator);
-            await _unitOfWork.HealthcareIndicatorRepository.AddAsync(tdeeIndicator);
+            // Nếu collection chưa khởi tạo, khởi tạo nó
+            if (healthProfile.HealthcareIndicators == null)
+            {
+                healthProfile.HealthcareIndicators = new List<HealthcareIndicator>();
+            }
+            // Thêm các chỉ số vào thuộc tính navigation của healthProfile
+            healthProfile.HealthcareIndicators.Add(bmiIndicator);
+            healthProfile.HealthcareIndicators.Add(tdeeIndicator);
         }
+
+
 
         private string GetBMICategory(double bmi)
         {
@@ -204,11 +219,11 @@ namespace NutriDiet.Service.Services
             };
         }
 
-        private HealthcareIndicator CreateHealthIndicator(int userId, string name, string type, string code, double value)
+        private HealthcareIndicator CreateHealthIndicator(int profileId, string name, string type, string code, double value)
         {
             return new HealthcareIndicatorRequest
             {
-                UserId = userId,
+                ProfileID = profileId,
                 Name = name,
                 Type = type,
                 Code = code,
@@ -219,58 +234,48 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> GetHealthProfile()
         {
-            var userid = int.Parse(_userIdClaim);
+            var userId = int.Parse(_userIdClaim);
 
-            var existingUser = await _unitOfWork.UserRepository
-                .GetByWhere(u => u.UserId == userid)
-                .Include(u => u.Allergies).ThenInclude(a => a.Ingredients)
-                .Include(u => u.Diseases).ThenInclude(a => a.Ingredients)
-                .Include(u => u.HealthcareIndicators.OrderByDescending(hi => hi.CreatedAt))
+            // Lấy hồ sơ sức khỏe mới nhất kèm theo danh sách HealthcareIndicator
+            var healthProfile = await _unitOfWork.HealthProfileRepository
+                .GetByWhere(hp => hp.UserId == userId)
+                .Include(hp => hp.HealthcareIndicators) // giả sử có navigation property
+                .OrderByDescending(hp => hp.CreatedAt)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (existingUser == null)
+            if (healthProfile == null)
+            {
+                throw new Exception("Health profile not exist.");
+            }
+
+            // Lọc chỉ số sức khỏe (BMI, TDEE)
+            healthProfile.HealthcareIndicators = healthProfile.HealthcareIndicators
+                .Where(hi => hi.Code == "BMI" || hi.Code == "TDEE")
+                .OrderByDescending(hi => hi.CreatedAt)
+                .Take(2)
+                .ToList();
+
+            // Lấy thông tin user để mapping sang response
+            var user = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.Allergies).ThenInclude(a => a.Ingredients)
+                .Include(u => u.Diseases).ThenInclude(a => a.Ingredients)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
             {
                 throw new Exception("User not exist.");
             }
-            existingUser.HealthcareIndicators = existingUser.HealthcareIndicators
-                                                .Where(hi => hi.Code == "BMI" || hi.Code == "TDEE")
-                                                .OrderByDescending(hi => hi.CreatedAt)
-                                                .Take(2)
-                                                .ToList();
 
-            var healthProfile = await _unitOfWork.HealthProfileRepository
-                .GetByWhere(hp => hp.UserId == userid)
-                .OrderByDescending(hp => hp.CreatedAt)
-                .AsNoTracking() 
-                .FirstOrDefaultAsync();
-
-            HealthProfileResponse response;
-            try
-            {
-                response = existingUser.Adapt<HealthProfileResponse>();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error mapping User to HealthProfileResponse: " + ex.Message, ex);
-            }
-
-            if (healthProfile != null)
-            {
-                try
-                {
-                    healthProfile.Adapt(response);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error mapping HealthProfile to HealthProfileResponse: " + ex.Message, ex);
-                }
-            }
+            var response = user.Adapt<HealthProfileResponse>();
+            healthProfile.Adapt(response);
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public  async Task<IBusinessResult> DeleteHealthProfile(int userId)
+
+        public async Task<IBusinessResult> DeleteHealthProfile(int userId)
         {
             var profile = _unitOfWork.HealthProfileRepository.GetByWhere(p => p.UserId == userId);
             if (profile == null)
@@ -368,28 +373,17 @@ namespace NutriDiet.Service.Services
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
             var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
 
-            // Định nghĩa JSON mẫu cho lời khuyên cải thiện sức khỏe
-            var jsonSampleOutput = JsonSerializer.Serialize(new
-            {
-                advice = "Ví dụ: Hãy duy trì chế độ ăn cân bằng, tập thể dục đều đặn và ngủ đủ giấc.",
-                tips = new string[] {
-            "Tăng cường rau xanh",
-            "Giảm đường và chất béo bão hòa",
-            "Tham gia hoạt động thể chất hàng ngày từ 30 phút đến 1 tiếng"
-        }
-            });
-
-            // Xây dựng input cho AI với thông tin người dùng và yêu cầu cải thiện sức khỏe
-            var input = $@"Bạn là một chuyên gia dinh dưỡng và sức khỏe. Nhiệm vụ của bạn là đưa ra lời khuyên để cải thiện sức khỏe cho người dùng dựa trên hồ sơ sức khỏe và mục tiêu cá nhân của họ.
+            // Xây dựng input cho AI, yêu cầu trả về text thuần túy (không JSON)
+            var input = $@"Bạn là một chuyên gia dinh dưỡng và sức khỏe. Nhiệm vụ của bạn là đưa ra lời khuyên chi tiết giúp cải thiện sức khỏe cho người dùng dựa trên hồ sơ sức khỏe và mục tiêu cá nhân của họ.
 
 Thông tin người dùng:
-- **Họ tên:** {userInfo.FullName}
-- **Giới tính:** {userInfo.Gender}
-- **Tuổi:** {userInfo.Age}
-- **Chiều cao:** {height} cm
-- **Cân nặng:** {weight} kg
-- **Mức độ vận động:** {activityLevel}
-- **Mục tiêu:** {goalType}
+- Họ tên: {userInfo.FullName}
+- Giới tính: {userInfo.Gender}
+- Tuổi: {userInfo.Age}
+- Chiều cao: {height} cm
+- Cân nặng: {weight} kg
+- Mức độ vận động: {activityLevel}
+- Mục tiêu: {goalType}
 
 Yêu cầu:
 - Cung cấp lời khuyên chi tiết để cải thiện sức khỏe, bao gồm các khuyến nghị về dinh dưỡng, luyện tập và lối sống.
@@ -397,11 +391,14 @@ Yêu cầu:
 - Lưu ý các bệnh lý: {formattedDiseases}
 
 Lưu ý:
-- Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
+- Chỉ trả về **text thuần túy**, không dưới dạng JSON và không kèm theo giải thích thêm.
 ";
 
-            // Gọi dịch vụ AI để nhận phản hồi dưới dạng JSON
-            var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
+            // Gọi dịch vụ AI để nhận phản hồi dạng text (giả sử bạn có phương thức AIResponseText)
+            var airesponse = await _aiGeneratorService.AIResponseText(input);
+
+            // Nếu bạn không có phương thức AIResponseText, bạn có thể sử dụng AIResponseJson nhưng cần thay đổi prompt như trên
+            // var airesponse = await _aiGeneratorService.AIResponseJson(input, "");
 
             // Tìm bản ghi GeneralHealthProfile gần nhất của người dùng
             var healthProfileRecord = await _unitOfWork.HealthProfileRepository
@@ -434,7 +431,6 @@ Lưu ý:
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Lời khuyên tư vấn đã được tạo và lưu thành công", airesponse);
         }
-
 
     }
 }

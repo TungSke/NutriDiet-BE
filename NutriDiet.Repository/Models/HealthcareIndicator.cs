@@ -7,7 +7,7 @@ public partial class HealthcareIndicator
 {
     public int HealthcareIndicatorId { get; set; }
 
-    public int UserId { get; set; }
+    public int ProfileId { get; set; }
 
     public string Code { get; set; } = null!;
 
@@ -31,5 +31,5 @@ public partial class HealthcareIndicator
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual User User { get; set; } = null!;
+    public virtual GeneralHealthProfile Profile { get; set; } = null!;
 }

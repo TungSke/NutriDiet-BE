@@ -242,13 +242,14 @@ CREATE TABLE Notification (
 );
 
 -- Bảng HealthcareIndicator/UserParameter (các tham số người dùng)
+-- Bảng HealthcareIndicator sau khi sửa đổi
 CREATE TABLE HealthcareIndicator (
     HealthcareIndicatorID INT IDENTITY(1,1) PRIMARY KEY,
-    UserID INT NOT NULL,
-    Code NVARCHAR(50) NOT NULL, -- BMI,TDEE,..
+    ProfileID INT NOT NULL,  -- Sử dụng ProfileID để liên kết với GeneralHealthProfile
+    Code NVARCHAR(50) NOT NULL, -- Ví dụ: BMI, TDEE,...
     Name NVARCHAR(255) NOT NULL, -- Tên đầy đủ của tham số
     Type NVARCHAR(50) NOT NULL, -- Loại dữ liệu (Calorie, Health, Nutrient, Hydration,...)
-	CurrentValue FLOAT NULL, -- giá trị hiện tại của khách
+    CurrentValue FLOAT NULL,   -- Giá trị hiện tại
     MinValue FLOAT NULL, 
     MediumValue FLOAT NULL,
     MaxValue FLOAT NULL,
@@ -256,8 +257,9 @@ CREATE TABLE HealthcareIndicator (
     AISuggestion NVARCHAR(255) NULL,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
+    FOREIGN KEY (ProfileID) REFERENCES GeneralHealthProfile(ProfileID) ON DELETE CASCADE
 );
+
 
 -- Bảng AIRecommendMealPlan
 CREATE TABLE AIRecommendMealPlan (

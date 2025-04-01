@@ -43,7 +43,7 @@ namespace NutriDiet.Service.Services
             var existingUser = await _unitOfWork.UserRepository
                 .GetByWhere(u => u.UserId == userId)
                 .Include(u => u.GeneralHealthProfiles)
-                .Include(u => u.HealthcareIndicators)
+                .ThenInclude(u => u.HealthcareIndicators)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -62,7 +62,7 @@ namespace NutriDiet.Service.Services
             }
 
             var currentWeight = latestProfile.Weight;
-            var tdee = existingUser.HealthcareIndicators
+            var tdee = latestProfile.HealthcareIndicators
                 .Where(h => h.Code.Equals("TDEE"))
                 .OrderByDescending(h => h.CreatedAt)
                 .FirstOrDefault()?.CurrentValue ?? 0;
@@ -260,7 +260,7 @@ namespace NutriDiet.Service.Services
             var existingUser = await _unitOfWork.UserRepository
                 .GetByWhere(u => u.UserId == userId)
                 .Include(u => u.GeneralHealthProfiles)
-                .Include(u => u.HealthcareIndicators)
+                .ThenInclude(u => u.HealthcareIndicators)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -279,7 +279,7 @@ namespace NutriDiet.Service.Services
             }
 
             var currentWeight = latestProfile.Weight;
-            var tdee = existingUser.HealthcareIndicators
+            var tdee = latestProfile.HealthcareIndicators
                 .Where(h => h.Code.Equals("TDEE"))
                 .OrderByDescending(h => h.CreatedAt)
                 .FirstOrDefault()?.CurrentValue ?? 0;

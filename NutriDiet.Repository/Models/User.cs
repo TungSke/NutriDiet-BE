@@ -41,8 +41,6 @@ public partial class User
 
     public virtual ICollection<GeneralHealthProfile> GeneralHealthProfiles { get; set; } = new List<GeneralHealthProfile>();
 
-    public virtual ICollection<HealthcareIndicator> HealthcareIndicators { get; set; } = new List<HealthcareIndicator>();
-
     public virtual ICollection<MealLog> MealLogs { get; set; } = new List<MealLog>();
 
     public virtual ICollection<MealPlan> MealPlans { get; set; } = new List<MealPlan>();
