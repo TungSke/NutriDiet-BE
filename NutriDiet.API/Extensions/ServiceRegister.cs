@@ -40,7 +40,9 @@ namespace NutriDiet.API.Extensions
             AddEnum(services);
             AddKebab(services);
             AddMapster();
+            RedisCache(services);
 
+            services.AddDistributedMemoryCache();// cho phép cache trong bộ nhớ
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddScoped<GoogleService>();
@@ -170,6 +172,24 @@ namespace NutriDiet.API.Extensions
                         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     });
         }
+
+        private static void RedisCache(IServiceCollection services)
+        {
+            string? redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION");
+
+            if (string.IsNullOrWhiteSpace(redisConnectionString))
+            {
+                Console.WriteLine("⚠️ Redis connection string is not set. Skipping Redis cache registration.");
+                return; // Không đăng ký Redis
+            }
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnectionString;
+                options.InstanceName = "NutriDiet_";
+            });
+        }
+
 
         private static void AddMapster()
         {

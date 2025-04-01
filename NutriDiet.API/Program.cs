@@ -21,6 +21,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<RedisCacheMiddleware>();
 
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
