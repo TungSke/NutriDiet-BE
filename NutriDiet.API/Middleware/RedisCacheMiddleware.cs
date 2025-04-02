@@ -5,41 +5,33 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
+using System.Linq;
 
 public class RedisCacheMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IDatabase _redisDatabase;
     private readonly ILogger<RedisCacheMiddleware> _logger;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    // Danh sách paths được cache.
-    private static readonly string[] IncludedPaths = new[] { "/api/allergy", "/api/cuisine-type", "/api/disease", "/api/food", "/api/ingredient" , "/api/package" };
+    // Danh sách paths được cache
+    private static readonly string[] IncludedPaths = new[] { "/api/allergy", "/api/cuisine-type", "/api/disease", "/api/food", "/api/ingredient", "/api/package" };
 
-    // Danh sách paths bị loại trừ khỏi cache, như /api/user/whoami.
-    private static readonly string[] ExcludedPaths = new[] { "/api/user/whoami" };
-
-    // Danh sách paths cần cache riêng theo người dùng, như /api/meal-plan.
-    private static readonly string[] PersonalizedPaths = new[] { "/api/meal-plan" };
-
-    // Thời gian sống mặc định của cache là 15 phút.
+    // Thời gian sống mặc định của cache là 15 phút
     private static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(15);
 
     public RedisCacheMiddleware(
         RequestDelegate next,
         IConnectionMultiplexer? redis,
-        ILogger<RedisCacheMiddleware> logger,
-        IHttpContextAccessor httpContextAccessor)
+        ILogger<RedisCacheMiddleware> logger)
     {
         _next = next ?? throw new ArgumentNullException(nameof(next));
         _redisDatabase = redis?.GetDatabase() ?? throw new ArgumentNullException(nameof(redis));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // Chỉ xử lý các yêu cầu GET
         if (!context.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
         {
             await _next(context);
@@ -47,8 +39,8 @@ public class RedisCacheMiddleware
         }
 
         string path = context.Request.Path.Value.ToLowerInvariant();
-        if (!IncludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)) ||
-            ExcludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+        // Chỉ cache nếu path nằm trong IncludedPaths (so sánh chính xác, không dùng StartsWith)
+        if (!IncludedPaths.Contains(path))
         {
             _logger.LogDebug("Skipping cache for path: {Path}", path);
             await _next(context);
@@ -63,6 +55,7 @@ public class RedisCacheMiddleware
             {
                 _logger.LogInformation("Cache hit for {CacheKey}", cacheKey);
                 context.Response.ContentType = "application/json; charset=utf-8";
+                context.Response.StatusCode = StatusCodes.Status200OK;
                 await context.Response.WriteAsync(cachedResponse.ToString());
                 return;
             }
@@ -70,6 +63,7 @@ public class RedisCacheMiddleware
         catch (RedisConnectionException ex)
         {
             _logger.LogWarning(ex, "Redis unavailable for {CacheKey}. Proceeding without cache.", cacheKey);
+            // Tiếp tục pipeline nếu Redis lỗi
         }
 
         var originalBodyStream = context.Response.Body;
@@ -79,9 +73,13 @@ public class RedisCacheMiddleware
             context.Response.Body = newBodyStream;
             await _next(context);
 
+            // Sao chép header từ phản hồi gốc để bảo toàn CORS
+            var headers = context.Response.Headers.ToDictionary(h => h.Key, h => h.Value);
+
             newBodyStream.Seek(0, SeekOrigin.Begin);
             var responseBody = await new StreamReader(newBodyStream).ReadToEndAsync();
 
+            // Lưu vào cache nếu phản hồi hợp lệ
             if (context.Response.StatusCode == StatusCodes.Status200OK &&
                 context.Response.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true &&
                 !string.IsNullOrEmpty(responseBody) &&
@@ -98,7 +96,12 @@ public class RedisCacheMiddleware
                 }
             }
 
+            // Khôi phục body và header
             context.Response.Body = originalBodyStream;
+            foreach (var header in headers)
+            {
+                context.Response.Headers[header.Key] = header.Value;
+            }
             await context.Response.WriteAsync(responseBody);
         }
         finally
@@ -107,16 +110,12 @@ public class RedisCacheMiddleware
         }
     }
 
-    //cache riêng biệt từng user
     private string GenerateCacheKey(HttpContext context)
     {
         string path = context.Request.Path.Value.ToLowerInvariant();
         string queryString = context.Request.QueryString.ToString();
         string version = "v1";
-        string userId = PersonalizedPaths.Any(p => path.StartsWith(p))
-            ? (context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous")
-            : "shared";
-        string rawKey = $"api:shared:{userId}:{version}:{path}{queryString}";
+        string rawKey = $"api:shared:{version}:{path}{queryString}";
         return Convert.ToBase64String(System.Security.Cryptography.SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(rawKey)));
     }
 }

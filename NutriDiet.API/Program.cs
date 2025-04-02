@@ -21,14 +21,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseMiddleware<GlobalExceptionMiddleware>();
-
-//if (app.Services.GetService<IConnectionMultiplexer>() != null)
-//{
-//    app.UseMiddleware<RedisCacheMiddleware>();
-//}
 
 app.UseCors("AllowAll");
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+if (app.Services.GetService<IConnectionMultiplexer>() != null)
+{
+    app.UseMiddleware<RedisCacheMiddleware>();
+}
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
