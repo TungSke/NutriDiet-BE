@@ -47,25 +47,15 @@ public class RedisCacheMiddleware
         }
 
         string path = context.Request.Path.Value.ToLowerInvariant();
-
-        // Kiểm tra IncludedPaths
-        if (!IncludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+        if (!IncludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)) ||
+            ExcludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
         {
-            _logger.LogDebug("Skipping cache for non-included path: {Path}", path);
-            await _next(context);
-            return;
-        }
-
-        // Kiểm tra ExcludedPaths
-        if (ExcludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
-        {
-            _logger.LogDebug("Skipping cache for excluded path: {Path}", path);
+            _logger.LogDebug("Skipping cache for path: {Path}", path);
             await _next(context);
             return;
         }
 
         string cacheKey = GenerateCacheKey(context);
-
         try
         {
             var cachedResponse = await _redisDatabase.StringGetAsync(cacheKey);
@@ -80,36 +70,41 @@ public class RedisCacheMiddleware
         catch (RedisConnectionException ex)
         {
             _logger.LogWarning(ex, "Redis unavailable for {CacheKey}. Proceeding without cache.", cacheKey);
-            await _next(context);
-            return;
         }
 
         var originalBodyStream = context.Response.Body;
         using var newBodyStream = new MemoryStream();
-        context.Response.Body = newBodyStream;
-
-        await _next(context);
-
-        newBodyStream.Seek(0, SeekOrigin.Begin);
-        var responseBody = await new StreamReader(newBodyStream).ReadToEndAsync();
-
-        if (context.Response.StatusCode == StatusCodes.Status200OK &&
-            context.Response.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true &&
-            !string.IsNullOrEmpty(responseBody))
+        try
         {
-            try
-            {
-                await _redisDatabase.StringSetAsync(cacheKey, responseBody, DefaultExpiration);
-                _logger.LogInformation("Cached {CacheKey}", cacheKey);
-            }
-            catch (RedisException ex)
-            {
-                _logger.LogError(ex, "Failed to cache response for {CacheKey}", cacheKey);
-            }
-        }
+            context.Response.Body = newBodyStream;
+            await _next(context);
 
-        context.Response.Body = originalBodyStream;
-        await context.Response.WriteAsync(responseBody);
+            newBodyStream.Seek(0, SeekOrigin.Begin);
+            var responseBody = await new StreamReader(newBodyStream).ReadToEndAsync();
+
+            if (context.Response.StatusCode == StatusCodes.Status200OK &&
+                context.Response.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true &&
+                !string.IsNullOrEmpty(responseBody) &&
+                responseBody.Length < 1024 * 1024) // Giới hạn 1MB
+            {
+                try
+                {
+                    await _redisDatabase.StringSetAsync(cacheKey, responseBody, DefaultExpiration);
+                    _logger.LogInformation("Cached {CacheKey}", cacheKey);
+                }
+                catch (RedisException ex)
+                {
+                    _logger.LogError(ex, "Failed to cache response for {CacheKey}", cacheKey);
+                }
+            }
+
+            context.Response.Body = originalBodyStream;
+            await context.Response.WriteAsync(responseBody);
+        }
+        finally
+        {
+            context.Response.Body = originalBodyStream;
+        }
     }
 
     //cache riêng biệt từng user
