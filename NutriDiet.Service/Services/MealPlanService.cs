@@ -833,5 +833,166 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, allFeedback);
         }
+
+        public async Task<IBusinessResult> CreateAIWarning(int mealPlanId)
+        {
+            var userId = int.Parse(_userIdClaim);
+            var isPremium = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+            if (!isPremium)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
+
+            // thông tin người dùng
+            var userInfo = await _unitOfWork.UserRepository
+                .GetByWhere(x => x.UserId == userId)
+                .Include(x => x.Allergies)
+                .Include(x => x.Diseases)
+                .Include(x => x.UserIngreDientPreferences).ThenInclude(x => x.Ingredient)
+                .Include(x => x.GeneralHealthProfiles)
+                .Include(x => x.PersonalGoals)
+                .FirstOrDefaultAsync();
+
+            if (userInfo == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
+            }
+
+            // thông tin MealPlan và MealPlanDetail
+            var mealPlan = await _unitOfWork.MealPlanRepository
+                .GetByWhere(x => x.MealPlanId == mealPlanId && x.UserId == userId)
+                .Include(x => x.MealPlanDetails).ThenInclude(x => x.Food).ThenInclude(x => x.Ingredients)
+                .FirstOrDefaultAsync();
+
+            if (mealPlan == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "MealPlan not found");
+            }
+
+            // tổng giá trị dinh dưỡng theo ngày
+            var mealPlanTotalsResult = await GetMealPlanTotals(mealPlanId);
+            if (mealPlanTotalsResult.StatusCode != Const.HTTP_STATUS_OK)
+            {
+                return mealPlanTotalsResult;
+            }
+            var mealPlanTotals = (MealPlanTotalResponse)mealPlanTotalsResult.Data;
+
+            // Định dạng thông tin người dùng
+            var allergyNames = userInfo.Allergies?.Select(a => a.AllergyName).ToList() ?? new List<string>();
+            var diseaseNames = userInfo.Diseases?.Select(d => d.DiseaseName).ToList() ?? new List<string>();
+            var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
+            var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
+
+            var preferences = userInfo.UserIngreDientPreferences.Select(x => $"{x.Ingredient.IngredientName} ({x.Level})").ToList();
+            var formattedPreferences = preferences.Any() ? string.Join(", ", preferences) : "không có";
+
+            var profile = userInfo.GeneralHealthProfiles.FirstOrDefault();
+            var goal = userInfo.PersonalGoals.FirstOrDefault();
+
+            // Định dạng chi tiết MealPlan với Ingredients và TotalByDayNumber
+            var mealPlanDetails = mealPlan.MealPlanDetails
+                .GroupBy(d => d.DayNumber)
+                .Select(g =>
+                {
+                    var dayDetails = string.Join("\n", g.Select(d =>
+                        $"    - {d.MealType}: {d.FoodName}, Số lượng: {d.Quantity}, Calo: {d.TotalCalories} kcal, Carb: {d.TotalCarbs} g, Fat: {d.TotalFat} g, Protein: {d.TotalProtein} g\n" +
+                        $"      Nguyên liệu: {(d.Food?.Ingredients.Any() == true ? string.Join(", ", d.Food.Ingredients.Select(i => i.IngredientName)) : "không xác định")}"));
+                    var dayTotal = mealPlanTotals.TotalByDayNumber.FirstOrDefault(t => t.DayNumber == g.Key);
+                    var dayTotalText = $"    Tổng dinh dưỡng ngày {g.Key}: Calo: {dayTotal?.TotalCalories ?? 0} kcal, Carb: {dayTotal?.TotalCarbs ?? 0} g, Fat: {dayTotal?.TotalFat ?? 0} g, Protein: {dayTotal?.TotalProtein ?? 0} g";
+                    return $"  - Ngày {g.Key}:\n{dayDetails}\n{dayTotalText}";
+                });
+            var mealPlanText = string.Join("\n", mealPlanDetails);
+
+            var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là phân tích xem kế hoạch bữa ăn (MealPlan) dưới đây có phù hợp với sức khỏe và mục tiêu cá nhân của người dùng hay không. 
+Nếu không phù hợp, hãy chỉ ra các vấn đề cụ thể: món ăn nào không phù hợp, lý do gì (dị ứng với nguyên liệu, liên quan bệnh lý, nguyên liệu không thích, vượt quá/thiếu hụt dinh dưỡng mục tiêu), và ngày nào trong kế hoạch có vấn đề.
+
+                        Thông tin người dùng:
+                        - Họ tên: {userInfo.FullName}
+                        - Giới tính: {userInfo.Gender}
+                        - Tuổi: {userInfo.Age}
+                        - Chiều cao: {profile?.Height ?? 0} cm
+                        - Cân nặng: {profile?.Weight ?? 0} kg
+                        - Mức độ vận động: {profile?.ActivityLevel ?? "Không xác định"}
+                        - Dị ứng: {formattedAllergies}
+                        - Bệnh lý: {formattedDiseases}
+                        - Sở thích nguyên liệu (mức độ: -1=ghét, 0=bình thường, 1=thích): {formattedPreferences}
+
+                        Mục tiêu cá nhân:
+                        - Mục tiêu: {goal?.GoalType ?? "Không có"}
+                        - Chi tiết mục tiêu: {goal?.GoalDescription ?? "Không có"}
+                        - Cân nặng mục tiêu: {goal?.TargetWeight ?? 0} kg
+                        - Calo hàng ngày: {goal?.DailyCalories ?? 0} kcal
+                        - Carb hàng ngày: {goal?.DailyCarb ?? 0} g
+                        - Chất béo hàng ngày: {goal?.DailyFat ?? 0} g
+                        - Protein hàng ngày: {goal?.DailyProtein ?? 0} g
+
+                        Kế hoạch bữa ăn (MealPlan):
+                        - Tên kế hoạch: {mealPlan.PlanName}
+                        - Mục tiêu sức khỏe: {mealPlan.HealthGoal}
+                        - Thời gian: {mealPlan.Duration} ngày
+                        - Chi tiết bữa ăn:
+                        {mealPlanText}
+
+                        Yêu cầu:
+                        - Đánh giá xem MealPlan có phù hợp với sức khỏe và mục tiêu của người dùng không.
+                        - Nếu thực đơn đã phù hợp, chỉ cần phản hồi: Thực đơn phù hợp với sức khỏe và mục tiêu sức khỏe của bạn.
+                        - Nếu không phù hợp, liệt kê cụ thể:
+                          - Món ăn nào (FoodName) không phù hợp, lý do gì (dị ứng với nguyên liệu, liên quan bệnh lý, nguyên liệu không thích, dinh dưỡng không đạt mục tiêu).
+                          - Ngày nào trong MealPlan có vấn đề và vì sao (ví dụ: tổng calo quá thấp/cao so với mục tiêu).
+                        - Kết lại phản hồi: Đây chỉ là phân tích từ chuyên gia AI, mọi quyết định sử vẫn là ở bạn!
+                        - Trả về text thuần túy, không dùng JSON.";
+
+            var aiResponse = await _aIGeneratorService.AIResponseText(input);
+
+            // Cập nhật AIWarning
+            mealPlan.Aiwarning = aiResponse;
+            mealPlan.UpdatedAt = DateTime.Now;
+            await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Đánh giá MealPlan đã được tạo và lưu thành công", aiResponse);
+        }
+
+
+        public async Task<IBusinessResult> GetMealPlanTotals(int mealPlanId)
+        {
+            var mealPlanDetails = await _unitOfWork.MealPlanDetailRepository
+                .GetAll()
+                .Where(x => x.MealPlanId == mealPlanId)
+                .ToListAsync();
+
+            if (!mealPlanDetails.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "MealPlan details not found.");
+            }
+
+            var response = new MealPlanTotalResponse
+            {
+                TotalByMealType = mealPlanDetails
+                    .GroupBy(x => new { x.DayNumber, x.MealType })
+                    .Select(g => new TotalByMealType
+                    {
+                        DayNumber = g.Key.DayNumber,
+                        MealType = g.Key.MealType,
+                        TotalCalories = g.Sum(x => x.TotalCalories),
+                        TotalCarbs = g.Sum(x => x.TotalCarbs),
+                        TotalFat = g.Sum(x => x.TotalFat),
+                        TotalProtein = g.Sum(x => x.TotalProtein)
+                    }).ToList(),
+
+                TotalByDayNumber = mealPlanDetails
+                    .GroupBy(x => x.DayNumber)
+                    .Select(g => new TotalByDayNumber
+                    {
+                        DayNumber = g.Key,
+                        TotalCalories = g.Sum(x => x.TotalCalories),
+                        TotalCarbs = g.Sum(x => x.TotalCarbs),
+                        TotalFat = g.Sum(x => x.TotalFat),
+                        TotalProtein = g.Sum(x => x.TotalProtein)
+                    }).ToList()
+            };
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
     }
 }

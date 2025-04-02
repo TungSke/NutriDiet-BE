@@ -106,6 +106,14 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpPost("AI-warning/{mealPlanId}")]
+        [Authorize]
+        public async Task<IActionResult> CreateAIWarning(int mealPlanId)
+        {
+            var result = await _mealPlanService.CreateAIWarning(mealPlanId);
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpPut("apply-mealplan/{mealPlanId}")]
         [Authorize]
         public async Task<IActionResult> ApplyMealPlan(int mealPlanId)
