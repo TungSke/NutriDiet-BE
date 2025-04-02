@@ -179,7 +179,7 @@ namespace NutriDiet.Service.Services
                     Email = payload.Email,
                     Password = HashPassword("tungdeptrai123142"),
                     Avatar = payload.Picture,
-                    Status = "ACTIVE",
+                    Status = UserStatus.Active.ToString(),
                     RoleId = (int)RoleEnum.Customer,
                     FcmToken = fcmToken,
                     RefreshToken = await _tokenHandler.GenerateRefreshToken(),
@@ -193,7 +193,7 @@ namespace NutriDiet.Service.Services
             }
             else
             {
-                if (account.Status == "INACTIVE")
+                if (account.Status == UserStatus.Inactive.ToString())
                 {
                     return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Account is inactive, please contact support.");
                 }
@@ -253,7 +253,7 @@ namespace NutriDiet.Service.Services
                         Email = email,
                         Password = HashPassword("12345"),
                         Avatar = userAvatar,
-                        Status = "ACTIVE",
+                        Status = UserStatus.Active.ToString(),
                         RoleId = (int)RoleEnum.Customer,
                         FcmToken = fcmToken, // Lưu FCM Token khi tạo user mới
                         RefreshToken = await _tokenHandler.GenerateRefreshToken(),
@@ -266,7 +266,7 @@ namespace NutriDiet.Service.Services
                 }
                 else
                 {
-                    if (account.Status == "INACTIVE")
+                    if (account.Status == UserStatus.Inactive.ToString())
                     {
                         return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Account is deleted, please contact admin to restore.");
                     }
