@@ -18,6 +18,8 @@ using Mapster;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.BackgroundServices;
+using StackExchange.Redis;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 
 namespace NutriDiet.API.Extensions
 {
@@ -42,7 +44,6 @@ namespace NutriDiet.API.Extensions
             AddMapster();
             RedisCache(services);
 
-            services.AddDistributedMemoryCache();// cho phép cache trong bộ nhớ
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddScoped<GoogleService>();
@@ -173,16 +174,21 @@ namespace NutriDiet.API.Extensions
                     });
         }
 
-        private static void RedisCache(IServiceCollection services)
+        public static void RedisCache(IServiceCollection services)
         {
             string? redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION");
 
+            // Kiểm tra nếu Redis connection string không hợp lệ, bỏ qua Redis cache
             if (string.IsNullOrWhiteSpace(redisConnectionString))
             {
                 Console.WriteLine("⚠️ Redis connection string is not set. Skipping Redis cache registration.");
-                return; // Không đăng ký Redis
+                return;
             }
 
+            // Nếu Redis connection string hợp lệ, tiếp tục cấu hình Redis
+            services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
+
+            // Đăng ký Redis caching (sử dụng StackExchange.Redis)
             services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = redisConnectionString;

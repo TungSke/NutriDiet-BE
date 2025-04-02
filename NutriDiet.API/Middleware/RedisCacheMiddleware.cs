@@ -1,159 +1,127 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
-namespace NutriDiet.API.Middleware
+public class RedisCacheMiddleware
 {
-    public class RedisCacheMiddleware
+    private readonly RequestDelegate _next;
+    private readonly IDatabase _redisDatabase;
+    private readonly ILogger<RedisCacheMiddleware> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    // Danh sách paths được cache.
+    private static readonly string[] IncludedPaths = new[] { "/api/allergy", "/api/cuisine-type", "/api/disease", "/api/food", "/api/ingredient" , "/api/package" };
+
+    // Danh sách paths bị loại trừ khỏi cache, như /api/user/whoami.
+    private static readonly string[] ExcludedPaths = new[] { "/api/user/whoami" };
+
+    // Danh sách paths cần cache riêng theo người dùng, như /api/meal-plan.
+    private static readonly string[] PersonalizedPaths = new[] { "/api/meal-plan" };
+
+    // Thời gian sống mặc định của cache là 15 phút.
+    private static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(15);
+
+    public RedisCacheMiddleware(
+        RequestDelegate next,
+        IConnectionMultiplexer? redis,
+        ILogger<RedisCacheMiddleware> logger,
+        IHttpContextAccessor httpContextAccessor)
     {
-        private readonly RequestDelegate _next;
-        private readonly IDistributedCache? _cache; // Có thể null
-        private readonly ILogger<RedisCacheMiddleware> _logger;
-        private readonly RedisCacheOptions _options;
+        _next = next ?? throw new ArgumentNullException(nameof(next));
+        _redisDatabase = redis?.GetDatabase() ?? throw new ArgumentNullException(nameof(redis));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+    }
 
-        public RedisCacheMiddleware(
-            RequestDelegate next,
-            IDistributedCache cache, // Không ném lỗi nếu null, sẽ kiểm tra sau
-            ILogger<RedisCacheMiddleware> logger,
-            RedisCacheOptions options = null)
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (!context.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-            _cache = cache; // Không kiểm tra null ở đây
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _options = options ?? new RedisCacheOptions();
+            await _next(context);
+            return;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        string path = context.Request.Path.Value.ToLowerInvariant();
+
+        // Kiểm tra IncludedPaths
+        if (!IncludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
         {
-            if (context.Request.Method != HttpMethods.Get)
-            {
-                await _next(context);
-                return;
-            }
-
-            // Nếu Redis không được cấu hình, bỏ qua cache
-            if (_cache == null)
-            {
-                _logger.LogDebug("Redis cache is not configured. Skipping cache processing.");
-                await _next(context);
-                return;
-            }
-
-            string cacheKey = GenerateCacheKey(context);
-
-            if (_options.ExcludedPaths != null && _options.ExcludedPaths.Any(path => context.Request.Path.StartsWithSegments(path, StringComparison.OrdinalIgnoreCase)))
-            {
-                _logger.LogDebug("Skipping cache for excluded path: {Path}", context.Request.Path);
-                await _next(context);
-                return;
-            }
-
-            var stopwatch = Stopwatch.StartNew();
-            string cachedResponse = await GetCachedResponseAsync(cacheKey);
-            if (cachedResponse != null)
-            {
-                _logger.LogInformation("Cache hit for {CacheKey} in {ElapsedMs}ms", cacheKey, stopwatch.ElapsedMilliseconds);
-                await WriteResponseAsync(context, cachedResponse);
-                return;
-            }
-
-            await ProcessAndCacheResponseAsync(context, cacheKey, stopwatch);
+            _logger.LogDebug("Skipping cache for non-included path: {Path}", path);
+            await _next(context);
+            return;
         }
 
-        private async Task<string> GetCachedResponseAsync(string cacheKey)
+        // Kiểm tra ExcludedPaths
+        if (ExcludedPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+        {
+            _logger.LogDebug("Skipping cache for excluded path: {Path}", path);
+            await _next(context);
+            return;
+        }
+
+        string cacheKey = GenerateCacheKey(context);
+
+        try
+        {
+            var cachedResponse = await _redisDatabase.StringGetAsync(cacheKey);
+            if (cachedResponse.HasValue)
+            {
+                _logger.LogInformation("Cache hit for {CacheKey}", cacheKey);
+                context.Response.ContentType = "application/json; charset=utf-8";
+                await context.Response.WriteAsync(cachedResponse.ToString());
+                return;
+            }
+        }
+        catch (RedisConnectionException ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable for {CacheKey}. Proceeding without cache.", cacheKey);
+            await _next(context);
+            return;
+        }
+
+        var originalBodyStream = context.Response.Body;
+        using var newBodyStream = new MemoryStream();
+        context.Response.Body = newBodyStream;
+
+        await _next(context);
+
+        newBodyStream.Seek(0, SeekOrigin.Begin);
+        var responseBody = await new StreamReader(newBodyStream).ReadToEndAsync();
+
+        if (context.Response.StatusCode == StatusCodes.Status200OK &&
+            context.Response.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true &&
+            !string.IsNullOrEmpty(responseBody))
         {
             try
             {
-                return await _cache.GetStringAsync(cacheKey, CancellationToken.None);
+                await _redisDatabase.StringSetAsync(cacheKey, responseBody, DefaultExpiration);
+                _logger.LogInformation("Cached {CacheKey}", cacheKey);
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Redis unavailable for {CacheKey}. Proceeding without cache.", cacheKey);
-                return null;
-            }
-        }
-
-        private async Task ProcessAndCacheResponseAsync(HttpContext context, string cacheKey, Stopwatch stopwatch)
-        {
-            var originalBodyStream = context.Response.Body;
-            try
-            {
-                using var responseBody = new MemoryStream();
-                context.Response.Body = responseBody;
-
-                await _next(context);
-
-                responseBody.Seek(0, SeekOrigin.Begin);
-                string responseContent = await new StreamReader(responseBody, Encoding.UTF8).ReadToEndAsync();
-
-                if (context.Response.StatusCode == StatusCodes.Status200OK &&
-                    context.Response.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true &&
-                    !string.IsNullOrEmpty(responseContent))
-                {
-                    stopwatch.Restart();
-                    await CacheResponseAsync(cacheKey, responseContent);
-                    _logger.LogInformation("Cached {CacheKey} in {ElapsedMs}ms", cacheKey, stopwatch.ElapsedMilliseconds);
-                }
-                else
-                {
-                    _logger.LogDebug("Skipping cache for {CacheKey} due to non-200 status, non-JSON content, or empty response.", cacheKey);
-                }
-
-                responseBody.Seek(0, SeekOrigin.Begin);
-                await responseBody.CopyToAsync(originalBodyStream);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing response for {CacheKey}", cacheKey);
-                throw;
-            }
-            finally
-            {
-                context.Response.Body = originalBodyStream;
-            }
-        }
-
-        private async Task CacheResponseAsync(string cacheKey, string responseContent)
-        {
-            try
-            {
-                var cacheOptions = new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = _options.DefaultExpiration,
-                    SlidingExpiration = _options.SlidingExpiration
-                };
-                await _cache.SetStringAsync(cacheKey, responseContent, cacheOptions, CancellationToken.None);
-            }
-            catch (Exception ex)
+            catch (RedisException ex)
             {
                 _logger.LogError(ex, "Failed to cache response for {CacheKey}", cacheKey);
             }
         }
 
-        private Task WriteResponseAsync(HttpContext context, string content)
-        {
-            context.Response.ContentType = "application/json; charset=utf-8";
-            return context.Response.WriteAsync(content);
-        }
-
-        private string GenerateCacheKey(HttpContext context)
-        {
-            string rawKey = $"api:{context.Request.Path}{context.Request.QueryString}";
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(rawKey));
-            return Convert.ToBase64String(hashBytes);
-        }
+        context.Response.Body = originalBodyStream;
+        await context.Response.WriteAsync(responseBody);
     }
 
-    public class RedisCacheOptions
+    //cache riêng biệt từng user
+    private string GenerateCacheKey(HttpContext context)
     {
-        public TimeSpan DefaultExpiration { get; set; } = TimeSpan.FromHours(24);
-        public TimeSpan? SlidingExpiration { get; set; } = TimeSpan.FromMinutes(30);
-        public string[] ExcludedPaths { get; set; } = Array.Empty<string>();
+        string path = context.Request.Path.Value.ToLowerInvariant();
+        string queryString = context.Request.QueryString.ToString();
+        string version = "v1";
+        string userId = PersonalizedPaths.Any(p => path.StartsWith(p))
+            ? (context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous")
+            : "shared";
+        string rawKey = $"api:shared:{userId}:{version}:{path}{queryString}";
+        return Convert.ToBase64String(System.Security.Cryptography.SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(rawKey)));
     }
 }
