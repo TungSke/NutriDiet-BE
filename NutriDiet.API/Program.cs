@@ -23,10 +23,10 @@ if (app.Environment.IsDevelopment())
 }
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Services.GetService<IConnectionMultiplexer>() != null)
-{
-    app.UseMiddleware<RedisCacheMiddleware>();
-}
+//if (app.Services.GetService<IConnectionMultiplexer>() != null)
+//{
+//    app.UseMiddleware<RedisCacheMiddleware>();
+//}
 
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
