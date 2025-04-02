@@ -30,7 +30,7 @@ namespace NutriDiet.Service.BackgroundServices
                 {
                     throw ex;
                 }
-                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
 
         }
@@ -48,7 +48,7 @@ namespace NutriDiet.Service.BackgroundServices
             var minute = now.Minute;
 
             if (!((hour == 8 && minute == 0) || (hour == 12 && minute == 0) ||
-                  (hour == 15 && minute == 0) || (hour == 19 && minute == 0)))
+                  (hour == 15 && minute == 30) || (hour == 19 && minute == 0)))
             {
                 return;
             }
@@ -66,7 +66,7 @@ namespace NutriDiet.Service.BackgroundServices
                 body = "Đã đến giờ ăn trưa, hãy kiểm tra nhật ký ăn uống.\nBỏ qua thông báo nếu bạn đã ăn hoặc không có món ăn trong bữa trưa hôm nay!";
             }
 
-            else if (hour == 15 && minute == 0)
+            else if (hour == 15 && minute == 30)
             {
                 body = "Đã đến giờ ăn phụ, hãy kiểm tra nhật ký ăn uống.\nBỏ qua thông báo nếu bạn đã ăn hoặc không có món ăn trong bữa phụ hôm nay!";
             }
