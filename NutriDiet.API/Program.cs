@@ -1,6 +1,5 @@
 ﻿using NutriDiet.API.Extensions;
 using NutriDiet.API.Middleware;
-using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,11 +24,6 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAll");
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-
-if (app.Services.GetService<IConnectionMultiplexer>() != null)
-{
-    app.UseMiddleware<RedisCacheMiddleware>();
-}
 
 app.UseHttpsRedirection();
 
