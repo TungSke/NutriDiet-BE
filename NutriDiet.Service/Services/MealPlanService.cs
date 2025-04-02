@@ -903,8 +903,7 @@ namespace NutriDiet.Service.Services
                 });
             var mealPlanText = string.Join("\n", mealPlanDetails);
 
-            var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là phân tích xem kế hoạch bữa ăn (MealPlan) dưới đây có phù hợp với sức khỏe và mục tiêu cá nhân của người dùng hay không. 
-Nếu không phù hợp, hãy chỉ ra các vấn đề cụ thể: món ăn nào không phù hợp, lý do gì (dị ứng với nguyên liệu, liên quan bệnh lý, nguyên liệu không thích, vượt quá/thiếu hụt dinh dưỡng mục tiêu), và ngày nào trong kế hoạch có vấn đề.
+            var input = $@"Bạn là một chuyên gia dinh dưỡng, sức khỏe và thiết kế thực đơn. Nhiệm vụ của bạn là phân tích xem kế hoạch bữa ăn (MealPlan) dưới đây có phù hợp với sức khỏe và mục tiêu cá nhân của người dùng hay không.
 
                         Thông tin người dùng:
                         - Họ tên: {userInfo.FullName}
@@ -934,13 +933,25 @@ Nếu không phù hợp, hãy chỉ ra các vấn đề cụ thể: món ăn nà
                         {mealPlanText}
 
                         Yêu cầu:
-                        - Đánh giá xem MealPlan có phù hợp với sức khỏe và mục tiêu của người dùng không.
+                        - Dựa vào các thông tin bên trên và hiểu biết của bạn về sức khỏe, dinh dưỡng. Đánh giá xem Thực đơn có phù hợp với sức khỏe và mục tiêu của {userInfo.FullName} không.
                         - Nếu thực đơn đã phù hợp, chỉ cần phản hồi: Thực đơn phù hợp với sức khỏe và mục tiêu sức khỏe của bạn.
                         - Nếu không phù hợp, liệt kê cụ thể:
                           - Món ăn nào (FoodName) không phù hợp, lý do gì (dị ứng với nguyên liệu, liên quan bệnh lý, nguyên liệu không thích, dinh dưỡng không đạt mục tiêu).
                           - Ngày nào trong MealPlan có vấn đề và vì sao (ví dụ: tổng calo quá thấp/cao so với mục tiêu).
-                        - Kết lại phản hồi: Đây chỉ là phân tích từ chuyên gia AI, mọi quyết định sử vẫn là ở bạn!
-                        - Trả về text thuần túy, không dùng JSON.";
+                        - Không sử dụng dấu * trong phản hồi.
+                        - Không đề xuất chia nhỏ bữa ăn vượt quá 4 bữa/ngày (ứng dụng chỉ hỗ trợ tối đa 4 bữa).
+                        - Phản hồi ngắn gọn, tối đa 200 từ.
+                        - Mỗi mục phân tích bạn cần xuống dòng với dấu -
+                        - Kết lại phản hồi: Đây chỉ là phân tích từ chuyên gia AI, mọi quyết định sử dụng vẫn là ở bạn!
+                        - Trả về text thuần túy, không dùng JSON.
+
+                        Lưu ý:
+                        - Bạn phải luôn đặt mình vào vai trò là chuyên gia dinh dưỡng, sức khỏe và thiết kế thực đơn để phân tích chuyên nghiệp. Ví dụ:
+                            - Calo hàng ngày người dùng đó phải nạp là 1800 nhưng thực đơn ngày 1 chỉ đạt 1500, nhưng vì mục tiêu của người dùng là giảm cân và thực đơn có đủ bữa ăn và dinh dưỡng khiến người dùng không bị mệt mỏi hay ... thì thực đơn ngày 1 vẫn hoàn toàn hợp lý
+                            - 1 người có mục tiêu tăng cân với lượng calo cần nạp là 2500, ở thực đơn ngày 1 đủ 2500 nhưng người đó ăn tất cả món ăn chỉ trong bữa trưa thì rõ ràng là không phù hợp
+                            - ...
+                        => Tóm tại, bạn cần phân tích 1 cách tổng quan"
+                        ;
 
             var aiResponse = await _aIGeneratorService.AIResponseText(input);
 
