@@ -164,36 +164,6 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
 
-        public async Task<IBusinessResult> GetFoodRecommend(int pageIndex, int pageSize, string searchName)
-        {
-            int userid = int.Parse(_userIdClaim);
-            var userAllergyDisease = await _unitOfWork.UserRepository
-                            .GetByWhere(x => x.UserId == userid)
-                            .Select(x => new
-                            {
-                                AllergyIds = x.Allergies.Select(a => a.AllergyId).ToList(),
-                                DiseaseIds = x.Diseases.Select(d => d.DiseaseId).ToList()
-                            })
-                            .FirstOrDefaultAsync();
-            if (userAllergyDisease == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
-            }
-
-            var allergyIds = new List<int>(userAllergyDisease.AllergyIds);
-            var diseaseIds = new List<int>(userAllergyDisease.DiseaseIds);
-
-            var foods = await _unitOfWork.FoodRepository
-            .GetByWhere(x =>
-             x.FoodName.ToLower().Contains(searchName.ToLower()))
-            .Skip((pageIndex - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-            var foodResponse = foods.Adapt<List<FoodResponse>>();
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodResponse);
-        }
-
         public async Task<IBusinessResult> CreateFoodRecipeByAI(int foodId, int cuisineId)
         {
             //lấy thông tin tình trạng sức khỏe của user
@@ -256,7 +226,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                 input += $"\nLưu ý: Trước đó tôi đã không thích một công thức vì lý do: '{rejectionReason}'. Hãy điều chỉnh lại công thức sao cho phù hợp.";
             }
 
-            input += "\nTrả lời dưới dạng: Công thức của bạn là... cho người dị ứng và ghét các nguyên liệu (tên nguyên liệu).";
+            input += "\nTrả lời ví dụ: Công thức cho người dị ứng thịt bò và ghét hành, ớt... của bạn là... ";
 
 
             var airesponse = await _aIGeneratorService.AIResponseText(input);
