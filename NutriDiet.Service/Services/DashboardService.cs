@@ -24,6 +24,47 @@ namespace NutriDiet.Service.Services
         }
         public async Task<IBusinessResult> Dashboard()
         {
+            var dailyRevenue = await _unitOfWork.UserPackageRepository
+                .GetAll()
+                .Where(x => x.StartDate != null)
+                .GroupBy(x => x.StartDate.Value.Date)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    TotalRevenue = g.Sum(x => x.Package.Price)
+                })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            var weeklyRevenue = await _unitOfWork.UserPackageRepository
+                .GetAll()
+                .Where(x => x.StartDate != null)
+                .GroupBy(x => EF.Functions.DateDiffWeek(DateTime.UtcNow, x.StartDate.Value))
+                .Select(g => new
+                {
+                    Week = g.Key+1,
+                    TotalRevenue = g.Sum(x => x.Package.Price)
+                })
+                .OrderBy(x => x.Week)
+                .ToListAsync();
+
+            var monthlyRevenue = await _unitOfWork.UserPackageRepository
+                .GetAll()
+                .Where(x => x.StartDate != null)
+                .GroupBy(x => x.StartDate.Value.Month)
+                .Select(g => new
+                {
+                    Month = g.Key,
+                    TotalRevenue = g.Sum(x => x.Package.Price)
+                })
+                .OrderBy(x => x.Month)
+                .ToListAsync();
+
+            var totalRevenue = await _unitOfWork.UserPackageRepository
+                .GetAll()
+                .Where(x => x.StartDate != null)
+                .SumAsync(x => x.Package.Price);
+
             var totalFeedbackMealPlan = await _unitOfWork.AIRecommendationRepository
                 .GetAll()
                 .Where(x => x.Feedback != null)
@@ -49,7 +90,14 @@ namespace NutriDiet.Service.Services
                 TotalIngredient = await _unitOfWork.IngredientRepository.CountAsync(),
                 TotalFood = await _unitOfWork.FoodRepository.CountAsync(),
                 TotalMealPlan = await _unitOfWork.MealPlanRepository.CountAsync(),
-                TotalFeedbackAI = totalFeedbackMealPlan + totalFeedbackMealLog
+                TotalFeedbackAI = totalFeedbackMealPlan + totalFeedbackMealLog,
+                Revenue = new
+                {
+                    Daily = dailyRevenue,
+                    Weekly = weeklyRevenue,
+                    Monthly = monthlyRevenue,
+                    Total = totalRevenue
+                }
             };
             return new BusinessResult(Const.HTTP_STATUS_OK,Const.SUCCESS_READ_MSG,dashboard);
         }

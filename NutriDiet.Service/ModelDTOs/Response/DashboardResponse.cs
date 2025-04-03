@@ -17,5 +17,6 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public int TotalFood { get; set; }
         public int TotalMealPlan { get; set; }
         public int TotalFeedbackAI { get; set; }
+        public object Revenue { get; set; }
     }
 }
