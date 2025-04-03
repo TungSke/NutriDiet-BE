@@ -19,6 +19,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public double? Weight { get; set; }
         public string? ActivityLevel { get; set; }
         public string? Aisuggestion { get; set; }
+        public string? DietStyle { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public virtual ICollection<HealthcareIndicatorResponse> HealthcareIndicators { get; set; } = new List<HealthcareIndicatorResponse>();

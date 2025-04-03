@@ -222,8 +222,18 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> PAYOSCallback(string status)
         {
+            if (string.IsNullOrEmpty(status))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Trạng thái thanh toán không hợp lệ.");
+            }
+
             var userid = await _tokenHandlerHelper.GetUserId();
-            var userPackage = await _unitOfWork.UserPackageRepository.GetByWhere(x => x.UserId == userid && x.Status == "InActive").OrderByDescending(x => x.StartDate).FirstOrDefaultAsync();
+            var userPackage = await _unitOfWork.UserPackageRepository
+                .GetByWhere(x => x.UserId == userid && x.Status == "InActive")
+                .Include(x => x.Package)  // Đảm bảo load Package
+                .OrderByDescending(x => x.StartDate)
+                .FirstOrDefaultAsync();
+
             if (userPackage == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại");
@@ -231,10 +241,17 @@ namespace NutriDiet.Service.Services
 
             if (status.ToLower() == "success" || status.ToLower() == "paid")
             {
-                userPackage.Status = "Active";
-                userPackage.ExpiryDate = userPackage.StartDate.Value.AddMonths(userPackage.Package.Duration.Value);
-                await _unitOfWork.UserPackageRepository.UpdateAsync(userPackage);
-                await _unitOfWork.SaveChangesAsync();
+                if (userPackage.StartDate.HasValue && userPackage.Package?.Duration.HasValue == true)
+                {
+                    userPackage.Status = "Active";
+                    userPackage.ExpiryDate = userPackage.StartDate.Value.AddMonths(userPackage.Package.Duration.Value);
+                    await _unitOfWork.UserPackageRepository.UpdateAsync(userPackage);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                else
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Dữ liệu không hợp lệ, không thể cập nhật ngày hết hạn.");
+                }
             }
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
