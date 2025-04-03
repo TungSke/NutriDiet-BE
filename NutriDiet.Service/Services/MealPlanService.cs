@@ -428,6 +428,9 @@ namespace NutriDiet.Service.Services
             var height = userProfile?.Height ?? 0;
             var weight = userProfile?.Weight ?? 0;
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
+            var dietStyle = userProfile.DietStyle;
+
+            //lấy mục tiêu ra làm tiêu chí
             var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
             var startDate = personalGoal?.StartDate?.ToString("yyyy-MM-dd") ?? "Chưa đặt";
             var targetDate = personalGoal?.TargetDate.ToString("yyyy-MM-dd") ?? "Chưa đặt";
@@ -435,7 +438,7 @@ namespace NutriDiet.Service.Services
             var dailyCarb = personalGoal?.DailyCarb ?? 0;
             var dailyFat = personalGoal?.DailyFat ?? 0;
             var dailyProtein = personalGoal?.DailyProtein ?? 0;
-
+            
             var rejectionReason = airecommendationResponse?.RejectionReason;
             var rejectionText = string.IsNullOrEmpty(rejectionReason) ? "không có" : rejectionReason;
 
@@ -490,7 +493,7 @@ namespace NutriDiet.Service.Services
             string jsonOutputSample = JsonSerializer.Serialize(mealPlanRequesttest);
 
             var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Plan phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
-
+                        
                         Thông tin người dùng:
                         - **Họ tên:** {userInfo.FullName}
                         - **Email:** {userInfo.Email}
@@ -500,7 +503,8 @@ namespace NutriDiet.Service.Services
                         - **Cân nặng:** {weight} kg
                         - **Mức độ vận động:** {activityLevel}
                         - **Mục tiêu:** {goalType} ({startDate} - {targetDate})
-                        - **Thành phần yêu thích:** {favoriteIngredientsFormatted}      
+                        - **Thành phần yêu thích:** {favoriteIngredientsFormatted} 
+                        - DietStyle: {dietStyle}
 
                         Yêu cầu cho Meal Plan:
                         - **Thực đơn 7 ngày** với 3 bữa chính mỗi ngày (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có 1-2 món
@@ -516,8 +520,9 @@ namespace NutriDiet.Service.Services
                         - **Protein:** {dailyProtein}
 
                         Lưu ý:
+                        - **Hãy trả theo kiểu dữ liệu json tôi đã gửi**
                         - Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
-                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích, và trả theo kiểu dữ liệu json tôi đã gửi.
+                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
                         - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}";
 
             // Xử lý dữ liệu đầu vào và gửi yêu cầu tạo Meal Plan phù hợp

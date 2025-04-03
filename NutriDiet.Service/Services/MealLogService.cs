@@ -476,6 +476,7 @@ namespace NutriDiet.Service.Services
             var dailyCarb = personalGoal?.DailyCarb ?? 0;
             var dailyFat = personalGoal?.DailyFat ?? 0;
             var dailyProtein = personalGoal?.DailyProtein ?? 0;
+            var dietStyle = userProfile.DietStyle;
 
             var userIngredientsReference = userInfo.UserIngreDientPreferences.Select(x => new
             {
@@ -519,7 +520,8 @@ namespace NutriDiet.Service.Services
 
             // Lấy danh sách thực phẩm có thể ăn
             var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
-            var foodListText = JsonSerializer.Serialize(foods);
+            var foodResponse = foods.Adapt<List<FoodResponse>>();
+            var foodListText = JsonSerializer.Serialize(foodResponse);
 
             var mealogrequestSample = new List<MealLogRequest>
     {
@@ -570,6 +572,7 @@ namespace NutriDiet.Service.Services
                 - **Cân nặng:** {weight} kg
                 - **Mức độ vận động:** {activityLevel}
                 - **Mục tiêu:** {goalType}
+                - DietStyle: {dietStyle}
 
                 Dữ liệu Meal Log 7 ngày gần nhất:
                 {formattedMealLogs}
