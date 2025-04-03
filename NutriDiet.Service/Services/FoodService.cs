@@ -178,6 +178,7 @@ namespace NutriDiet.Service.Services
             var userInfo = await _unitOfWork.UserRepository
                             .GetByWhere(x => x.UserId == userid)
                             .Include(x => x.Allergies).Include(x => x.Diseases)
+                            .Include(x => x.GeneralHealthProfiles)
                             .Include(x => x.UserIngreDientPreferences).ThenInclude(x => x.Ingredient)
                             .FirstOrDefaultAsync();
 
@@ -185,15 +186,18 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
             }
-
+            //thông tin cơ bản của người dùng
             var allergyNames = userInfo.Allergies?.Select(a => a.AllergyName).ToList() ?? new List<string>();
             var diseaseNames = userInfo.Diseases?.Select(d => d.DiseaseName).ToList() ?? new List<string>();
 
             var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
+            var dietStyle = userInfo.GeneralHealthProfiles.OrderByDescending(x => x.CreatedAt).FirstOrDefault().DietStyle;
+
             var food = await _unitOfWork.FoodRepository.GetByIdAsync(foodId);
             var cuisineType = await _unitOfWork.CuisineRepository.GetByIdAsync(cuisineId);
+
 
             var userIngredientsReference = userInfo.UserIngreDientPreferences.Select(x => new
             {
@@ -215,7 +219,8 @@ namespace NutriDiet.Service.Services
 
             string rejectionReason = existingRecipe?.RejectionReason ?? "";
 
-            string input = @$"Tôi có các bệnh sau: {formattedDiseases}.
+            string input = @$"Tôi là người ăn theo phong cách {dietStyle}
+Tôi có các bệnh sau: {formattedDiseases}.
 Tôi bị dị ứng với các thành phần sau: {formattedAllergies}.
 Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
 Mức độ yêu thích các nguyên liệu như sau: {favoriteIngredientsFormatted}.
