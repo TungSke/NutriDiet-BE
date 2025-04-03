@@ -236,11 +236,7 @@ namespace NutriDiet.Service.Services
                 await _unitOfWork.UserPackageRepository.UpdateAsync(userPackage);
                 await _unitOfWork.SaveChangesAsync();
             }
-            else
-            {
-                await _unitOfWork.UserPackageRepository.DeleteAsync(userPackage);
-                await _unitOfWork.SaveChangesAsync();
-            }
+
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 

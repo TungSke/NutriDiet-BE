@@ -11,7 +11,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
     {
         public double? Height { get; set; }
         public double? Weight { get; set; }
-
+        public DietStyleEnum? DietStyle { get; set; }
         public ActivityLevel? ActivityLevel { get; set; }
 
         public string? Aisuggestion { get; set; }

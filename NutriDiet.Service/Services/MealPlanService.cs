@@ -457,8 +457,8 @@ namespace NutriDiet.Service.Services
 
             var mealPlanRequesttest = new MealPlanRequest
             {
-                PlanName = $"kế hoạch ăn của {userInfo.FullName} cho người ghét hành",
-                HealthGoal = "string",
+                PlanName = $"kế hoạch ăn của {userInfo.FullName}",
+                HealthGoal = "Giảm cân",
                 MealPlanDetails = new List<MealPlanDetailRequest>
                 {
                     new MealPlanDetailRequest
@@ -505,7 +505,7 @@ namespace NutriDiet.Service.Services
                         - **Thực đơn 7 ngày** với 3 bữa chính mỗi ngày (Breakfast, Lunch, Dinner)
                         - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
                         - **Dị ứng thực phẩm:** {formattedAllergies}
-                        - **Bệnh lý cần lưu ý:** {formattedDiseases}
+                        - **Bệnh lý cần lưu ý:** {formattedDiseases}                        
 
                         Giá trị dinh dưỡng mỗi ngày:
                         - **Calories:** {dailyCalories}
@@ -515,10 +515,9 @@ namespace NutriDiet.Service.Services
 
                         Lưu ý:
                         - Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
+                        - Trả cho tôi đầy đủ
                         - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}
-                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
-
-
+                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích, và trả theo kiểu dữ liệu json tôi đã gửi.";
 
             // Xử lý dữ liệu đầu vào và gửi yêu cầu tạo Meal Plan phù hợp
             var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOutputSample);

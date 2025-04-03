@@ -83,6 +83,7 @@ CREATE TABLE GeneralHealthProfile (
     Weight FLOAT CHECK (Weight > 0),
     ActivityLevel NVARCHAR(50),
 	AISuggestion NVARCHAR(MAX),
+	DietStyle NVARCHAR(50),
 	Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')), 
 	IsActive BIT,
 	ImageUrl NVARCHAR(MAX) NULL,

@@ -30,9 +30,8 @@ namespace NutriDiet.Service.BackgroundServices
                 {
                     throw ex;
                 }
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
             }
-
         }
 
         private async Task SendMealReminders()
