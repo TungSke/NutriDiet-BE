@@ -1,7 +1,4 @@
-﻿using Azure;
-using CloudinaryDotNet;
-using Google.Apis.Drive.v3.Data;
-using Mapster;
+﻿using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,15 +8,11 @@ using NutriDiet.Common.Enums;
 using NutriDiet.Repository;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
-using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
-using System.Linq;
-using System.Numerics;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace NutriDiet.Service.Services
@@ -465,25 +458,33 @@ namespace NutriDiet.Service.Services
                     {
                         FoodId = 1,
                         Quantity = 1,
-                        MealType = "Breakfast",
+                        MealType = MealType.Breakfast.ToString(),
                         DayNumber = 1
                     },
                     new MealPlanDetailRequest
                     {
                         FoodId = 2,
                         Quantity = 1,
-                        MealType = "Lunch",
+                        MealType = MealType.Lunch.ToString(),
                         DayNumber = 1
                     },
                     new MealPlanDetailRequest
                     {
                         FoodId = 3,
                         Quantity = 1,
-                        MealType = "Dinner",
+                        MealType = MealType.Dinner.ToString(),
+                        DayNumber = 1
+                    },
+                    new MealPlanDetailRequest
+                    {
+                        FoodId = 4, 
+                        Quantity = 1,
+                        MealType = MealType.Snacks.ToString(),
                         DayNumber = 1
                     }
                 }
             };
+
 
             // Sample JSON output
             string jsonOutputSample = JsonSerializer.Serialize(mealPlanRequesttest);
@@ -502,7 +503,8 @@ namespace NutriDiet.Service.Services
                         - **Thành phần yêu thích:** {favoriteIngredientsFormatted}      
 
                         Yêu cầu cho Meal Plan:
-                        - **Thực đơn 7 ngày** với 3 bữa chính mỗi ngày (Breakfast, Lunch, Dinner)
+                        - **Thực đơn 7 ngày** với 3 bữa chính mỗi ngày (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có 1-2 món
+                        - Đảm bảo Meal Plan cung cấp đầy đủ các giá trị dinh dưỡng đã nêu trên và **cung cấp thực đơn sao cho tổng calories mỗi ngày gần bằng hoặc đạt yêu cầu**. Nếu tổng calories quá thấp (ví dụ: < {dailyCalories} kcal), hãy gợi ý thêm món ăn cho ngày hôm đó để đạt đúng mục tiêu dinh dưỡng (cả calories và các chất dinh dưỡng khác như carbs, fat, protein).
                         - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
                         - **Dị ứng thực phẩm:** {formattedAllergies}
                         - **Bệnh lý cần lưu ý:** {formattedDiseases}                        
@@ -515,9 +517,8 @@ namespace NutriDiet.Service.Services
 
                         Lưu ý:
                         - Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
-                        - Trả cho tôi đầy đủ
-                        - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}
-                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích, và trả theo kiểu dữ liệu json tôi đã gửi.";
+                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích, và trả theo kiểu dữ liệu json tôi đã gửi.
+                        - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}";
 
             // Xử lý dữ liệu đầu vào và gửi yêu cầu tạo Meal Plan phù hợp
             var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOutputSample);
@@ -644,7 +645,7 @@ namespace NutriDiet.Service.Services
             var mealPlan = await _unitOfWork.MealPlanRepository
                 .GetByWhere(x => x.MealPlanId == mealPlanId)
                 .Include(x => x.MealPlanDetails)
-                .ThenInclude(x=>x.Food)
+                .ThenInclude(x => x.Food)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -786,10 +787,10 @@ namespace NutriDiet.Service.Services
                 pageSize,
                 predicate: log => log.Feedback != null && (string.IsNullOrEmpty(search) || log.User.FullName.ToLower().Contains(search)),
                 x => x.OrderByDescending(x => x.RecommendedAt),
-                include: log => log.Include(x=>x.User)
+                include: log => log.Include(x => x.User)
                 );
 
-            var mealLogFeedbackResponse =  mealLogFeedback
+            var mealLogFeedbackResponse = mealLogFeedback
                 .Select(log => new FeedbackResponse
                 {
                     Id = log.AirecommendMealLogId,
@@ -825,7 +826,7 @@ namespace NutriDiet.Service.Services
                 .Take(pageSize)
                 .ToList();
 
-            if(allFeedback == null)
+            if (allFeedback == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }

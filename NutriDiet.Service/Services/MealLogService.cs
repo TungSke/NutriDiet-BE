@@ -575,7 +575,7 @@ namespace NutriDiet.Service.Services
                 {formattedMealLogs}
 
                 Yêu cầu cho Meal Log ngày hôm nay:
-                - **Meal Log 1 ngày** với 3 bữa chính (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks) Mỗi bữa có 2 món 
+                - **Meal Log 1 ngày** với 3 bữa chính (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có 2 món 
                 - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
                 - **Dị ứng thực phẩm:** {formattedAllergies}
                 - **Bệnh lý cần lưu ý:** {formattedDiseases}
