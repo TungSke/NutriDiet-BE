@@ -22,7 +22,23 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> Dashboard()
         {
             var result = await _dashboardService.Dashboard();
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("revenue")]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        public async Task<IActionResult> Revenue()
+        {
+            var result = await _dashboardService.Revenue();
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("transaction")]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        public async Task<IActionResult> Transaction(int pageIndex, int pageSize, string? search)
+        {
+            var result = await _dashboardService.Transaction(pageIndex, pageSize, search);
+            return StatusCode(result.StatusCode, result);
         }
     }
 }
