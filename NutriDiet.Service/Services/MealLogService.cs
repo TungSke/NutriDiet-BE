@@ -14,6 +14,7 @@ using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using NutriDiet.Service.Utilities;
+using Sprache;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -157,7 +158,23 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log removed successfully.");
         }
-
+        public async Task<bool> IsDailyCaloriesExceeded(DateTime? logDate, double additionalCalories)
+        {
+            var userId = int.Parse(_userIdClaim);
+            var existingUser = await _unitOfWork.UserRepository.GetByWhere( u => u.UserId == userId).Include(u => u.PersonalGoals).FirstOrDefaultAsync();
+            var personalgoal = existingUser?.PersonalGoals.OrderByDescending(p => p.CreatedAt).First();
+            var meallog = await _unitOfWork.MealLogRepository.GetByWhere(u => u.UserId == userId && u.LogDate.Value.Date == logDate.Value.Date).FirstOrDefaultAsync();
+            if (meallog == null) { return false; }
+            if(meallog.TotalCalories > personalgoal?.DailyCalories)
+            {
+                return false;
+            }
+            if (meallog.TotalCalories + additionalCalories > personalgoal?.DailyCalories)
+            {
+                return true;
+            } 
+            return false;
+        }
         public async Task<IBusinessResult> RemoveMealLogDetail(int mealLogId, int detailId)
         {
             var userId = int.Parse(_userIdClaim);
@@ -477,7 +494,7 @@ namespace NutriDiet.Service.Services
             var dailyFat = personalGoal?.DailyFat ?? 0;
             var dailyProtein = personalGoal?.DailyProtein ?? 0;
             var dietStyle = userProfile.DietStyle;
-
+            var today = DateTime.Now.Date;
             var userIngredientsReference = userInfo.UserIngreDientPreferences.Select(x => new
             {
                 x.Ingredient.IngredientName,
@@ -562,7 +579,7 @@ namespace NutriDiet.Service.Services
             var jsonSampleOutput = JsonSerializer.Serialize(mealogrequestSample);
 
             // Cập nhật chuỗi prompt cho AI, thay dailyCalories ban đầu bằng recommendedTodayCalories
-            var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
+            var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng cho ngày hôm nay {today}.
 
                 Thông tin người dùng:
                 - **Họ tên:** {userInfo.FullName}
@@ -1025,5 +1042,82 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail and nutrition values updated successfully.");
         }
 
+        public async Task<IBusinessResult> AnalyzeAndPredictMealImprovements(DateTime logDate)
+        {
+            var userId = int.Parse(_userIdClaim);
+            var isPremiumResult = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+            if (!isPremiumResult)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
+            }
+
+            // Lấy thông tin người dùng
+            var userInfo = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userId)
+                                                           .Include(x => x.GeneralHealthProfiles)
+                                                           .Include(x => x.PersonalGoals)
+                                                           .FirstOrDefaultAsync();
+            if (userInfo == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found", null);
+            }
+
+            var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
+            var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
+
+            var height = userProfile?.Height ?? 0;
+            var weight = userProfile?.Weight ?? 0;
+            var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
+            var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
+            var goalcalories = personalGoal?.DailyCalories;
+            var dietStyle = userProfile?.DietStyle ?? "Không xác định";
+            var goalfat = personalGoal?.DailyFat;
+            var goalcarb = personalGoal?.DailyCarb;
+            var goalprotein = personalGoal?.DailyProtein;
+            var mealLogsResult = await GetMealLogsByDateRange(logDate, null, null);
+            if (mealLogsResult.StatusCode != Const.HTTP_STATUS_OK)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không đủ dữ liệu để phân tích.", null);
+            }
+
+            var mealLogsList = mealLogsResult.Data as List<MealLogResponse>;
+            if (mealLogsList == null || mealLogsList.Count == 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không đủ dữ liệu để phân tích.", null);
+            }
+
+            double totalCalories = mealLogsList.Sum(m => m.TotalCalories);
+            const double MIN_DAILY_CALORIES = 1200;
+            if (totalCalories < MIN_DAILY_CALORIES)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Lượng calories tối thiểu 1 ngày cho 1 người trưởng thành không được thấp hơn chuẩn quốc tế quy định" + MIN_DAILY_CALORIES, null);
+            }
+
+            var serializedMealLogs = JsonSerializer.Serialize(mealLogsList);
+
+            // Xây dựng prompt cho AI
+            var prompt = $@"Bạn là một chuyên gia dinh dưỡng với nhiều năm kinh nghiệm. Dưới đây là thông tin người dùng và nhật ký ăn uống của ngày {logDate:dd/MM/yyyy}:
+
+Thông tin người dùng:
+- Họ tên: {userInfo.FullName}
+- Giới tính: {userInfo.Gender}
+- Tuổi: {userInfo.Age}
+- Chiều cao: {height} cm
+- Cân nặng: {weight} kg
+- Mức độ vận động: {activityLevel}
+- Mục tiêu: {goalType}
+- Mục tiêu Calories: {goalcalories}
+- Mục tiêu Protein: {goalprotein}
+- Mục tiêu Carb: {goalcarb}
+- Mục tiêu Fat: {goalfat}
+- DietStyle: {dietStyle}
+
+Nhật ký ăn uống ngày {logDate:dd/MM/yyyy}:
+{serializedMealLogs}
+
+Hãy phân tích những điểm cần cải thiện trong chế độ ăn uống của người dùng trong ngày này, đưa ra các khuyến nghị cụ thể về cải thiện dinh dưỡng, luyện tập và thay đổi lối sống nếu cần. Đồng thời, hãy dự đoán khoảng thời gian cần thiết để người dùng đạt được mục tiêu sức khỏe của mình. Vui lòng trả lời chỉ dưới dạng văn bản thuần túy, không kèm theo bất kỳ giải thích thêm nào, và giới hạn kết quả trong khoảng 250 đến 300 từ.";
+
+            var aiResponse = await _aiGeneratorService.AIResponseText(prompt);
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Phân tích và dự đoán thành công.", aiResponse);
+        }
     }
 }
