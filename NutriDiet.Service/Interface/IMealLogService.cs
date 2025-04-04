@@ -26,5 +26,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> AddImageToMealLogDetail(int detailId, AddImageRequest request);
         Task<IBusinessResult> GetMealLogDetail(int detailId);
         Task<IBusinessResult> UpdateMealLogDetailNutrition(int detailId, UpdateMealLogNutritionRequest request);
+        Task<bool> IsDailyCaloriesExceeded(DateTime? logDate, double additionalCalories);
+        Task<IBusinessResult> AnalyzeAndPredictMealImprovements(DateTime logDate);
     }
 }

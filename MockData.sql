@@ -253,8 +253,18 @@ INSERT INTO Role (RoleID, RoleName) VALUES
 
 SET IDENTITY_INSERT [dbo].[User] ON 
 GO
-INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], [Gender], [Location], [Avatar], [fcmToken], [Status], [RoleID]) VALUES (1, N'New User', N'user@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '21', 'Male', 'VietNam', N'', NULL, N'Active', 2)
-INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], [Gender], [Location], [Avatar], [fcmToken], [Status], [RoleID]) VALUES (2, N'Admin', N'admin@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, NULL, NULL, NULL, N'', NULL, N'Active', 1)
+INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], [Gender], [Location], [Avatar], [fcmToken], [Status], [RoleID]) VALUES 
+(1, N'New User', N'user@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '21', 'Male', 'VietNam', N'', NULL, N'Active', 2),
+(2, N'Admin', N'admin@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, NULL, NULL, NULL, N'', NULL, N'Active', 1),
+(3, N'Tran Van Tai', N'tranvantai@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '20', 'Male', 'VietNam', N'', NULL, N'Active', 2),
+(4, N'Nguyen Thi Hanh', N'hanhnt@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '18', 'Female', 'VietNam', N'', NULL, N'Active', 2),
+(5, N'Pham Nguyen', N'nguyenpham@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '21', 'Male', 'VietNam', N'', NULL, N'Active', 2),
+(6, N'Nguyen Tuan Kiet', N'kietnguyen@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '22', 'Male', 'VietNam', N'', NULL, N'Active', 2),
+(7, N'Dinh Hoang Nam', N'namdh@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '22', 'Male', 'VietNam', N'', NULL, N'Active', 2),
+(8, N'Tran Thi Thao', N'thaotran@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '25', 'Female', 'VietNam', N'', NULL, N'Active', 2),
+(9, N'Nguyen Thanh Phat', N'phat123@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '21', 'Male', 'VietNam', N'', NULL, N'Active', 2),
+(10, N'Chau Nhuan Phat', N'chaunhuanphat@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '33', 'Male', 'VietNam', N'', NULL, N'Active', 2);
+
 GO
 SET IDENTITY_INSERT [dbo].[User] OFF
 GO
@@ -264,7 +274,17 @@ INSERT Package (PackageID, PackageName, Price, Duration, Description) VALUES (1,
 SET IDENTITY_INSERT [dbo].[Package] OFF
 
 SET IDENTITY_INSERT [dbo].[UserPackage] ON 
-INSERT UserPackage (UserPackageID, UserID, PackageID, StartDate, ExpiryDate, Status) VALUES (1, 1, 1, GETDATE(), GETDATE() + 30, 'Active');
+INSERT UserPackage (UserPackageID, UserID, PackageID, StartDate, ExpiryDate, Status) VALUES 
+(1, 1, 1, GETDATE(), GETDATE() + 30, 'Active'),
+(2, 3, 1, '2024-06-20', DATEADD(DAY, 30, '2024-06-20'), 'Expired'),
+(3, 4, 1, '2024-02-05', DATEADD(DAY, 30, '2024-02-05'), 'Expired'),
+(4, 5, 1, '2024-12-01', DATEADD(DAY, 30, '2024-12-01'), 'Expired'),
+(5, 6, 1, '2025-01-01', DATEADD(DAY, 30, '2025-01-01'), 'Expired'),
+(6, 7, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
+(7, 8, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
+(8, 9, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
+(9, 10, 1, '2025-03-31', DATEADD(DAY, 30, '2025-03-31'), 'Expired');
+
 SET IDENTITY_INSERT [dbo].[UserPackage] OFF
 
 -- Bật IDENTITY_INSERT cho GeneralHealthProfile
