@@ -73,16 +73,13 @@ namespace NutriDiet.Service.Services
                 .OrderBy(x => x.Date)
                 .ToList();
 
-            // WEEKLY (đếm số tuần từ đầu năm đến nay)
+            
             var weeklyRevenue = userPackages
                 .GroupBy(x => new
                 {
                     Year = x.StartDate!.Value.Year,
                     Month = x.StartDate!.Value.Month,
-                    Week = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(
-                    x.StartDate!.Value,
-                    System.Globalization.CalendarWeekRule.FirstDay,
-                    DayOfWeek.Monday)
+                    Week = ((x.StartDate!.Value.Day - 1) / 7) + 1 // Tính tuần trong tháng
                 })
                 .Select(g => new
                 {
