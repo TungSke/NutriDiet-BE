@@ -124,13 +124,28 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.GetMealLogDetail(detailId);
             return StatusCode(result.StatusCode, result);
         }
-        
 
         [HttpPut("detail/{detailId}/nutrition")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> UpdateMealLogDetailNutrition(int detailId, [FromForm] UpdateMealLogNutritionRequest request)
         {
-            var result = await _mealLogService.UpdateMealLogDetailNutrition(detailId,request);
+            var result = await _mealLogService.UpdateMealLogDetailNutrition(detailId, request);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("calorie-estimator")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> CheckDailyCalories([FromQuery] DateTime logdate, [FromQuery] double additionalCalories)
+        {
+            bool isExceeded = await _mealLogService.IsDailyCaloriesExceeded(logdate, additionalCalories);
+            return Ok(isExceeded);
+        }
+
+        [HttpGet("analyze")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> AnalyzeAndPredictMealImprovementsForDay([FromQuery] DateTime logDate)
+        {
+            var result = await _mealLogService.AnalyzeAndPredictMealImprovements(logDate);
             return StatusCode(result.StatusCode, result);
         }
     }
