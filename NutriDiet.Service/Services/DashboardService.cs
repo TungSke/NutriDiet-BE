@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Google.Apis.Drive.v3.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
@@ -24,46 +25,6 @@ namespace NutriDiet.Service.Services
         }
         public async Task<IBusinessResult> Dashboard()
         {
-            var dailyRevenue = await _unitOfWork.UserPackageRepository
-                .GetAll()
-                .Where(x => x.StartDate != null)
-                .GroupBy(x => x.StartDate.Value.Date)
-                .Select(g => new
-                {
-                    Date = g.Key,
-                    TotalRevenue = g.Sum(x => x.Package.Price)
-                })
-                .OrderBy(x => x.Date)
-                .ToListAsync();
-
-            var weeklyRevenue = await _unitOfWork.UserPackageRepository
-                .GetAll()
-                .Where(x => x.StartDate != null)
-                .GroupBy(x => EF.Functions.DateDiffWeek(DateTime.UtcNow, x.StartDate.Value))
-                .Select(g => new
-                {
-                    Week = g.Key+1,
-                    TotalRevenue = g.Sum(x => x.Package.Price)
-                })
-                .OrderBy(x => x.Week)
-                .ToListAsync();
-
-            var monthlyRevenue = await _unitOfWork.UserPackageRepository
-                .GetAll()
-                .Where(x => x.StartDate != null)
-                .GroupBy(x => x.StartDate.Value.Month)
-                .Select(g => new
-                {
-                    Month = g.Key,
-                    TotalRevenue = g.Sum(x => x.Package.Price)
-                })
-                .OrderBy(x => x.Month)
-                .ToListAsync();
-
-            var totalRevenue = await _unitOfWork.UserPackageRepository
-                .GetAll()
-                .Where(x => x.StartDate != null)
-                .SumAsync(x => x.Package.Price);
 
             var totalFeedbackMealPlan = await _unitOfWork.AIRecommendationRepository
                 .GetAll()
@@ -90,16 +51,107 @@ namespace NutriDiet.Service.Services
                 TotalIngredient = await _unitOfWork.IngredientRepository.CountAsync(),
                 TotalFood = await _unitOfWork.FoodRepository.CountAsync(),
                 TotalMealPlan = await _unitOfWork.MealPlanRepository.CountAsync(),
-                TotalFeedbackAI = totalFeedbackMealPlan + totalFeedbackMealLog,
+                TotalFeedbackAI = totalFeedbackMealPlan + totalFeedbackMealLog
+            };
+            return new BusinessResult(Const.HTTP_STATUS_OK,Const.SUCCESS_READ_MSG,dashboard);
+        }
+
+        public async Task<IBusinessResult> Revenue()
+        {
+            var dailyRevenue = await _unitOfWork.UserPackageRepository
+                .GetAll()
+                .Where(x => x.StartDate != null)
+                .GroupBy(x => x.StartDate.Value.Date)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    PackageSold = g.Count(),
+                    TotalRevenue = g.Sum(x => x.Package.Price)
+                })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            var weeklyRevenue = await _unitOfWork.UserPackageRepository
+                .GetAll()
+                .Where(x => x.StartDate != null)
+                .GroupBy(x => EF.Functions.DateDiffWeek(DateTime.UtcNow, x.StartDate.Value))
+                .Select(g => new
+                {
+                    Week = g.Key + 1,
+                    PackageSold = g.Count(),
+                    TotalRevenue = g.Sum(x => x.Package.Price)
+                })
+                .OrderBy(x => x.Week)
+                .ToListAsync();
+
+            var monthlyRevenue = await _unitOfWork.UserPackageRepository
+                .GetAll()
+                .Where(x => x.StartDate != null)
+                .GroupBy(x => x.StartDate.Value.Month)
+                .Select(g => new
+                {
+                    Month = g.Key,
+                    PackageSold = g.Count(),
+                    TotalRevenue = g.Sum(x => x.Package.Price)
+                })
+                .OrderBy(x => x.Month)
+                .ToListAsync();
+
+            var totalRevenue = await _unitOfWork.UserPackageRepository
+                .GetAll()
+                .Include(x=>x.Package)
+                .Where(x => x.StartDate != null)
+                .ToListAsync();
+
+            var totalRevenueAmount = totalRevenue.Sum(x => x.Package.Price);
+
+            var totalPackageSold = totalRevenue.Count;
+
+            var response = new RevenueResponse
+            {
                 Revenue = new
                 {
                     Daily = dailyRevenue,
                     Weekly = weeklyRevenue,
                     Monthly = monthlyRevenue,
-                    Total = totalRevenue
+                    Total = new
+                    {
+                        PackageSold = totalPackageSold,
+                        TotalRevenue = totalRevenueAmount
+                    }
                 }
             };
-            return new BusinessResult(Const.HTTP_STATUS_OK,Const.SUCCESS_READ_MSG,dashboard);
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+
+        }
+
+        public async Task<IBusinessResult> Transaction(int pageIndex, int pageSize, string? search)
+        {
+            search = search?.ToLower() ?? string.Empty;
+            var transaction = await _unitOfWork.UserPackageRepository.GetPagedAsync(
+                pageIndex,
+                pageSize,
+                x => (string.IsNullOrEmpty(search) || x.User.Email.ToLower().Contains(search)
+                                                   || x.Package.PackageName.ToLower().Contains(search))
+                                                   || x.Package.Price.Equals(search),
+                q => q.OrderByDescending(x => x.StartDate),
+                i => i.Include(x => x.User).Include(x=>x.Package)
+                );
+
+            var response = transaction.Select(x => new TransactionResponse
+            {
+                UserId = x.UserId,
+                Email = x.User.Email,
+                PackageId = x.PackageId,
+                PackageName = x.Package.PackageName,
+                Description = x.Package.Description,
+                Price = x.Package.Price,
+                PaidAt = x.StartDate,
+                ExpiryDate = x.ExpiryDate
+            });
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
     }
 }
