@@ -138,7 +138,7 @@ namespace NutriDiet.Service.Services
             {
                 if (package.Status == "Active" && package.ExpiryDate <= DateTime.UtcNow)
                 {
-                    package.Status = "Inactive";
+                    package.Status = "Expired";
                     await _unitOfWork.UserPackageRepository.UpdateAsync(package);
                 }
             }

@@ -27,24 +27,23 @@ namespace NutriDiet.Service.Services
         {
 
             var totalFeedbackMealPlan = await _unitOfWork.AIRecommendationRepository
-                .GetAll()
-                .Where(x => x.Feedback != null)
+                .GetByWhere(x => x.Feedback != null)
                 .CountAsync();
+
             var totalFeedbackMealLog = await _unitOfWork.AIRecommendationMeallogRepository
-                .GetAll()
-                .Where(x => x.Feedback != null)
+                .GetByWhere(x => x.Feedback != null)
                 .CountAsync();
 
             var dashboard = new DashboardResponse
             {
                 TotalUser = await _unitOfWork.UserRepository
-                    .GetAll()
-                    .Where(x=>x.RoleId != (int)RoleEnum.Admin)
+                    .GetByWhere(x=>x.RoleId != (int)RoleEnum.Admin)
                     .CountAsync(),
+
                 TotalPremiumUser = await _unitOfWork.UserRepository
-                    .GetAll()
-                    .Where(x => x.UserPackages.Any(x => x.ExpiryDate >= DateTime.UtcNow && x.Status == "Active") && x.RoleId!= (int)RoleEnum.Admin)
+                    .GetByWhere(x => x.UserPackages.Any(x => x.ExpiryDate >= DateTime.UtcNow && x.Status == "Active") && x.RoleId!= (int)RoleEnum.Admin)
                     .CountAsync(),
+
                 TotalPackage = await _unitOfWork.PackageRepository.CountAsync(),
                 TotalAllergy = await _unitOfWork.AllergyRepository.CountAsync(),
                 TotalDisease = await _unitOfWork.DiseaseRepository.CountAsync(),
@@ -58,52 +57,75 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> Revenue()
         {
-            var dailyRevenue = await _unitOfWork.UserPackageRepository
-                .GetAll()
-                .Where(x => x.StartDate != null)
-                .GroupBy(x => x.StartDate.Value.Date)
+            var userPackages = await _unitOfWork.UserPackageRepository
+                .GetByWhere(x => x.StartDate != null && x.Package != null)
+                .Include(x => x.Package)
+                .ToListAsync();
+
+            var dailyRevenue = userPackages
+                .GroupBy(x => x.StartDate!.Value.Date)
                 .Select(g => new
                 {
                     Date = g.Key,
                     PackageSold = g.Count(),
-                    TotalRevenue = g.Sum(x => x.Package.Price)
+                    TotalRevenue = g.Sum(x => x.Package!.Price)
                 })
                 .OrderBy(x => x.Date)
-                .ToListAsync();
+                .ToList();
 
-            var weeklyRevenue = await _unitOfWork.UserPackageRepository
-                .GetAll()
-                .Where(x => x.StartDate != null)
-                .GroupBy(x => EF.Functions.DateDiffWeek(DateTime.UtcNow, x.StartDate.Value))
+            // WEEKLY (đếm số tuần từ đầu năm đến nay)
+            var weeklyRevenue = userPackages
+                .GroupBy(x => new
+                {
+                    Year = x.StartDate!.Value.Year,
+                    Month = x.StartDate!.Value.Month,
+                    Week = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(
+                    x.StartDate!.Value,
+                    System.Globalization.CalendarWeekRule.FirstDay,
+                    DayOfWeek.Monday)
+                })
                 .Select(g => new
                 {
-                    Week = g.Key + 1,
-                    PackageSold = g.Count(),
-                    TotalRevenue = g.Sum(x => x.Package.Price)
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Week = g.Key.Week,
+                    TotalRevenue = g.Sum(x => x.Package!.Price),
+                    PackageSold = g.Count()
                 })
-                .OrderBy(x => x.Week)
-                .ToListAsync();
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ThenBy(x => x.Week)
+                .ToList();
 
-            var monthlyRevenue = await _unitOfWork.UserPackageRepository
-                .GetAll()
-                .Where(x => x.StartDate != null)
-                .GroupBy(x => x.StartDate.Value.Month)
+            var monthlyRevenue = userPackages
+                .GroupBy(x => new { Year = x.StartDate!.Value.Year, Month = x.StartDate!.Value.Month })
                 .Select(g => new
                 {
-                    Month = g.Key,
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
                     PackageSold = g.Count(),
-                    TotalRevenue = g.Sum(x => x.Package.Price)
+                    TotalRevenue = g.Sum(x => x.Package!.Price)
                 })
-                .OrderBy(x => x.Month)
-                .ToListAsync();
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToList();
 
-            var totalRevenue = await _unitOfWork.UserPackageRepository
-                .GetAll()
-                .Include(x=>x.Package)
+            var annualRevenue = userPackages
+                .GroupBy(x => x.StartDate!.Value.Year)
+                .Select(g => new
+                {
+                    Year = g.Key,
+                    PackageSold = g.Count(),
+                    TotalRevenue = g.Sum(x => x.Package!.Price)
+                })
+                .OrderBy(x => x.Year)
+                .ToList();
+
+            var totalRevenue = userPackages
                 .Where(x => x.StartDate != null)
-                .ToListAsync();
+                .ToList();
 
-            var totalRevenueAmount = totalRevenue.Sum(x => x.Package.Price);
+            var totalRevenueAmount = totalRevenue.Sum(x => x.Package!.Price);
 
             var totalPackageSold = totalRevenue.Count;
 
@@ -114,6 +136,7 @@ namespace NutriDiet.Service.Services
                     Daily = dailyRevenue,
                     Weekly = weeklyRevenue,
                     Monthly = monthlyRevenue,
+                    Annual = annualRevenue,
                     Total = new
                     {
                         PackageSold = totalPackageSold,
