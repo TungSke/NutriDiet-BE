@@ -262,7 +262,8 @@ INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], 
 (6, N'Nguyen Tuan Kiet', N'kietnguyen@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '22', 'Male', 'VietNam', N'', NULL, N'Active', 2),
 (7, N'Dinh Hoang Nam', N'namdh@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '22', 'Male', 'VietNam', N'', NULL, N'Active', 2),
 (8, N'Tran Thi Thao', N'thaotran@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '25', 'Female', 'VietNam', N'', NULL, N'Active', 2),
-(9, N'Nguyen Thanh Phat', N'phat123@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '21', 'Male', 'VietNam', N'', NULL, N'Active', 2);
+(9, N'Nguyen Thanh Phat', N'phat123@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '21', 'Male', 'VietNam', N'', NULL, N'Active', 2),
+(10, N'Chau Nhuan Phat', N'chaunhuanphat@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '33', 'Male', 'VietNam', N'', NULL, N'Active', 2);
 
 GO
 SET IDENTITY_INSERT [dbo].[User] OFF
@@ -281,7 +282,8 @@ INSERT UserPackage (UserPackageID, UserID, PackageID, StartDate, ExpiryDate, Sta
 (5, 6, 1, '2025-01-01', DATEADD(DAY, 30, '2025-01-01'), 'Expired'),
 (6, 7, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
 (7, 8, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
-(8, 9, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired');
+(8, 9, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
+(9, 10, 1, '2025-03-31', DATEADD(DAY, 30, '2025-03-31'), 'Expired');
 
 SET IDENTITY_INSERT [dbo].[UserPackage] OFF
 
