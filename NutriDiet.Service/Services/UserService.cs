@@ -494,7 +494,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, isPremium);
         }
 
-        public async Task<IBusinessResult> UpdateStatusUser(int userId)
+        public async Task<IBusinessResult> UpdateStatusUser(int userId, UserStatus status)
         {
             var userExisted = await _unitOfWork.UserRepository.GetByIdAsync(userId);
 
@@ -503,14 +503,7 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }
 
-            if (userExisted.Status == UserStatus.Active.ToString())
-            {
-                userExisted.Status = UserStatus.Inactive.ToString();
-            }
-            else
-            {
-                userExisted.Status = UserStatus.Active.ToString();
-            }
+            userExisted.Status = status.ToString();
             await _unitOfWork.UserRepository.UpdateAsync(userExisted);
             await _unitOfWork.SaveChangesAsync();
 
