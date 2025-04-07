@@ -86,8 +86,8 @@ namespace NutriDiet.Service.Services
                     Year = g.Key.Year,
                     Month = g.Key.Month,
                     Week = g.Key.Week,
-                    TotalRevenue = g.Sum(x => x.Package!.Price),
-                    PackageSold = g.Count()
+                    PackageSold = g.Count(),
+                    TotalRevenue = g.Sum(x => x.Package!.Price)
                 })
                 .OrderBy(x => x.Year)
                 .ThenBy(x => x.Month)
