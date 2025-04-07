@@ -98,7 +98,6 @@ namespace NutriDiet.Service.Services
             personalGoal.ProgressRate = (int)(currentWeight - request.TargetWeight);
             personalGoal.DailyCalories = (int)dailyCalories;
             personalGoal.TargetDate = targetDate ?? DateTime.Now;
-            // Chuyển đổi từ % sang gam dựa trên dailyCalories và làm tròn 2 chữ số:
             personalGoal.DailyCarb = Math.Round(dailyCalories * (macronutrients.CarbRatio / 100.0) / 4.0, 2);
             personalGoal.DailyProtein = Math.Round(dailyCalories * (macronutrients.ProteinRatio / 100.0) / 4.0, 2);
             personalGoal.DailyFat = Math.Round(dailyCalories * (macronutrients.FatRatio / 100.0) / 9.0, 2);
@@ -114,7 +113,6 @@ namespace NutriDiet.Service.Services
                 throw new Exception("Target weight and weight change rate must be provided.");
             }
 
-            // Kiểm tra WeightChangeRate hợp lệ
             if (!Enum.IsDefined(typeof(WeightChangeRate), request.WeightChangeRate))
             {
                 throw new Exception("Tốc độ thay đổi cân nặng không hợp lệ.");
