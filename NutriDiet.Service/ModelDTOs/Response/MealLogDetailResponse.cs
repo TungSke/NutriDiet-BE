@@ -1,23 +1,37 @@
-﻿using NutriDiet.Common.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace NutriDiet.Service.ModelDTOs.Response
 {
     public class MealLogDetailResponse
     {
+        [JsonPropertyName("detailId")]
         public int DetailId { get; set; }
-        public string FoodName { get; set; } 
+
+        [JsonPropertyName("foodName")]
+        public string FoodName { get; set; } = string.Empty;
+
+        [JsonPropertyName("mealType")]
         public string? MealType { get; set; }
+
+        [JsonPropertyName("servingSize")]
         public string? ServingSize { get; set; }
+
+        [JsonPropertyName("quantity")]
         public double? Quantity { get; set; }
-        public double Calories { get; set; }
-        public double Protein { get; set; }
-        public double Carbs { get; set; }
-        public double Fat { get; set; }
+
+        [JsonPropertyName("calories")]
+        public double? Calories { get; set; }
+
+        [JsonPropertyName("protein")]
+        public double? Protein { get; set; }
+
+        [JsonPropertyName("carbs")]
+        public double? Carbs { get; set; }
+
+        [JsonPropertyName("fat")]
+        public double? Fat { get; set; }
+
+        [JsonPropertyName("imageUrl")]
         public string? ImageUrl { get; set; }
     }
 }

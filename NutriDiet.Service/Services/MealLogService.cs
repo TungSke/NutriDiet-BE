@@ -608,6 +608,7 @@ namespace NutriDiet.Service.Services
 
                 Lưu ý:
                 - Hạn chế chọn các món đã ăn quá nhiều trong tuần.
+                - Trả cho tôi theo đúng json output tôi đã gửi: {jsonSampleOutput} 
                 - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
 
             var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);

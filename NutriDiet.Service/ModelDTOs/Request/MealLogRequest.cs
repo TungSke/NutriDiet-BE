@@ -26,6 +26,5 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         [JsonPropertyName("quantity")]
         public double? Quantity { get; set; }
-
     }
 }

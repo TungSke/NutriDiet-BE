@@ -5,6 +5,7 @@ using NutriDiet.Common.Enums;
 using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
+using Sprache;
 
 namespace NutriDiet.API.Controllers
 {
@@ -21,15 +22,15 @@ namespace NutriDiet.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetIngredients(int pageIndex, int pageSize, string? search)
         {
-            var ingredients = await _ingredientService.GetIngreDients(pageIndex, pageSize, search);
-            return Ok(ingredients);
+            var result = await _ingredientService.GetIngreDients(pageIndex, pageSize, search);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpGet("{ingredientId}")]
         public async Task<IActionResult> GetIngredientById(int ingredientId)
         {
-            var ingredient = await _ingredientService.GetIngredientById(ingredientId);
-            return Ok(ingredient);
+            var result = await _ingredientService.GetIngredientById(ingredientId);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpPost]
@@ -37,7 +38,7 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> AddIngredient(IngredientRequest request)
         {
             var result = await _ingredientService.AddIngredient(request);
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpPut("{ingredientId}")]
@@ -45,7 +46,7 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> UpdateIngredient(IngredientRequest request, int ingredientId)
         {
             var result = await _ingredientService.UpdateIngredient(ingredientId, request);
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpDelete("{ingredientId}")]
@@ -53,7 +54,7 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> DeleteIngredient(int ingredientId)
         {
             var result = await _ingredientService.DeleteIngredient(ingredientId);
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpPut("{ingredientId}/preference")]
@@ -61,7 +62,7 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> PreferenceIngredient(int ingredientId, PreferenceLevel preferenceLevel)
         {
             var result = await _ingredientService.UpdatePreferenceIngredient(ingredientId, (int)preferenceLevel);
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpGet("preference")]
@@ -69,15 +70,15 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> GetPreferenceIngredient()
         {
             var result = await _ingredientService.GetPreferenceIngredient();
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpPost("excel")]
-        //[Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
         public async Task<IActionResult> ImportIngredientsFromExcel(IFormFile excelFile)
         {
             var result = await _ingredientService.ImportIngredientsFromExcel(excelFile);
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
         }
     }
 }

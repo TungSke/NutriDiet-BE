@@ -520,7 +520,7 @@ namespace NutriDiet.Service.Services
                         - **Protein:** {dailyProtein}
 
                         Lưu ý:
-                        - **Hãy trả theo kiểu dữ liệu json tôi đã gửi**
+                        - **Hãy trả theo kiểu dữ liệu json tôi đã gửi** : {jsonOutputSample}
                         - Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
                         - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
                         - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}";
