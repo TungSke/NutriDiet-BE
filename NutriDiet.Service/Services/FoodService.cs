@@ -526,6 +526,8 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var foodsToImport = new List<Food>();
 
+            int duplicateCount = 0;
+
             try
             {
                 using (var stream = new MemoryStream())
@@ -571,12 +573,14 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             // Kiểm tra trùng lặp trong database
                             if (existingFoodNames.Contains(foodName.ToLower().Trim()))
                             {
+                                duplicateCount++;
                                 continue; // Bỏ qua nếu foodName đã tồn tại trong database
                             }
 
                             // Kiểm tra trùng lặp trong danh sách foodsToImport
                             if (foodsToImport.Any(f => f.FoodName.Equals(foodName, StringComparison.OrdinalIgnoreCase)))
                             {
+                                duplicateCount++;
                                 continue; // Bỏ qua nếu foodName đã tồn tại trong foodsToImport
                             }
 
@@ -603,7 +607,14 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                     await _unitOfWork.FoodRepository.AddRangeAsync(foodsToImport);
                     await _unitOfWork.SaveChangesAsync();
 
-                    return new BusinessResult(Const.HTTP_STATUS_OK, $"Import thành công {foodsToImport.Count} món ăn mới");
+                    string message = $"Import thành công {foodsToImport.Count} món ăn mới. ";
+                    if (duplicateCount > 0)
+                    {
+                        message += $"{duplicateCount} món ăn bị bỏ qua do trùng lặp. ";
+                    }
+
+                    return new BusinessResult(Const.HTTP_STATUS_OK, message.Trim());
+
                 }
                 else
                 {
