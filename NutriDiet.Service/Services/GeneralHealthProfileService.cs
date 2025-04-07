@@ -374,19 +374,33 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Profile not found");
             }
 
-            var profileCount = await _unitOfWork.HealthProfileRepository
-                                    .GetByWhere(p => p.UserId == profile.UserId)
-                                    .CountAsync();
+            var firstProfile = await _unitOfWork.HealthProfileRepository
+                                   .GetByWhere(p => p.UserId == profile.UserId)
+                                   .OrderBy(p => p.CreatedAt)
+                                   .FirstOrDefaultAsync();
 
-            if (profileCount <= 1)
+            if (firstProfile != null && firstProfile.ProfileId == profile.ProfileId)
             {
-                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Không thể xóa vì đây là hồ sơ duy nhất của người dùng");
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Không thể xóa hồ sơ đầu tiên của người dùng");
             }
+
             await _unitOfWork.HealthProfileRepository.DeleteAsync(profile);
             await _unitOfWork.SaveChangesAsync();
 
+            var latestProfile = await _unitOfWork.HealthProfileRepository
+                                        .GetByWhere(hp => hp.UserId == profile.UserId && hp.Weight.HasValue)
+                                        .OrderByDescending(hp => hp.CreatedAt)
+                                        .FirstOrDefaultAsync();
+
+            if (latestProfile != null)
+            {
+                await UpdateGoalProgress(latestProfile.Weight, profile.UserId);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
             return new BusinessResult(Const.HTTP_STATUS_OK, "Profile deleted successfully along with its healthcare indicators");
         }
+
 
         public async Task<IBusinessResult> AddImageToHealthProfile(int profileId, AddImageRequest request)
         {
