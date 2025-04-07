@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Authorization;
 using NutriDiet.Service.Services;
 using Microsoft.AspNetCore.Http.Features;
+using NutriDiet.Service.Enums;
 
 namespace NutriDiet.API.Controllers
 {
@@ -136,11 +137,11 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPut("status/{userId}")]
+        [HttpPut("status/{userId}/{status}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatusUser(int userId)
+        public async Task<IActionResult> UpdateStatusUser(int userId, UserStatus status)
         {
-            var result = await _userService.UpdateStatusUser(userId);
+            var result = await _userService.UpdateStatusUser(userId, status);
             return StatusCode(result.StatusCode, result);
         }
 

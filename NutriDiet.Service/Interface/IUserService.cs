@@ -1,5 +1,6 @@
 ﻿using NutriDiet.Common.BusinessResult;
 using NutriDiet.Repository.Models;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.ModelDTOs.Request;
 
 namespace NutriDiet.Service.Interface
@@ -30,6 +31,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> UpdateUser(UpdateUserRequest request);
         Task<IBusinessResult> UpgradePackage(int packageId);
         Task<IBusinessResult> IsPremium();
-        Task<IBusinessResult> UpdateStatusUser(int userId);
+        Task<IBusinessResult> UpdateStatusUser(int userId, UserStatus status);
     }
 }
