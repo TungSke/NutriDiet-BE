@@ -136,6 +136,14 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpPut("status/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateStatusUser(int userId)
+        {
+            var result = await _userService.UpdateStatusUser(userId);
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpGet("is-premium")]
         [Authorize]
         public async Task<IActionResult> IsPremium()
