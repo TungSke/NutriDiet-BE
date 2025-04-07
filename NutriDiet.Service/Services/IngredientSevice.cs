@@ -147,6 +147,8 @@ namespace NutriDiet.Service.Services
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var ingredientsToImport = new List<Ingredient>();
 
+            int duplicateCount = 0;
+
             try
             {
                 using (var stream = new MemoryStream())
@@ -186,6 +188,7 @@ namespace NutriDiet.Service.Services
                             // Kiểm tra xem IngredientName đã tồn tại chưa (không phân biệt hoa thường)
                             if (existingIngredientNames.Contains(ingredientName.ToLower().Trim()))
                             {
+                                duplicateCount++;
                                 continue;
                             }
 
@@ -209,7 +212,13 @@ namespace NutriDiet.Service.Services
                     await _unitOfWork.IngredientRepository.AddRangeAsync(ingredientsToImport);
                     await _unitOfWork.SaveChangesAsync();
 
-                    return new BusinessResult(Const.HTTP_STATUS_OK, $"Import thành công {ingredientsToImport.Count} nguyên liệu mới");
+                    string message = $"Import thành công {ingredientsToImport.Count} nguyên liệu mới. ";
+                    if (duplicateCount > 0)
+                    {
+                        message += $"{duplicateCount} nguyên liệu bị bỏ qua do trùng lặp. ";
+                    }
+
+                    return new BusinessResult(Const.HTTP_STATUS_OK, message.Trim());
                 }
                 else
                 {
