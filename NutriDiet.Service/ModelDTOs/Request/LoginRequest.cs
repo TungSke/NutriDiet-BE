@@ -10,9 +10,11 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class LoginRequest
     {
-        [EmailAddress]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; } = null!;
-        
+
+        [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; } = null!;
 
         public string? fcmToken { get; set; }
