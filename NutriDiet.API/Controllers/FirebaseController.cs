@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Repository.Models;
 using NutriDiet.Service.Utilities;
@@ -22,10 +23,11 @@ namespace NutriDiet.API.Controllers
             return Ok();
         }
 
-        [HttpPost("enable-reminder/{userId}")]
-        public async Task<IActionResult> EnableReminder(int userId)
+        [HttpPost("enable-reminder")]
+        [Authorize]
+        public async Task<IActionResult> EnableReminder()
         {
-            var result = await _firebaseService.EnableReminder(userId);
+            var result = await _firebaseService.EnableReminder();
             return StatusCode(result.StatusCode, result.Message);
         }
     }

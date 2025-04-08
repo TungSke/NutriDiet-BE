@@ -1,11 +1,13 @@
 ﻿using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
 using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
+using System.Security.Claims;
 
 namespace NutriDiet.Service.Utilities
 {
@@ -13,8 +15,10 @@ namespace NutriDiet.Service.Utilities
     {
         private static FirebaseApp? _firebaseApp;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _userIdClaim;
 
-        public FirebaseService(IUnitOfWork unitOfWork)
+        public FirebaseService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
             if (_firebaseApp == null)
             {
@@ -25,8 +29,15 @@ namespace NutriDiet.Service.Utilities
                 });
             }
             _unitOfWork = unitOfWork;
+            _httpContextAccessor = httpContextAccessor;
+            _userIdClaim = GetUserIdClaim();
         }
 
+        private string GetUserIdClaim()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        }
         public async Task SendNotification(string fcmToken, string? title, string body)
         {
             var message = new Message()
@@ -76,9 +87,9 @@ namespace NutriDiet.Service.Utilities
             }
         }
 
-        public async Task<IBusinessResult> EnableReminder(int userId)
+        public async Task<IBusinessResult> EnableReminder()
         {
-            
+            int userId = int.Parse(_userIdClaim);
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
 
             if (user == null)

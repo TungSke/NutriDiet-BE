@@ -378,6 +378,169 @@ INSERT INTO UserDisease (UserID, DiseaseID) VALUES (1, @DiseaseId);
 INSERT INTO UserAllergy (UserID, AllergyID) VALUES (1, @AllergyId1);
 INSERT INTO UserAllergy (UserID, AllergyID) VALUES (1, @AllergyId2);
 
+-- Hạn chế nguyên liệu của các loại dị ứng
+INSERT INTO AllergyIngredient (AllergyID, IngredientID)
+VALUES
+    -- 1. Dị ứng đậu phộng
+    (1, 140), -- Đậu xanh (có thể liên quan đến họ đậu)
+    
+    -- 2. Dị ứng hải sản
+    (2, 30),  -- Tôm khô
+    (2, 31),  -- Tôm đồng
+    (2, 32),  -- Tôm biển
+    (2, 33),  -- Tép khô
+    (2, 34),  -- Sò
+    (2, 35),  -- Trai
+    (2, 36),  -- Ốc bươu
+    (2, 37),  -- Mực tươi
+    (2, 40),  -- Ghẹ
+    (2, 41),  -- Cua đồng
+
+    -- 3. Dị ứng sữa
+    (3, 18),  -- Pho mát
+    (3, 19),  -- Sữa đặc có đường
+    (3, 20),  -- Sữa chua Vinamilk có đường
+    (3, 21),  -- Sữa bò tươi
+    (3, 138), -- Sữa đậu nành (có thể gây nhầm lẫn với dị ứng sữa)
+
+    -- 4. Dị ứng trứng
+    (4, 22),  -- Bột trứng
+    (4, 23),  -- Trứng vịt lộn
+    (4, 24),  -- Trứng cá
+    (4, 25),  -- Trứng cút
+    (4, 26),  -- Trứng vịt
+    (4, 27),  -- Trứng gà
+
+    -- 5. Dị ứng gluten
+    (5, 147), -- Mì sợi
+    (5, 151), -- Bột mì
+    (5, 155), -- Bánh mì
+
+    -- 6. Dị ứng đậu nành
+    (6, 138), -- Sữa đậu nành
+    (6, 139), -- Đậu phụ
+    (6, 140), -- Đậu xanh (có thể liên quan đến họ đậu)
+    (6, 141), -- Đậu đen
+
+    -- 7. Dị ứng hạt cây
+    (7, 114), -- Hạt sen
+
+    -- 8. Dị ứng mè (vừng)
+    -- Không có nguyên liệu mè cụ thể trong danh sách của bạn
+
+    -- 9. Dị ứng lúa mì
+    (9, 147), -- Mì sợi
+    (9, 151), -- Bột mì
+    (9, 155), -- Bánh mì
+
+    -- 10. Dị ứng động vật có vỏ
+    (10, 30), -- Tôm khô
+    (10, 31), -- Tôm đồng
+    (10, 32), -- Tôm biển
+    (10, 33), -- Tép khô
+    (10, 34), -- Sò
+    (10, 40), -- Ghẹ
+    (10, 41), -- Cua đồng
+
+    -- 11. Dị ứng cá
+    (11, 42), -- Cá trê
+    (11, 43), -- Cá trạch
+    (11, 44), -- Cá thu
+    (11, 45), -- Cá rô phi
+    (11, 46), -- Cá nục
+    (11, 47), -- Cá ngừ
+    (11, 48), -- Cá mòi
+    (11, 49), -- Cá hồi
+    (11, 50), -- Cá chép
+    (11, 51), -- Cá bống
+
+    -- 18. Dị ứng trái cây có múi
+    (18, 82), -- Chanh
+    (18, 83), -- Cam
+    (18, 84); -- Bưởi
+
+-- Hạn chế nguyên liệu của các loại bệnh
+INSERT INTO DiseaseIngredient (DiseaseID, IngredientID)
+VALUES
+    -- 1. Bệnh tiểu đường (hạn chế đường, tinh bột)
+    (1, 15),  -- Mật ong
+    (1, 16),  -- Đường cát
+    (1, 19),  -- Sữa đặc có đường
+    (1, 20),  -- Sữa chua Vinamilk có đường
+    (1, 85),  -- Chuối tiêu
+    (1, 86),  -- Chuối tây
+    (1, 143), -- Khoai tây
+    (1, 146), -- Khoai lang
+    (1, 147), -- Mì sợi
+    (1, 149), -- Bún
+    (1, 155), -- Bánh mì
+    (1, 159), -- Cơm trắng
+
+    -- 2. Bệnh tim mạch (hạn chế chất béo bão hòa, cholesterol)
+    (2, 18),  -- Pho mát
+    (2, 60),  -- Xúc xích
+    (2, 62),  -- Lạp xưởng
+    (2, 63),  -- Chả heo
+    (2, 65),  -- Giò bò
+    (2, 66),  -- Pa tê
+    (2, 67),  -- Dăm bông heo
+    (2, 73),  -- Thịt heo mỡ
+    (2, 78),  -- Tủy xương heo
+    (2, 79),  -- Tủy xương bò
+    (2, 80),  -- Dầu oliu (dùng ít)
+    (2, 81),  -- Dầu ăn Tường An
+
+    -- 3. Bệnh cao huyết áp (hạn chế muối, chất béo)
+    (3, 5),   -- Nước mắm cá
+    (3, 6),   -- Mắm tôm loãng
+    (3, 7),   -- Magi
+    (3, 10),  -- Muối
+    (3, 60),  -- Xúc xích
+    (3, 62),  -- Lạp xưởng
+    (3, 63),  -- Chả heo
+    (3, 73),  -- Thịt heo mỡ
+
+    -- 4. Bệnh thận (hạn chế protein, muối)
+    (4, 5),   -- Nước mắm cá
+    (4, 10),  -- Muối
+    (4, 30),  -- Tôm khô
+    (4, 32),  -- Tôm biển
+    (4, 37),  -- Mực tươi
+    (4, 49),  -- Cá hồi
+    (4, 71),  -- Thịt heo nạc
+    (4, 75),  -- Thịt bò
+
+    -- 5. Bệnh gout (hạn chế purine từ hải sản, thịt đỏ)
+    (5, 30),  -- Tôm khô
+    (5, 32),  -- Tôm biển
+    (5, 37),  -- Mực tươi
+    (5, 41),  -- Cua đồng
+    (5, 49),  -- Cá hồi
+    (5, 53),  -- Thịt dê
+    (5, 70),  -- Thịt trâu
+    (5, 75),  -- Thịt bò
+
+    -- 6. Không dung nạp lactose (hạn chế sữa)
+    (6, 18),  -- Pho mát
+    (6, 19),  -- Sữa đặc có đường
+    (6, 20),  -- Sữa chua Vinamilk có đường
+    (6, 21),  -- Sữa bò tươi
+
+    -- 7. Hội chứng ruột kích thích (hạn chế đồ cay, dầu mỡ)
+    (7, 3),   -- Tương ớt
+    (7, 11),  -- Hạt tiêu
+    (7, 105), -- Ớt đỏ
+    (7, 80),  -- Dầu oliu
+    (7, 81),  -- Dầu ăn Tường An
+
+    -- 8. Béo phì (hạn chế calo cao, chất béo)
+    (8, 60),  -- Xúc xích
+    (8, 62),  -- Lạp xưởng
+    (8, 63),  -- Chả heo
+    (8, 73),  -- Thịt heo mỡ
+    (8, 80),  -- Dầu oliu
+    (8, 81);  -- Dầu ăn Tường An
+
 SET IDENTITY_INSERT Food ON;
 INSERT INTO Food (FoodID, FoodName, MealType, FoodType, Description, ServingSize, Calories, Protein, Carbs, Fat, Glucid, Fiber, ImageUrl)
 VALUES
@@ -430,7 +593,58 @@ VALUES
     (47, N'Lòng xào dưa', 'Main', 'Meat', N'Lòng non xào dưa chua', N'1 đĩa', 400, 30, 10, 20, 4, 2, 'https://cdn.tgdd.vn/2020/07/CookProduct/Screenshot_7-1200x676.jpg'),
     (48, N'Dê tái chanh', 'Main', 'Meat', N'Dê tái chanh chấm tương gừng', N'1 dĩa', 380, 40, 10, 15, 4, 2, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/T%C3%A1i_d%C3%AA.jpg/300px-T%C3%A1i_d%C3%AA.jpg'),
     (49, N'Bánh khoai mì nướng', 'Dessert', 'Cake', N'Bánh khoai mì nướng béo thơm, ăn kèm nước cốt dừa', N'1 miếng', 280, 3, 40, 12, 5, 2, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRONh1-lqvwZ1RqJazYGCSbBI1YExkD2XEodQ&s'),
-    (50, N'Gỏi ngó sen tôm thịt', 'Appetizer', 'Salad', N'Gỏi ngó sen tôm thịt chua ngọt, ăn kèm bánh phồng tôm', N'1 đĩa', 220, 15, 20, 8, 4, 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Ph%E1%BB%93ng_t%C3%B4m.jpg/640px-Ph%E1%BB%93ng_t%C3%B4m.jpg');
+    (50, N'Gỏi ngó sen tôm thịt', 'Appetizer', 'Salad', N'Gỏi ngó sen tôm thịt chua ngọt, ăn kèm bánh phồng tôm', N'1 đĩa', 220, 15, 20, 8, 4, 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Ph%E1%BB%93ng_t%C3%B4m.jpg/640px-Ph%E1%BB%93ng_t%C3%B4m.jpg'),
+	(51, N'Thịt bò xào hành tây', 'Lunch', 'Main Course', N'Thịt bò xào với hành tây', N'1 đĩa', 132, 11.8, 5.8, 6.9, 5.03, 0.77, 'https://daotaobeptruong.vn/wp-content/uploads/2019/12/thit-bo-xao-hanh-tay.jpg'),
+    (52, N'Bầu xào trứng', 'Lunch', 'Main Course', N'Bầu xào với trứng gà', N'1 đĩa', 109, 4, 4, 8.5, 7.2, 1.3, 'https://img-global.cpcdn.com/recipes/8a8df44ab98f2162/400x400cq70/photo.jpg'),
+    (53, N'Cá hú kho', 'Lunch', 'Seafood', N'Cá hú kho với nước mắm', N'1 đĩa', 109, 4, 8.5, 4, 7.2, 1.3, 'https://homestory.com.vn/wp-content/uploads/2023/06/ca-hu-kho-tieu-dam-da-hao-com.jpg'),
+    (54, N'Cá lóc chiên', 'Lunch', 'Fish', N'Cá lóc chiên giòn', N'1 lát', 169, 14.9, 12.2, 0, 12.2, 0, 'https://khaihoanphuquoc.com.vn/wp-content/uploads/2023/11/kho%CC%82-ca%CC%81-lo%CC%81c-kho-tho%CC%9Bm.jpg'),
+    (55, N'Canh bắp cải', 'Lunch', 'Soup', N'Canh bắp cải nấu đơn giản', N'1 chén', 37, 1.8, 2.8, 2.1, 1.98, 0.82, 'https://cdn.tgdd.vn/2021/04/CookRecipe/GalleryStep/7f05d5e84b27b979e036.jpg'),
+    (56, N'Canh bầu', 'Lunch', 'Soup', N'Canh bầu nấu với tôm', N'1 chén', 30, 1.2, 1.5, 2.1, 0.98, 0.52, 'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2023/5/22/canh-hen-nau-bau-816769-1684773425707149599131.jpg'),
+    (57, N'Canh bí đao', 'Lunch', 'Soup', N'Canh bí đao thanh mát', N'1 chén', 29, 1.2, 1.3, 2.1, 0.78, 0.52, 'https://cdn.tgdd.vn/2021/05/CookRecipe/GalleryStep/thanh-pham-761.jpg'),
+    (58, N'Canh cải ngọt', 'Lunch', 'Soup', N'Canh cải ngọt bổ dưỡng', N'1 chén', 30, 1.7, 1.1, 2.1, 0.2, 0.9, 'https://cdn.tgdd.vn/2021/04/CookProduct/caingotthitbamthumb-1200x676-1200x676.jpg'),
+    (59, N'Đậu hũ dồn thịt', 'Lunch', 'Main Course', N'Đậu hũ nhồi thịt heo', N'1 miếng lớn', 328, 18.7, 5.3, 25.8, 4.72, 0.58, 'https://cdn-i.vtcnews.vn/resize/th/upload/2024/11/17/dau-hu-3-22133709.jpg'),
+    (60, N'Gà kho gừng', 'Lunch', 'Poultry', N'Gà kho với gừng thơm lừng', N'1 đĩa', 301, 21.9, 10.3, 19.1, 9.39, 0.91, 'https://www.cet.edu.vn/wp-content/uploads/2021/03/ga-kho-gung-nghe-vua-thom-ngon.jpg'),
+    (61, N'Gà xào sả ớt', 'Lunch', 'Poultry', N'Gà xào sả ớt cay nồng', N'1 đĩa', 272, 20.4, 4.7, 19.1, 4.7, 0, 'https://beptruong.edu.vn/wp-content/uploads/2013/01/ga-xao-sa-ot.jpg'),
+    (62, N'Gan heo xào', 'Lunch', 'Poultry', N'Gan heo xào hành tây', N'1 đĩa', 200, 24.8, 3.4, 9.7, 3.25, 0.15, 'https://cdn.tgdd.vn/2021/04/CookProduct/GANHEOXAOTOImemngotbeobeo-monngondelam5-44screenshot-1200x676.jpg'),
+    (63, N'Thịt heo quay', 'Lunch', 'Meat', N'Thịt heo quay giòn da', N'1 đĩa', 250, 7, 23.7, 14.1, 22.32, 1.38, 'https://cdn.tgdd.vn/Files/2021/08/03/1372804/bi-quyet-che-bien-thit-heo-quay-chao-gion-tan-khong-bi-vang-dau-202108040638158166.jpg'),
+    (64, N'Thịt bò xào đậu que', 'Lunch', 'Meat', N'Thịt bò xào đậu que giòn', N'1 đĩa', 195, 16.8, 16.6, 6.9, 15.35, 1.25, 'https://cdn.tgdd.vn/2021/07/CookProduct/thumct1-1200x676.jpg'),
+    (65, N'Thịt bò xào nấm rơm', 'Lunch', 'Meat', N'Thịt bò xào nấm rơm thơm', N'1 đĩa', 152, 13.5, 2.9, 9.6, 1.98, 0.92, 'https://anhhoangthy.com/wp-content/uploads/2024/06/cach-lam-thit-bo-xao-nam-3.jpeg'),
+    (66, N'Thịt heo xào giá hẹ', 'Lunch', 'Meat', N'Thịt heo xào giá và hẹ', N'1 đĩa', 188, 19.3, 4.8, 10.2, 2.93, 1.87, 'https://cdn3.ivivu.com/2020/12/gia-do-xao-thit-ivivu-1.jpg'),
+    (67, N'Thịt heo kho tiêu', 'Lunch', 'Meat', N'Thịt heo kho với hạt tiêu', N'1 đĩa', 200, 21.2, 11.5, 7.6, 11.33, 0.17, 'https://cdn.tgdd.vn/2021/01/CookProduct/Thitkhotieu-1200x676.jpg'),
+    (68, N'Thịt kho trứng', 'Lunch', 'Meat', N'Thịt heo kho với trứng gà', N'1 trứng+2 miếng thịt', 315, 19.8, 7.5, 22.9, 7.5, 0, 'https://cdn.tgdd.vn/Files/2017/03/28/965845/cach-lam-thit-kho-trung-thom-ngon-dam-da-bat-com-tai-nha-202202261110487084.jpg'),
+    (69, N'Bún thịt nướng', 'Breakfast', 'Noodle', N'Bún với thịt nướng thơm', N'1 tô', 451, 14.7, 67.3, 13.7, 63.34, 3.96, 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Bun_thit_nuong.jpg/1200px-Bun_thit_nuong.jpg'),
+    (70, N'Bún riêu cua', 'Breakfast', 'Noodle', N'Bún riêu cua truyền thống', N'1 tô', 414, 17.8, 58, 12.2, 55.24, 2.76, 'https://cdn.tgdd.vn/2020/08/CookProduct/Untitled-1-1200x676-10.jpg'),
+    (71, N'Đậu hủ chiên sả', 'Lunch', 'Main Course', N'Đậu hủ chiên với sả', N'1 miếng', 148, 11.6, 0.7, 11, 0.3, 0.4, 'https://i.ytimg.com/vi/cv2CfQjZoVY/sddefault.jpg'),
+    (72, N'Đậu hủ sốt cà', 'Lunch', 'Main Course', N'Đậu hủ sốt cà chua', N'1 đĩa', 239, 18.1, 11, 13.6, 9.56, 1.44, 'https://cdn.tgdd.vn/2021/05/CookRecipe/GalleryStep/thanh-pham-1052.jpg'),
+    (73, N'Hủ tiếu bò kho', 'Breakfast', 'Noodle', N'Hủ tiếu với bò kho', N'1 tô', 410, 17, 55.4, 13.4, 52.2, 3.2, 'https://tiki.vn/blog/wp-content/uploads/2023/04/hu-tieu-bo-kho-3.jpg'),
+    (74, N'Bánh canh thịt heo', 'Breakfast', 'Noodle', N'Bánh canh với thịt heo', N'1 tô', 322, 12.8, 48.5, 8.5, 47.5, 1, 'https://cdn3.ivivu.com/2021/05/banh-canh-thit-bam-ivivu-1.jpg'),
+    (75, N'Bánh canh giò heo', 'Breakfast', 'Noodle', N'Bánh canh với giò heo', N'1 tô', 483, 19, 48.6, 23.6, 47.59, 1.01, 'https://daynauan.info.vn/wp-content/uploads/2019/05/banh-canh-gio-heo.jpg'),
+    (76, N'Miến gà', 'Breakfast', 'Noodle', N'Miến nấu với thịt gà', N'1 tô', 635, 17.8, 100.2, 18.1, 93.8, 6.4, 'https://daynauan.info.vn/wp-content/uploads/2020/04/mien-ga-la-mon-an-dan-da.jpg'),
+    (77, N'Bánh bao nhân thịt', 'Breakfast', 'Bread', N'Bánh bao nhân thịt heo', N'1 cái', 328, 16.1, 48.1, 7.9, 47.2, 0.9, 'https://thophat.com/wp-content/uploads/2022/03/BB-Thit-Heo-1.jpg'),
+    (78, N'Bánh cuốn chả thịt', 'Breakfast', 'Rice', N'Bánh cuốn với chả và thịt', N'1 đĩa', 590, 25.7, 64.3, 25.6, 62.77, 1.53, 'https://file.hstatic.net/200000667673/file/045b2aae-3699-4ce7-afec-9f0087c89f62_50c07454f52d4e97bfcf710638ce5b31_grande.jpeg'),
+    (79, N'Bắp luộc', 'Dinner', 'Grain', N'Bắp luộc nguyên trái', N'1 trái', 192, 4.5, 37.8, 2.5, 36.42, 1.38, 'https://cdn.tgdd.vn/2022/04/CookDishThumb/3-cach-luoc-bap-nhanh-mem-ngon-ngot-sieu-don-gian-ai-cung-lam-thumb-620x620.jpeg'),
+    (80, N'Khoai lang luộc', 'Dinner', 'Grain', N'Khoai lang luộc bổ dưỡng', N'1 củ', 131, 0.3, 30.6, 0.3, 29.7, 0.9, 'https://images2.thanhnien.vn/528068263637045248/2023/11/30/sk291103-anh1-17013387164901983869702.jpg'),
+    (81, N'Xôi bắp', 'Breakfast', 'Rice', N'Xôi nấu với bắp', N'1 gói', 313, 8.2, 51.3, 8.3, 49.75, 1.55, 'https://i.ytimg.com/vi/uS-FBhXhemE/maxresdefault.jpg'),
+    (82, N'Hủ tiếu thịt heo', 'Breakfast', 'Noodle', N'Hủ tiếu với thịt heo', N'1 tô', 361, 14.4, 47.8, 12.5, 46.57, 1.23, 'https://i.ytimg.com/vi/E2bG25UOySg/sddefault.jpg'),
+    (83, N'Canh bún', 'Breakfast', 'Noodle', N'Canh bún truyền thống', N'1 tô', 296, 13.6, 44.6, 6.9, 43.05, 1.55, 'https://cdn.tgdd.vn/Files/2019/10/16/1209065/cach-nau-canh-bun-chuan-vi-an-la-ghien-201910160754243097.jpg'),
+    (84, N'Bánh canh thịt gà', 'Breakfast', 'Noodle', N'Bánh canh với thịt gà', N'1 tô', 346, 12.8, 48.5, 11.1, 47.5, 1, 'https://cdn.tgdd.vn/Files/2020/12/19/1314847/cach-nau-banh-canh-ga-ngon-mieng-thit-ngot-da-gion-ca-nha-thich-me-202012191421273526.jpg'),
+    (85, N'Sườn ram', 'Dinner', 'Meat', N'Sườn heo ram mặn ngọt', N'1 miếng', 264, 8.3, 46.7, 5.8, 46.51, 0.19, 'https://i.ytimg.com/vi/UlnY2tlt5rE/maxresdefault.jpg'),
+    (86, N'Cơm chiên dương châu', 'Lunch', 'Rice', N'Cơm chiên với trứng và rau củ', N'1 đĩa', 530, 14.9, 92.7, 11.3, 91.14, 1.56, 'https://www.cet.edu.vn/wp-content/uploads/2018/03/com-chien-duong-chau.jpg'),
+    (87, N'Bún xào', 'Breakfast', 'Noodle', N'Bún xào với thịt và rau', N'1 đĩa', 570, 23.4, 56, 28, 53.83, 2.17, 'https://cdn.tgdd.vn/2021/04/CookProduct/2cachlambunxaoraucai-1200x676.jpg'),
+    (88, N'Thịt heo xào đậu que', 'Lunch', 'Main Course', N'Thịt heo xào đậu que giòn', N'1 đĩa', 240, 20.5, 16.6, 10.2, 15.35, 1.25, 'https://cdn.tgdd.vn/Files/2019/06/15/1173363/cach-lam-dau-que-xao-thit-heo-gion-ngon-8_800x450.jpg'),
+    (89, N'Thịt bò xào măng', 'Lunch', 'Main Course', N'Thịt bò xào măng tươi', N'1 đĩa', 104, 10.5, 0, 6.9, 0, 0, 'https://img-global.cpcdn.com/recipes/nvmgfm5opnwl1hqdgnda/400x400cq70/photo.jpg'),
+    (90, N'Thịt bò xào giá hẹ', 'Lunch', 'Main Course', N'Thịt bò xào giá và hẹ', N'1 đĩa', 143, 15.6, 4.8, 6.9, 2.93, 1.87, 'https://img-global.cpcdn.com/recipes/2bbec9a18fc6657b/680x482cq70/th%E1%BB%8Bt-bo-xao-gia-h%E1%BA%B9-recipe-main-photo.jpg'),
+    (91, N'Chả lụa kho', 'Lunch', 'Meat', N'Chả lụa kho với nước mắm', N'1 khoanh', 102, 11.7, 3.5, 4.6, 3.49, 0.01, 'https://cdn.tgdd.vn/2020/11/CookRecipe/GalleryStep/thanh-pham-690.jpg'),
+    (92, N'Cá lóc kho', 'Lunch', 'Seafood', N'Cá lóc kho tộ', N'1 lát', 131, 15.7, 8.7, 3.8, 8.66, 0.04, 'https://cdn.tgdd.vn/Files/2019/09/02/1194292/cach-lam-ca-loc-kho-to-ngon-com-chuan-vi-mien-nam-202201041313092690.jpg'),
+    (93, N'Bún riêu ốc', 'Breakfast', 'Soup', N'Bún riêu với ốc', N'1 tô', 531, 28.4, 65.5, 17.2, 62.77, 2.73, 'https://cdn.tgdd.vn/2021/04/CookProduct/thum-1200x676-25.jpg'),
+    (94, N'Chả giò tôm thịt', 'Snack', 'Wrap', N'Chả giò nhân tôm và thịt', N'3 cuốn', 300, 12, 25, 18, 23, 2, 'https://cdn.tgdd.vn/Files/2020/01/16/1231776/cach-lam-cha-gio-tom-gion-rum-an-hoai-khong-chan-202110261450249960.jpg'),
+    (95, N'Gỏi bắp chuối', 'Lunch', 'Salad', N'Gỏi bắp chuối trộn tôm', N'1 đĩa', 180, 8, 20, 6, 17, 3, 'https://img-global.cpcdn.com/recipes/0c74d70196aac354/1200x630cq70/photo.jpg'),
+    (96, N'Rau muống luộc', 'Dinner', 'Main Course', N'Rau muống luộc chấm mắm', N'1 đĩa', 60, 3, 10, 1, 8, 2, 'https://i-giadinh.vnecdn.net/2024/05/30/Buoc-4-Anh-dai-dien-4-3836-1717053570.jpg'),
+    (97, N'Canh mồng tơi tôm', 'Dinner', 'Soup', N'Canh mồng tơi nấu tôm', N'1 chén', 80, 6, 5, 3, 4, 1, 'https://cdn.tgdd.vn/2021/01/CookProduct/Untitled-1-1200x676-1.jpg'),
+    (98, N'Cá thu chiên nước mắm', 'Dinner', 'Fish', N'Cá thu chiên với nước mắm', N'1 miếng', 280, 22, 5, 20, 5, 0, 'https://cdn.tgdd.vn/Files/2020/05/24/1257970/2-cach-lam-ca-thu-chien-nuoc-mam-va-chien-gion-tho-760x367.png'),
+	(99, N'Thịt gà nướng mật ong', 'Dinner', 'Poultry', N'Gà nướng ướp mật ong', N'1 đĩa', 320, 25, 10, 18, 10, 0, 'https://www.cet.edu.vn/wp-content/uploads/2018/03/ga-nuong-mat-ong.jpg'),
+	(100, N'Bánh mì xíu mại', 'Breakfast', 'Bread', N'Bánh mì xíu mại đầy đủ', N'1 ổ', 400, 15, 50, 18, 48, 2, 'https://cdn.tgdd.vn/2021/09/CookDish/cach-lam-banh-mi-xiu-mai-trung-muoi-sieu-ngon-hap-dan-cho-bua-avt-1200x676-1.jpg'),
+	(101, N'Cơm trắng', 'Main', 'Rice', N'Cơm trắng', N'1 chén', 130, 2.7, 28.2, 0.3, 0.05, 0.4, 'https://cdn.nhathuoclongchau.com.vn/unsafe/800x0/https://cms-prod.s3-sgn09.fptcloud.com/4_tac_dung_bat_ngo_tu_viec_an_com_gao_trang_1_235f8a42fd.png');
 
 SET IDENTITY_INSERT Food OFF;
 
@@ -450,194 +664,378 @@ INSERT INTO CuisineType (CuisineID, CuisineName) VALUES
 SET IDENTITY_INSERT CuisineType OFF;
 
 -- Insert data into MealPlan
--- Thêm 3 MealPlan
 SET IDENTITY_INSERT MealPlan ON;
 
+-- Thêm 10 thực đơn mẫu
 INSERT INTO MealPlan (MealPlanID, UserID, PlanName, HealthGoal, Duration, CreatedBy, UpdatedBy, Status)
 VALUES
-    (1, 2, N'Kế hoạch ăn uống giảm cân', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
-    (2, 2, N'Kế hoạch ăn uống tăng cân', N'Tăng cơ bắp', 7, N'Admin', N'Admin', 'Active'),
-    (3, 2, N'Kế hoạch ăn uống cân bằng', N'Cân bằng dinh dưỡng', 7, N'Admin', N'Admin', 'Active'),
-    (4, 2, N'Kế hoạch ăn uống Healthy', N'Cải thiện sức khỏe', 7, N'Admin', N'Admin', 'Active'),
-    (5, 2, N'Kế hoạch ăn uống cho người tiểu đường', N'Cải thiện tiểu đường', 7, N'Admin', N'Admin', 'Active'),
-    (6, 2, N'Kế hoạch ăn uống cho người gan nhiễm mỡ', N'Cải thiện gan nhiễm mỡ', 7, N'Admin', N'Admin', 'Active');
+    (1, 2, N'Thực đơn tăng cân - Cao năng lượng', N'Tăng cân', 7, N'Admin', N'Admin', 'Active'),
+    (2, 2, N'Thực đơn tăng cân - Tăng cơ', N'Tăng cân', 7, N'Admin', N'Admin', 'Active'),
+
+    (3, 2, N'Thực đơn giảm cân - Thấp năng lượng', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
+    (4, 2, N'Thực đơn giảm cân - Ít tinh bột', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
+
+    (5, 2, N'Thực đơn duy trì cân nặng - Cân bằng', N'Duy trì cân nặng', 7, N'Admin', N'Admin', 'Active'),
+    (6, 2, N'Thực đơn duy trì cân nặng - Đủ chất', N'Duy trì cân nặng', 7, N'Admin', N'Admin', 'Active'),
+
+    (7, 2, N'Thực đơn duy trì cân cho người tiểu đường', N'Duy trì cân nặng', 7, N'Admin', N'Admin', 'Active'),
+    (8, 2, N'Thực đơn giảm cân cho béo phì cấp 1', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
+    (9, 2, N'Thực đơn giảm cân cho béo phì cấp 2', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
+    (10, 2, N'Thực đơn tăng cân cho người tim mạch', N'Tăng cân', 7, N'Admin', N'Admin', 'Active');
 
 SET IDENTITY_INSERT MealPlan OFF;
 
--- Insert data into MealPlanDetail for 'Giảm cân nhanh'
-INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
-VALUES
-    (1, 5, N'Gỏi cuốn', 2, N'Breakfast', 1, 200, 20, 6, 10),
-    (1, 8, N'Canh chua cá lóc', 1, N'Lunch', 1, 200, 10, 5, 15),
-    (1, 14, N'Bánh ướt', 1, N'Dinner', 1, 200, 25, 5, 10),
-    (1, 7, N'Chả giò', 2, N'Breakfast', 2, 300, 20, 10, 10),
-    (1, 2, N'Bánh mì thịt', 1, N'Lunch', 2, 350, 40, 12, 15),
-    (1, 18, N'Bánh đúc', 1, N'Dinner', 2, 150, 20, 5, 5),
-    (1, 1, N'Phở bò', 1, N'Breakfast', 3, 450, 50, 10, 25),
-    (1, 6, N'Bánh xèo', 1, N'Lunch', 3, 300, 30, 15, 10),
-    (1, 12, N'Chè đậu đen', 1, N'Dinner', 3, 200, 30, 5, 5),
-    (1, 9, N'Bún riêu', 1, N'Breakfast', 4, 350, 40, 10, 20),
-    (1, 10, N'Cá kho tộ', 1, N'Lunch', 4, 400, 10, 20, 25),
-    (1, 15, N'Bánh canh cua', 1, N'Dinner', 4, 400, 40, 15, 20),
-    (1, 3, N'Cơm tấm sườn', 1, N'Breakfast', 5, 600, 70, 20, 30),
-    (1, 11, N'Bánh cuốn', 1, N'Lunch', 5, 300, 40, 8, 10),
-    (1, 20, N'Bánh tráng trộn', 1, N'Dinner', 5, 250, 30, 10, 5),
-    (1, 16, N'Bánh tét', 1, N'Breakfast', 6, 300, 40, 10, 10),
-    (1, 19, N'Bánh khọt', 1, N'Lunch', 6, 200, 20, 10, 10),
-    (1, 13, N'Bánh bèo', 1, N'Dinner', 6, 250, 30, 10, 8),
-    (1, 4, N'Cháo lòng', 1, N'Breakfast', 7, 350, 35, 12, 20),
-    (1, 17, N'Bánh chưng', 1, N'Lunch', 7, 350, 45, 12, 15),
-    (1, 21, N'Bánh khoai mì', 1, N'Dinner', 7, 300, 40, 15, 10);
-
--- Insert data into MealPlanDetail for 'Tăng cơ bắp'
+-- Insert data into MealPlanDetail
+-- Thực đơn 1: Tăng cân - Cao năng lượng (~3000 kcal/ngày)
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
 VALUES
     -- Ngày 1
-    (2, 10, N'Cá kho tộ', 1, N'Breakfast', 1, 400, 10, 20, 25),
-    (2, 3, N'Cơm tấm sườn', 1, N'Lunch', 1, 600, 70, 20, 30),
-    (2, 15, N'Bánh canh cua', 1, N'Dinner', 1, 400, 40, 15, 20),
-    
+    (1, 76, N'Miến gà', 1, N'Breakfast', 1, 635, 100.2, 18.1, 17.8),
+    (1, 86, N'Cơm chiên dương châu', 2, N'Lunch', 1, 1060, 185.4, 22.6, 29.8),
+    (1, 77, N'Bánh bao nhân thịt', 2, N'Snacks', 1, 656, 96.2, 15.8, 32.2),
+    (1, 31, N'Cơm gà', 1, N'Dinner', 1, 450, 50, 12, 35),
     -- Ngày 2
-    (2, 9, N'Bún riêu', 1, N'Breakfast', 2, 350, 40, 10, 20),
-    (2, 16, N'Bánh tét', 1, N'Lunch', 2, 300, 40, 10, 10),
-    (2, 19, N'Bánh khọt', 1, N'Dinner', 2, 200, 20, 10, 10),
-
+    (1, 3, N'Cơm tấm sườn', 1, N'Breakfast', 2, 600, 70, 20, 30),
+    (1, 34, N'Bún bò Huế', 2, N'Lunch', 2, 960, 110, 24, 60),
+    (1, 94, N'Chả giò tôm thịt', 2, N'Snacks', 2, 600, 50, 36, 24),
+    (1, 43, N'Cơm gà', 1, N'Dinner', 2, 450, 50, 12, 35),
     -- Ngày 3
-    (2, 11, N'Bánh cuốn', 1, N'Breakfast', 3, 300, 40, 8, 10),
-    (2, 6, N'Bánh xèo', 1, N'Lunch', 3, 300, 30, 15, 10),
-    (2, 13, N'Bánh bèo', 1, N'Dinner', 3, 250, 30, 10, 8),
-
+    (1, 69, N'Bún thịt nướng', 1, N'Breakfast', 3, 451, 67.3, 13.7, 14.7),
+    (1, 1, N'Phở bò', 2, N'Lunch', 3, 900, 100, 20, 50),
+    (1, 17, N'Bánh chưng', 1, N'Dinner', 3, 350, 45, 12, 15),
     -- Ngày 4
-    (2, 5, N'Gỏi cuốn', 2, N'Breakfast', 4, 200, 20, 6, 10),
-    (2, 1, N'Phở bò', 1, N'Lunch', 4, 450, 50, 10, 25),
-    (2, 8, N'Canh chua cá lóc', 1, N'Dinner', 4, 200, 10, 5, 15),
-
+    (1, 78, N'Bánh cuốn chả thịt', 1, N'Breakfast', 4, 590, 64.3, 25.6, 25.7),
+    (1, 15, N'Bánh canh cua', 1, N'Lunch', 4, 400, 40, 15, 20),
+    (1, 49, N'Bánh khoai mì nướng', 2, N'Snacks', 4, 560, 80, 24, 6),
+    (1, 60, N'Gà kho gừng', 1, N'Dinner', 4, 301, 10.3, 19.1, 21.9),
     -- Ngày 5
-    (2, 7, N'Chả giò', 2, N'Breakfast', 5, 300, 20, 10, 10),
-    (2, 2, N'Bánh mì thịt', 1, N'Lunch', 5, 350, 40, 12, 15),
-    (2, 12, N'Chè đậu đen', 1, N'Dinner', 5, 200, 30, 5, 5),
-
+    (1, 37, N'Mì Quảng', 1, N'Breakfast', 5, 500, 55, 15, 35),
+    (1, 33, N'Cơm gà', 1, N'Lunch', 5, 450, 50, 12, 35),
+    (1, 7, N'Chả giò', 3, N'Snacks', 5, 450, 30, 24, 15),
+    (1, 68, N'Thịt kho trứng', 1, N'Dinner', 5, 315, 7.5, 22.9, 19.8),
     -- Ngày 6
-    (2, 14, N'Bánh ướt', 1, N'Breakfast', 6, 200, 25, 5, 10),
-    (2, 4, N'Cháo lòng', 1, N'Lunch', 6, 350, 35, 12, 20),
-    (2, 18, N'Bánh đúc', 1, N'Dinner', 6, 150, 20, 5, 5),
-
+    (1, 75, N'Bánh canh giò heo', 1, N'Breakfast', 6, 483, 48.6, 23.6, 19),
+    (1, 86, N'Cơm chiên dương châu', 2, N'Lunch', 6, 1060, 185.4, 22.6, 29.8),
+    (1, 63, N'Thịt heo quay', 1, N'Dinner', 6, 250, 23.7, 14.1, 7),
     -- Ngày 7
-    (2, 17, N'Bánh chưng', 1, N'Breakfast', 7, 350, 45, 12, 15),
-    (2, 20, N'Bánh tráng trộn', 1, N'Lunch', 7, 250, 30, 10, 5),
-    (2, 21, N'Bánh khoai mì', 1, N'Dinner', 7, 300, 40, 15, 10);
+    (1, 4, N'Bún chả', 2, N'Breakfast', 7, 800, 100, 30, 40),
+    (1, 32, N'Cơm tấm sườn', 1, N'Lunch', 7, 600, 70, 20, 30),
+    (1, 20, N'Bánh tráng trộn', 2, N'Snacks', 7, 500, 60, 20, 10),
+    (1, 99, N'Thịt gà nướng mật ong', 1, N'Dinner', 7, 320, 10, 18, 25);
 
--- Insert data into MealPlanDetail for 'Dinh dưỡng cân bằng'
+-- Thực đơn 2: Tăng cân - Tăng cơ (~2800 kcal/ngày)
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
 VALUES
     -- Ngày 1
-    (3, 1, N'Phở bò', 1, N'Breakfast', 1, 450, 50, 10, 25),
-    (3, 6, N'Bánh xèo', 1, N'Lunch', 1, 300, 30, 15, 10),
-    (3, 12, N'Chè đậu đen', 1, N'Dinner', 1, 200, 30, 5, 5),
-
+    (2, 3, N'Cơm tấm sườn', 1, N'Breakfast', 1, 600, 70, 20, 30),
+    (2, 24, N'Cá hồi áp chảo', 1, N'Lunch', 1, 400, 10, 20, 40),
+    (2, 94, N'Chả giò tôm thịt', 2, N'Snacks', 1, 600, 50, 36, 24),
+    (2, 43, N'Cơm gà', 1, N'Dinner', 1, 450, 50, 12, 35),
     -- Ngày 2
-    (3, 11, N'Bánh cuốn', 1, N'Breakfast', 2, 300, 40, 8, 10),
-    (3, 17, N'Bánh chưng', 1, N'Lunch', 2, 350, 45, 12, 15),
-    (3, 20, N'Bánh tráng trộn', 1, N'Dinner', 2, 250, 30, 10, 5),
+    (2, 37, N'Mì Quảng', 1, N'Breakfast', 2, 500, 55, 15, 35),
+    (2, 33, N'Cơm chiên dương châu', 1, N'Lunch', 2, 530, 92.7, 11.3, 14.9),
+    (2, 10, N'Cá kho tộ', 1, N'Dinner', 2, 400, 10, 20, 25),
+    -- Ngày 3
+    (2, 69, N'Bún thịt nướng', 1, N'Breakfast', 3, 451, 67.3, 13.7, 14.7),
+    (2, 1, N'Phở bò', 1, N'Lunch', 3, 450, 50, 10, 25),
+    (2, 77, N'Bánh bao nhân thịt', 2, N'Snacks', 3, 656, 96.2, 15.8, 32.2),
+    (2, 60, N'Gà kho gừng', 1, N'Dinner', 3, 301, 10.3, 19.1, 21.9),
+    -- Ngày 4
+    (2, 78, N'Bánh cuốn chả thịt', 1, N'Breakfast', 4, 590, 64.3, 25.6, 25.7),
+    (2, 31, N'Cơm chiên dương châu', 1, N'Lunch', 4, 530, 92.7, 11.3, 14.9),
+    (2, 15, N'Bánh canh cua', 1, N'Dinner', 4, 400, 40, 15, 20),
+    -- Ngày 5
+    (2, 34, N'Bún bò Huế', 1, N'Breakfast', 5, 480, 55, 12, 30),
+    (2, 24, N'Cá hồi áp chảo', 2, N'Lunch', 5, 800, 20, 40, 80),
+    (2, 7, N'Chả giò', 2, N'Snacks', 5, 300, 20, 16, 10),
+    (2, 99, N'Thịt gà nướng mật ong', 1, N'Dinner', 5, 320, 10, 18, 25),
+    -- Ngày 6
+    (2, 75, N'Bánh canh giò heo', 1, N'Breakfast', 6, 483, 48.6, 23.6, 19),
+    (2, 32, N'Cơm gà', 1, N'Lunch', 6, 450, 50, 12, 35),
+    (2, 68, N'Thịt kho trứng', 1, N'Dinner', 6, 315, 7.5, 22.9, 19.8),
+    -- Ngày 7
+    (2, 4, N'Bún chả', 1, N'Breakfast', 7, 400, 50, 15, 20),
+    (2, 86, N'Cơm chiên dương châu', 2, N'Lunch', 7, 1060, 185.4, 22.6, 29.8),
+    (2, 49, N'Bánh khoai mì nướng', 1, N'Snacks', 7, 280, 40, 12, 3),
+    (2, 43, N'Cơm gà', 1, N'Dinner', 7, 450, 50, 12, 35);
 
+-- Thực đơn 3: Giảm cân - Thấp năng lượng (~1200 kcal/ngày)
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (3, 22, N'Cháo yến mạch', 1, N'Breakfast', 1, 250, 40, 6, 8),
+    (3, 21, N'Salad ức gà', 1, N'Lunch', 1, 300, 20, 8, 35),
+    (3, 23, N'Smoothie bơ chuối', 1, N'Snacks', 1, 220, 30, 10, 5),
+    (3, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 1, 80, 5, 3, 6),
+    -- Ngày 2
+    (3, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 2, 200, 30, 5, 6),
+    (3, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),
+    (3, 96, N'Rau muống luộc', 1, N'Dinner', 2, 60, 10, 1, 3),
     -- Ngày 3
     (3, 5, N'Gỏi cuốn', 2, N'Breakfast', 3, 200, 20, 6, 10),
-    (3, 3, N'Cơm tấm sườn', 1, N'Lunch', 3, 600, 70, 20, 30),
-    (3, 15, N'Bánh canh cua', 1, N'Dinner', 3, 400, 40, 15, 20),
-
+    (3, 24, N'Cá hồi áp chảo', 1, N'Lunch', 3, 400, 10, 20, 40),
+    (3, 55, N'Canh bắp cải', 2, N'Dinner', 3, 74, 5.6, 4.2, 3.6),
     -- Ngày 4
-    (3, 7, N'Chả giò', 2, N'Breakfast', 4, 300, 20, 10, 10),
-    (3, 2, N'Bánh mì thịt', 1, N'Lunch', 4, 350, 40, 12, 15),
-    (3, 8, N'Canh chua cá lóc', 1, N'Dinner', 4, 200, 10, 5, 15),
-
+    (3, 29, N'Súp bí đỏ', 1, N'Breakfast', 4, 230, 35, 8, 6),
+    (3, 95, N'Gỏi bắp chuối', 1, N'Lunch', 4, 180, 20, 6, 8),
+    (3, 27, N'Trà gừng mật ong', 1, N'Snacks', 4, 100, 25, 0, 0),
+    (3, 98, N'Cá thu chiên nước mắm', 1, N'Dinner', 4, 280, 5, 20, 22),
     -- Ngày 5
-    (3, 9, N'Bún riêu', 1, N'Breakfast', 5, 350, 40, 10, 20),
-    (3, 16, N'Bánh tét', 1, N'Lunch', 5, 300, 40, 10, 10),
-    (3, 19, N'Bánh khọt', 1, N'Dinner', 5, 200, 20, 10, 10),
-
+    (3, 22, N'Cháo yến mạch', 1, N'Breakfast', 5, 250, 40, 6, 8),
+    (3, 50, N'Gỏi ngó sen tôm thịt', 1, N'Lunch', 5, 220, 20, 8, 15),
+    (3, 56, N'Canh bầu', 2, N'Dinner', 5, 60, 3, 4.2, 2.4),
     -- Ngày 6
-    (3, 14, N'Bánh ướt', 1, N'Breakfast', 6, 200, 25, 5, 10),
-    (3, 4, N'Cháo lòng', 1, N'Lunch', 6, 350, 35, 12, 20),
-    (3, 18, N'Bánh đúc', 1, N'Dinner', 6, 150, 20, 5, 5),
-
+    (3, 25, N'Súp lơ hấp', 1, N'Breakfast', 6, 180, 20, 10, 5),
+    (3, 21, N'Salad ức gà', 1, N'Lunch', 6, 300, 20, 8, 35),
+    (3, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 6, 80, 5, 3, 6),
     -- Ngày 7
-    (3, 10, N'Cá kho tộ', 1, N'Breakfast', 7, 400, 10, 20, 25),
-    (3, 13, N'Bánh bèo', 1, N'Lunch', 7, 250, 30, 10, 8),
-    (3, 21, N'Bánh khoai mì', 1, N'Dinner', 7, 300, 40, 15, 10);
+    (3, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 7, 200, 30, 5, 6),
+    (3, 30, N'Salad cá ngừ', 1, N'Lunch', 7, 350, 15, 10, 40),
+    (3, 57, N'Canh bí đao', 2, N'Dinner', 7, 58, 2.6, 4.2, 2.4);
 
--- MealPlan: Kế hoạch ăn uống Healthy
-INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)  
-VALUES  
-    (4, 21, N'Salad ức gà', 1, N'Breakfast', 1, 300, 20, 8, 35),  
-    (4, 24, N'Cá hồi áp chảo', 1, N'Lunch', 1, 400, 10, 20, 40),  
-    (4, 25, N'Súp lơ hấp', 1, N'Dinner', 1, 180, 20, 10, 5),  
-    (4, 22, N'Cháo yến mạch', 1, N'Breakfast', 2, 250, 40, 6, 8),  
-    (4, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),  
-    (4, 29, N'Súp bí đỏ', 1, N'Dinner', 2, 230, 35, 8, 6),  
-    (4, 23, N'Smoothie bơ chuối', 1, N'Breakfast', 3, 220, 30, 10, 5),  
-    (4, 24, N'Cá hồi áp chảo', 1, N'Lunch', 3, 400, 10, 20, 40),  
-    (4, 28, N'Xôi gạo lứt', 1, N'Dinner', 3, 320, 55, 7, 8),  
-    (4, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 4, 200, 30, 5, 6),  
-    (4, 25, N'Súp lơ hấp', 1, N'Lunch', 4, 180, 20, 10, 5),  
-    (4, 27, N'Trà gừng mật ong', 1, N'Dinner', 4, 100, 25, 0, 0),  
-    (4, 21, N'Salad ức gà', 1, N'Breakfast', 5, 300, 20, 8, 35),  
-    (4, 22, N'Cháo yến mạch', 1, N'Lunch', 5, 250, 40, 6, 8),  
-    (4, 23, N'Smoothie bơ chuối', 1, N'Dinner', 5, 220, 30, 10, 5),  
-    (4, 29, N'Súp bí đỏ', 1, N'Breakfast', 6, 230, 35, 8, 6),  
-    (4, 30, N'Salad cá ngừ', 1, N'Lunch', 6, 350, 15, 10, 40),  
-    (4, 28, N'Xôi gạo lứt', 1, N'Dinner', 6, 320, 55, 7, 8),  
-    (4, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 7, 200, 30, 5, 6),  
-    (4, 24, N'Cá hồi áp chảo', 1, N'Lunch', 7, 400, 10, 20, 40),  
-    (4, 27, N'Trà gừng mật ong', 1, N'Dinner', 7, 100, 25, 0, 0);  
-
--- MealPlan: Kế hoạch ăn uống cho người tiểu đường
-INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)  
-VALUES  
-    (5, 22, N'Cháo yến mạch', 1, N'Breakfast', 1, 250, 40, 6, 8),  
-    (5, 28, N'Xôi gạo lứt', 1, N'Lunch', 1, 320, 55, 7, 8),  
-    (5, 25, N'Súp lơ hấp', 1, N'Dinner', 1, 180, 20, 10, 5),  
-    (5, 23, N'Smoothie bơ chuối', 1, N'Breakfast', 2, 220, 30, 10, 5),  
-    (5, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),  
-    (5, 29, N'Súp bí đỏ', 1, N'Dinner', 2, 230, 35, 8, 6),  
-    (5, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 3, 200, 30, 5, 6),  
-    (5, 28, N'Xôi gạo lứt', 1, N'Lunch', 3, 320, 55, 7, 8),  
-    (5, 27, N'Trà gừng mật ong', 1, N'Dinner', 3, 100, 25, 0, 0),  
-    (5, 21, N'Salad ức gà', 1, N'Breakfast', 4, 300, 20, 8, 35),  
-    (5, 22, N'Cháo yến mạch', 1, N'Lunch', 4, 250, 40, 6, 8),  
-    (5, 23, N'Smoothie bơ chuối', 1, N'Dinner', 4, 220, 30, 10, 5),  
-    (5, 29, N'Súp bí đỏ', 1, N'Breakfast', 5, 230, 35, 8, 6),  
-    (5, 30, N'Salad cá ngừ', 1, N'Lunch', 5, 350, 15, 10, 40),  
-    (5, 25, N'Súp lơ hấp', 1, N'Dinner', 5, 180, 20, 10, 5),  
-    (5, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 6, 200, 30, 5, 6),  
-    (5, 24, N'Cá hồi áp chảo', 1, N'Lunch', 6, 400, 10, 20, 40),  
-    (5, 27, N'Trà gừng mật ong', 1, N'Dinner', 6, 100, 25, 0, 0),  
-    (5, 21, N'Salad ức gà', 1, N'Breakfast', 7, 300, 20, 8, 35),  
-    (5, 22, N'Cháo yến mạch', 1, N'Lunch', 7, 250, 40, 6, 8),  
-    (5, 23, N'Smoothie bơ chuối', 1, N'Dinner', 7, 220, 30, 10, 5);
-
--- MealPlan: Kế hoạch ăn uống cho người gan nhiễm mỡ
+-- Thực đơn 4: Giảm cân - Ít tinh bột (~1300 kcal/ngày)
 INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
 VALUES
-    (6, 24, N'Cá hồi áp chảo', 1, N'Lunch', 1, 400, 10, 20, 40),  
-    (6, 25, N'Súp lơ hấp', 1, N'Dinner', 1, 180, 20, 10, 5),  
-    (6, 22, N'Cháo yến mạch', 1, N'Breakfast', 2, 250, 40, 6, 8),  
-    (6, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),  
-    (6, 29, N'Súp bí đỏ', 1, N'Dinner', 2, 230, 35, 8, 6),  
-    (6, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 3, 200, 30, 5, 6),  
-    (6, 28, N'Xôi gạo lứt', 1, N'Lunch', 3, 320, 55, 7, 8),  
-    (6, 27, N'Trà gừng mật ong', 1, N'Dinner', 3, 100, 25, 0, 0),  
-    (6, 21, N'Salad ức gà', 1, N'Breakfast', 4, 300, 20, 8, 35),  
-    (6, 22, N'Cháo yến mạch', 1, N'Lunch', 4, 250, 40, 6, 8),  
-    (6, 23, N'Smoothie bơ chuối', 1, N'Dinner', 4, 220, 30, 10, 5),  
-    (6, 29, N'Súp bí đỏ', 1, N'Breakfast', 5, 230, 35, 8, 6),  
-    (6, 30, N'Salad cá ngừ', 1, N'Lunch', 5, 350, 15, 10, 40),  
-    (6, 25, N'Súp lơ hấp', 1, N'Dinner', 5, 180, 20, 10, 5),  
-    (6, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 6, 200, 30, 5, 6),  
-    (6, 24, N'Cá hồi áp chảo', 1, N'Lunch', 6, 400, 10, 20, 40),  
-    (6, 27, N'Trà gừng mật ong', 1, N'Dinner', 6, 100, 25, 0, 0),  
-    (6, 21, N'Salad ức gà', 1, N'Breakfast', 7, 300, 20, 8, 35),  
-    (6, 22, N'Cháo yến mạch', 1, N'Lunch', 7, 250, 40, 6, 8),  
-    (6, 23, N'Smoothie bơ chuối', 1, N'Dinner', 7, 220, 30, 10, 5);
+    -- Ngày 1
+    (4, 5, N'Gỏi cuốn', 2, N'Breakfast', 1, 200, 20, 6, 10),
+    (4, 24, N'Cá hồi áp chảo', 1, N'Lunch', 1, 400, 10, 20, 40),
+    (4, 95, N'Gỏi bắp chuối', 1, N'Snacks', 1, 180, 20, 6, 8),
+    (4, 98, N'Cá thu chiên nước mắm', 1, N'Dinner', 1, 280, 5, 20, 22),
+    -- Ngày 2
+    (4, 21, N'Salad ức gà', 1, N'Breakfast', 2, 300, 20, 8, 35),
+    (4, 40, N'Cá nướng', 1, N'Lunch', 2, 400, 10, 20, 35),
+    (4, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 2, 80, 5, 3, 6),
+    -- Ngày 3
+    (4, 25, N'Súp lơ hấp', 1, N'Breakfast', 3, 180, 20, 10, 5),
+    (4, 30, N'Salad cá ngừ', 1, N'Lunch', 3, 350, 15, 10, 40),
+    (4, 27, N'Trà gừng mật ong', 1, N'Snacks', 3, 100, 25, 0, 0),
+    (4, 54, N'Cá lóc chiên', 1, N'Dinner', 3, 169, 12.2, 0, 14.9),
+    -- Ngày 4
+    (4, 22, N'Cháo yến mạch', 1, N'Breakfast', 4, 250, 40, 6, 8),
+    (4, 24, N'Cá hồi áp chảo', 1, N'Lunch', 4, 400, 10, 20, 40),
+    (4, 96, N'Rau muống luộc', 1, N'Dinner', 4, 60, 10, 1, 3),
+    -- Ngày 5
+    (4, 5, N'Gỏi cuốn', 2, N'Breakfast', 5, 200, 20, 6, 10),
+    (4, 99, N'Thịt gà nướng mật ong', 1, N'Lunch', 5, 320, 10, 18, 25),
+    (4, 23, N'Smoothie bơ chuối', 1, N'Snacks', 5, 220, 30, 10, 5),
+    (4, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 5, 80, 5, 3, 6),
+    -- Ngày 6
+    (4, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 6, 200, 30, 5, 6),
+    (4, 21, N'Salad ức gà', 1, N'Lunch', 6, 300, 20, 8, 35),
+    (4, 55, N'Canh bắp cải', 2, N'Dinner', 6, 74, 5.6, 4.2, 3.6),
+    -- Ngày 7
+    (4, 29, N'Súp bí đỏ', 1, N'Breakfast', 7, 230, 35, 8, 6),
+    (4, 30, N'Salad cá ngừ', 1, N'Lunch', 7, 350, 15, 10, 40),
+    (4, 98, N'Cá thu chiên nước mắm', 1, N'Dinner', 7, 280, 5, 20, 22);
+
+-- Thực đơn 5: Duy trì cân nặng - Cân bằng (~2000 kcal/ngày)
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (5, 69, N'Bún thịt nướng', 1, N'Breakfast', 1, 451, 67.3, 13.7, 14.7),
+    (5, 1, N'Phở bò', 1, N'Lunch', 1, 450, 50, 10, 25),
+    (5, 13, N'Bánh bèo', 1, N'Snacks', 1, 250, 30, 10, 8),
+    (5, 60, N'Gà kho gừng', 1, N'Dinner', 1, 301, 10.3, 19.1, 21.9),
+    -- Ngày 2
+    (5, 34, N'Bún bò Huế', 1, N'Breakfast', 2, 480, 55, 12, 30),
+    (5, 86, N'Cơm chiên dương châu', 1, N'Lunch', 2, 530, 92.7, 11.3, 14.9),
+    (5, 24, N'Cá hồi áp chảo', 1, N'Dinner', 2, 400, 10, 20, 40),
+    -- Ngày 3
+    (5, 3, N'Cơm tấm sườn', 1, N'Breakfast', 3, 600, 70, 20, 30),
+    (5, 43, N'Cơm gà', 1, N'Lunch', 3, 450, 50, 12, 35),
+    (5, 7, N'Chả giò', 1, N'Snacks', 3, 150, 10, 8, 5),
+    (5, 8, N'Canh chua cá lóc', 1, N'Dinner', 3, 200, 10, 5, 15),
+    -- Ngày 4
+    (5, 4, N'Bún chả', 1, N'Breakfast', 4, 400, 50, 15, 20),
+    (5, 15, N'Bánh canh cua', 1, N'Lunch', 4, 400, 40, 15, 20),
+    (5, 99, N'Thịt gà nướng mật ong', 1, N'Dinner', 4, 320, 10, 18, 25),
+    -- Ngày 5
+    (5, 37, N'Mì Quảng', 1, N'Breakfast', 5, 500, 55, 15, 35),
+    (5, 10, N'Cá kho tộ', 1, N'Lunch', 5, 400, 10, 20, 25),
+    (5, 94, N'Chả giò tôm thịt', 1, N'Snacks', 5, 300, 25, 18, 12),
+    (5, 60, N'Gà kho gừng', 1, N'Dinner', 5, 301, 10.3, 19.1, 21.9),
+    -- Ngày 6
+    (5, 78, N'Bánh cuốn chả thịt', 1, N'Breakfast', 6, 590, 64.3, 25.6, 25.7),
+    (5, 31, N'Lẩu gà lá é', 1, N'Lunch', 6, 600, 50, 20, 40),
+    (5, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 6, 80, 5, 3, 6),
+    -- Ngày 7
+    (5, 69, N'Bún thịt nướng', 1, N'Breakfast', 7, 451, 67.3, 13.7, 14.7),
+    (5, 24, N'Cá hồi áp chảo', 1, N'Lunch', 7, 400, 10, 20, 40),
+    (5, 43, N'Cơm gà', 1, N'Dinner', 7, 450, 50, 12, 35);
+
+-- Thực đơn 6: Duy trì cân nặng - Đủ chất (~2100 kcal/ngày)
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (6, 34, N'Bún bò Huế', 1, N'Breakfast', 1, 480, 55, 12, 30),
+    (6, 86, N'Cơm chiên dương châu', 1, N'Lunch', 1, 530, 92.7, 11.3, 14.9),
+    (6, 42, N'Bánh bột lọc', 1, N'Snacks', 1, 270, 35, 8, 8),
+    (6, 24, N'Cá hồi áp chảo', 1, N'Dinner', 1, 400, 10, 20, 40),
+    -- Ngày 2
+    (6, 3, N'Cơm tấm sườn', 1, N'Breakfast', 2, 600, 70, 20, 30),
+    (6, 15, N'Bánh canh cua', 1, N'Lunch', 2, 400, 40, 15, 20),
+    (6, 99, N'Thịt gà nướng mật ong', 1, N'Dinner', 2, 320, 10, 18, 25),
+    -- Ngày 3
+    (6, 69, N'Bún thịt nướng', 1, N'Breakfast', 3, 451, 67.3, 13.7, 14.7),
+    (6, 31, N'Lẩu gà lá é', 1, N'Lunch', 3, 600, 50, 20, 40),
+    (6, 8, N'Canh chua cá lóc', 1, N'Dinner', 3, 200, 10, 5, 15),
+    -- Ngày 4
+    (6, 4, N'Bún chả', 1, N'Breakfast', 4, 400, 50, 15, 20),
+    (6, 43, N'Cơm gà', 1, N'Lunch', 4, 450, 50, 12, 35),
+    (6, 60, N'Gà kho gừng', 1, N'Dinner', 4, 301, 10.3, 19.1, 21.9),
+    -- Ngày 5
+    (6, 37, N'Mì Quảng', 1, N'Breakfast', 5, 500, 55, 15, 35),
+    (6, 24, N'Cá hồi áp chảo', 1, N'Lunch', 5, 400, 10, 20, 40),
+    (6, 94, N'Chả giò tôm thịt', 1, N'Snacks', 5, 300, 25, 18, 12),
+    (6, 10, N'Cá kho tộ', 1, N'Dinner', 5, 400, 10, 20, 25),
+    -- Ngày 6
+    (6, 78, N'Bánh cuốn chả thịt', 1, N'Breakfast', 6, 590, 64.3, 25.6, 25.7),
+    (6, 1, N'Phở bò', 1, N'Lunch', 6, 450, 50, 10, 25),
+    (6, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 6, 80, 5, 3, 6),
+    -- Ngày 7
+    (6, 69, N'Bún thịt nướng', 1, N'Breakfast', 7, 451, 67.3, 13.7, 14.7),
+    (6, 33, N'Lẩu bò nhúng giấm', 1, N'Lunch', 7, 750, 40, 30, 60),
+    (6, 24, N'Cá hồi áp chảo', 1, N'Dinner', 7, 400, 10, 20, 40);
+
+	-- Thực đơn 7: Duy trì cân nặng - Người tiểu đường (~1800 kcal/ngày)
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (7, 22, N'Cháo yến mạch', 1, N'Breakfast', 1, 250, 40, 6, 8),
+    (7, 30, N'Salad cá ngừ', 1, N'Lunch', 1, 350, 15, 10, 40),
+    (7, 25, N'Súp lơ hấp', 1, N'Snacks', 1, 180, 20, 10, 5),
+    (7, 24, N'Cá hồi áp chảo', 1, N'Dinner', 1, 400, 10, 20, 40),
+    -- Ngày 2
+    (7, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 2, 200, 30, 5, 6),
+    (7, 21, N'Salad ức gà', 1, N'Lunch', 2, 300, 20, 8, 35),
+    (7, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 2, 80, 5, 3, 6),
+    -- Ngày 3
+    (7, 28, N'Xôi gạo lứt', 1, N'Breakfast', 3, 320, 55, 7, 8),
+    (7, 24, N'Cá hồi áp chảo', 1, N'Lunch', 3, 400, 10, 20, 40),
+    (7, 25, N'Súp lơ hấp', 1, N'Dinner', 3, 180, 20, 10, 5),
+    -- Ngày 4
+    (7, 22, N'Cháo yến mạch', 1, N'Breakfast', 4, 250, 40, 6, 8),
+    (7, 30, N'Salad cá ngừ', 1, N'Lunch', 4, 350, 15, 10, 40),
+    (7, 23, N'Smoothie bơ chuối', 1, N'Snacks', 4, 220, 30, 10, 5),
+    (7, 98, N'Cá thu chiên nước mắm', 1, N'Dinner', 4, 280, 5, 20, 22),
+    -- Ngày 5
+    (7, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 5, 200, 30, 5, 6),
+    (7, 40, N'Cá nướng', 1, N'Lunch', 5, 400, 10, 20, 35),
+    (7, 8, N'Canh chua cá lóc', 1, N'Dinner', 5, 200, 10, 5, 15),
+    -- Ngày 6
+    (7, 28, N'Xôi gạo lứt', 1, N'Breakfast', 6, 320, 55, 7, 8),
+    (7, 21, N'Salad ức gà', 1, N'Lunch', 6, 300, 20, 8, 35),
+    (7, 25, N'Súp lơ hấp', 1, N'Dinner', 6, 180, 20, 10, 5),
+    -- Ngày 7
+    (7, 22, N'Cháo yến mạch', 1, N'Breakfast', 7, 250, 40, 6, 8),
+    (7, 24, N'Cá hồi áp chảo', 1, N'Lunch', 7, 400, 10, 20, 40),
+    (7, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 7, 80, 5, 3, 6);
+
+-- Thực đơn 8: Giảm cân - Béo phì cấp 1 (~1400 kcal/ngày)
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (8, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 1, 200, 30, 5, 6),
+    (8, 21, N'Salad ức gà', 1, N'Lunch', 1, 300, 20, 8, 35),
+    (8, 23, N'Smoothie bơ chuối', 1, N'Snacks', 1, 220, 30, 10, 5),
+    (8, 55, N'Canh bắp cải', 2, N'Dinner', 1, 74, 5.6, 4.2, 3.6),
+    -- Ngày 2
+    (8, 22, N'Cháo yến mạch', 1, N'Breakfast', 2, 250, 40, 6, 8),
+    (8, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),
+    (8, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 2, 80, 5, 3, 6),
+    -- Ngày 3
+    (8, 96, N'Rau muống luộc', 1, N'Breakfast', 3, 60, 10, 1, 3),
+    (8, 24, N'Cá hồi áp chảo', 1, N'Lunch', 3, 400, 10, 20, 40),
+    (8, 27, N'Trà gừng mật ong', 1, N'Snacks', 3, 100, 25, 0, 0),
+    (8, 25, N'Súp lơ hấp', 1, N'Dinner', 3, 180, 20, 10, 5),
+    -- Ngày 4
+    (8, 5, N'Gỏi cuốn', 2, N'Breakfast', 4, 200, 20, 6, 10),
+    (8, 98, N'Cá thu chiên nước mắm', 1, N'Lunch', 4, 280, 5, 20, 22),
+    (8, 8, N'Canh chua cá lóc', 1, N'Dinner', 4, 200, 10, 5, 15),
+    -- Ngày 5
+    (8, 29, N'Súp bí đỏ', 1, N'Breakfast', 5, 230, 35, 8, 6),
+    (8, 21, N'Salad ức gà', 1, N'Lunch', 5, 300, 20, 8, 35),
+    (8, 56, N'Canh bầu', 1, N'Dinner', 5, 30, 1.5, 2.1, 1.2),
+    -- Ngày 6
+    (8, 22, N'Cháo yến mạch', 1, N'Breakfast', 6, 250, 40, 6, 8),
+    (8, 30, N'Salad cá ngừ', 1, N'Lunch', 6, 350, 15, 10, 40),
+    (8, 95, N'Gỏi bắp chuối', 1, N'Snacks', 6, 180, 20, 6, 8),
+    (8, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 6, 80, 5, 3, 6),
+    -- Ngày 7
+    (8, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 7, 200, 30, 5, 6),
+    (8, 24, N'Cá hồi áp chảo', 1, N'Lunch', 7, 400, 10, 20, 40),
+    (8, 58, N'Canh cải ngọt', 1, N'Dinner', 7, 30, 1.1, 2.1, 1.7);
+
+-- Thực đơn 9: Giảm cân - Béo phì cấp 2 (~1100 kcal/ngày)
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (9, 96, N'Rau muống luộc', 1, N'Breakfast', 1, 60, 10, 1, 3),
+    (9, 30, N'Salad cá ngừ', 1, N'Lunch', 1, 350, 15, 10, 40),
+    (9, 27, N'Trà gừng mật ong', 1, N'Snacks', 1, 100, 25, 0, 0),
+    (9, 97, N'Canh mồng tơi tôm', 2, N'Dinner', 1, 160, 10, 6, 12),
+    -- Ngày 2
+    (9, 22, N'Cháo yến mạch', 1, N'Breakfast', 2, 250, 40, 6, 8),
+    (9, 21, N'Salad ức gà', 1, N'Lunch', 2, 300, 20, 8, 35),
+    (9, 55, N'Canh bắp cải', 1, N'Dinner', 2, 37, 2.8, 2.1, 1.8),
+    -- Ngày 3
+    (9, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 3, 200, 30, 5, 6),
+    (9, 24, N'Cá hồi áp chảo', 1, N'Lunch', 3, 400, 10, 20, 40),
+    (9, 23, N'Smoothie bơ chuối', 1, N'Snacks', 3, 220, 30, 10, 5),
+    (9, 56, N'Canh bầu', 1, N'Dinner', 3, 30, 1.5, 2.1, 1.2),
+    -- Ngày 4
+    (9, 5, N'Gỏi cuốn', 2, N'Breakfast', 4, 200, 20, 6, 10),
+    (9, 98, N'Cá thu chiên nước mắm', 1, N'Lunch', 4, 280, 5, 20, 22),
+    (9, 25, N'Súp lơ hấp', 1, N'Dinner', 4, 180, 20, 10, 5),
+    -- Ngày 5
+    (9, 96, N'Rau muống luộc', 1, N'Breakfast', 5, 60, 10, 1, 3),
+    (9, 30, N'Salad cá ngừ', 1, N'Lunch', 5, 350, 15, 10, 40),
+    (9, 27, N'Trà gừng mật ong', 1, N'Snacks', 5, 100, 25, 0, 0),
+    (9, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 5, 80, 5, 3, 6),
+    -- Ngày 6
+    (9, 22, N'Cháo yến mạch', 1, N'Breakfast', 6, 250, 40, 6, 8),
+    (9, 21, N'Salad ức gà', 1, N'Lunch', 6, 300, 20, 8, 35),
+    (9, 58, N'Canh cải ngọt', 1, N'Dinner', 6, 30, 1.1, 2.1, 1.7),
+    -- Ngày 7
+    (9, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 7, 200, 30, 5, 6),
+    (9, 24, N'Cá hồi áp chảo', 1, N'Lunch', 7, 400, 10, 20, 40),
+    (9, 95, N'Gỏi bắp chuối', 1, N'Snacks', 7, 180, 20, 6, 8),
+    (9, 25, N'Súp lơ hấp', 1, N'Dinner', 7, 180, 20, 10, 5);
+
+-- Thực đơn 10: Tăng cân - Người tim mạch (~2500 kcal/ngày)
+INSERT INTO MealPlanDetail (MealPlanID, FoodID, FoodName, Quantity, MealType, DayNumber, TotalCalories, TotalCarbs, TotalFat, TotalProtein)
+VALUES
+    -- Ngày 1
+    (10, 28, N'Xôi gạo lứt', 1, N'Breakfast', 1, 320, 55, 7, 8),
+    (10, 24, N'Cá hồi áp chảo', 2, N'Lunch', 1, 800, 20, 40, 80),
+    (10, 23, N'Smoothie bơ chuối', 1, N'Snacks', 1, 220, 30, 10, 5),
+    (10, 99, N'Thịt gà nướng mật ong', 1, N'Dinner', 1, 320, 10, 18, 25),
+    -- Ngày 2
+    (10, 22, N'Cháo yến mạch', 1, N'Breakfast', 2, 250, 40, 6, 8),
+    (10, 30, N'Salad cá ngừ', 1, N'Lunch', 2, 350, 15, 10, 40),
+    (10, 40, N'Cá nướng', 1, N'Dinner', 2, 400, 10, 20, 35),
+    -- Ngày 3
+    (10, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 3, 200, 30, 5, 6),
+    (10, 24, N'Cá hồi áp chảo', 1, N'Lunch', 3, 400, 10, 20, 40),
+    (10, 25, N'Súp lơ hấp', 1, N'Snacks', 3, 180, 20, 10, 5),
+    (10, 21, N'Salad ức gà', 1, N'Dinner', 3, 300, 20, 8, 35),
+    -- Ngày 4
+    (10, 28, N'Xôi gạo lứt', 1, N'Breakfast', 4, 320, 55, 7, 8),
+    (10, 98, N'Cá thu chiên nước mắm', 1, N'Lunch', 4, 280, 5, 20, 22),
+    (10, 8, N'Canh chua cá lóc', 1, N'Dinner', 4, 200, 10, 5, 15),
+    -- Ngày 5
+    (10, 22, N'Cháo yến mạch', 1, N'Breakfast', 5, 250, 40, 6, 8),
+    (10, 24, N'Cá hồi áp chảo', 2, N'Lunch', 5, 800, 20, 40, 80),
+    (10, 97, N'Canh mồng tơi tôm', 1, N'Dinner', 5, 80, 5, 3, 6),
+    -- Ngày 6
+    (10, 26, N'Bánh pancake chuối yến mạch', 1, N'Breakfast', 6, 200, 30, 5, 6),
+    (10, 30, N'Salad cá ngừ', 1, N'Lunch', 6, 350, 15, 10, 40),
+    (10, 23, N'Smoothie bơ chuối', 1, N'Snacks', 6, 220, 30, 10, 5),
+    (10, 99, N'Thịt gà nướng mật ong', 1, N'Dinner', 6, 320, 10, 18, 25),
+    -- Ngày 7
+    (10, 28, N'Xôi gạo lứt', 1, N'Breakfast', 7, 320, 55, 7, 8),
+    (10, 24, N'Cá hồi áp chảo', 1, N'Lunch', 7, 400, 10, 20, 40),
+    (10, 40, N'Cá nướng', 1, N'Dinner', 7, 400, 10, 20, 35);
 
 --Thêm nguyên liệu vào cho Food
 INSERT INTO FoodIngredient (FoodID, IngredientID)
@@ -951,14 +1349,348 @@ VALUES
     (49, 19),    -- Sữa đặc có đường
 
     -- 50. Gỏi ngó sen tôm thịt
-    (50, 106),   -- Ngó sen
-    (50, 32),    -- Tôm biển
-    (50, 71),    -- Thịt heo nạc
-    (50, 5),     -- Nước mắm cá
-    (50, 29);    -- Bánh phồng tôm
+    (50, 107),  -- Ngó sen
+    (50, 32),   -- Tôm biển
+    (50, 71),   -- Thịt heo nạc
+    (50, 5),    -- Nước mắm cá
+    (50, 82),   -- Chanh
+    (50, 16),   -- Đường cát
+    (50, 93),   -- Tỏi
+
+    -- 51. Thịt bò xào hành tây
+    (51, 75),   -- Thịt bò
+    (51, 115),  -- Hành tây
+    (51, 80),   -- Dầu oliu
+    (51, 5),    -- Nước mắm cá
+    (51, 10),   -- Muối
+    (51, 93),   -- Tỏi
+
+    -- 52. Bầu xào trứng
+    (52, 137),  -- Bầu
+    (52, 27),   -- Trứng gà
+    (52, 80),   -- Dầu oliu
+    (52, 10),   -- Muối
+    (52, 116),  -- Hành lá
+
+    -- 53. Cá hú kho
+    (53, 42),   -- Cá trê (thay cá hú)
+    (53, 5),    -- Nước mắm cá
+    (53, 16),   -- Đường cát
+    (53, 11),   -- Hạt tiêu
+    (53, 93),   -- Tỏi
+
+    -- 54. Cá lóc chiên
+    (54, 42),   -- Cá trê (thay cá lóc)
+    (54, 80),   -- Dầu oliu
+    (54, 10),   -- Muối
+    (54, 93),   -- Tỏi
+
+    -- 55. Canh bắp cải
+    (55, 128),  -- Cải xanh (thay bắp cải)
+    (55, 10),   -- Muối
+    (55, 116),  -- Hành lá
+    (55, 11),   -- Hạt tiêu
+
+    -- 56. Canh bầu
+    (56, 137),  -- Bầu
+    (56, 32),   -- Tôm biển
+    (56, 10),   -- Muối
+    (56, 116),  -- Hành lá
+
+    -- 57. Canh bí đao
+    (57, 136),  -- Bí xanh (thay bí đao)
+    (57, 10),   -- Muối
+    (57, 116),  -- Hành lá
+
+    -- 58. Canh cải ngọt
+    (58, 128),  -- Cải xanh (thay cải ngọt)
+    (58, 10),   -- Muối
+    (58, 116),  -- Hành lá
+
+    -- 59. Đậu hũ dồn thịt
+    (59, 139),  -- Đậu phụ
+    (59, 71),   -- Thịt heo nạc
+    (59, 80),   -- Dầu oliu
+    (59, 5),    -- Nước mắm cá
+    (59, 116),  -- Hành lá
+
+    -- 60. Gà kho gừng
+    (60, 74),   -- Thịt gà ta
+    (60, 12),   -- Gừng tươi
+    (60, 5),    -- Nước mắm cá
+    (60, 16),   -- Đường cát
+    (60, 11),   -- Hạt tiêu
+
+    -- 61. Gà xào sả ớt
+    (61, 74),   -- Thịt gà ta
+    (61, 105),  -- Ớt đỏ (thay sả)
+    (61, 80),   -- Dầu oliu
+    (61, 5),    -- Nước mắm cá
+    (61, 93),   -- Tỏi
+
+    -- 62. Gan heo xào
+    (62, 57),   -- Tai heo (thay gan heo)
+    (62, 115),  -- Hành tây
+    (62, 80),   -- Dầu oliu
+    (62, 5),    -- Nước mắm cá
+    (62, 93),   -- Tỏi
+
+    -- 63. Thịt heo quay
+    (63, 73),   -- Thịt heo mỡ
+    (63, 5),    -- Nước mắm cá
+    (63, 10),   -- Muối
+    (63, 93),   -- Tỏi
+    (63, 16),   -- Đường cát
+
+    -- 64. Thịt bò xào đậu que
+    (64, 75),   -- Thịt bò
+    (64, 121),  -- Đậu cô ve (thay đậu que)
+    (64, 80),   -- Dầu oliu
+    (64, 5),    -- Nước mắm cá
+    (64, 93),   -- Tỏi
+
+    -- 65. Thịt bò xào nấm rơm
+    (65, 75),   -- Thịt bò
+    (65, 90),   -- Nấm rơm
+    (65, 80),   -- Dầu oliu
+    (65, 5),    -- Nước mắm cá
+    (65, 93),   -- Tỏi
+
+    -- 66. Thịt heo xào giá hẹ
+    (66, 71),   -- Thịt heo nạc
+    (66, 118),  -- Giá
+    (66, 113),  -- Hẹ lá
+    (66, 80),   -- Dầu oliu
+    (66, 5),    -- Nước mắm cá
+
+    -- 67. Thịt heo kho tiêu
+    (67, 71),   -- Thịt heo nạc
+    (67, 11),   -- Hạt tiêu
+    (67, 5),    -- Nước mắm cá
+    (67, 16),   -- Đường cát
+    (67, 93),   -- Tỏi
+
+    -- 68. Thịt kho trứng
+    (68, 71),   -- Thịt heo nạc
+    (68, 27),   -- Trứng gà
+    (68, 5),    -- Nước mắm cá
+    (68, 16),   -- Đường cát
+    (68, 11),   -- Hạt tiêu
+
+    -- 69. Bún thịt nướng
+    (69, 149),  -- Bún
+    (69, 71),   -- Thịt heo nạc
+    (69, 5),    -- Nước mắm cá
+    (69, 116),  -- Hành lá
+    (69, 93),   -- Tỏi
+
+    -- 70. Bún riêu cua
+    (70, 149),  -- Bún
+    (70, 41),   -- Cua đồng
+    (70, 134),  -- Cà chua
+    (70, 5),    -- Nước mắm cá
+    (70, 139),  -- Đậu phụ
+
+    -- 71. Đậu hủ chiên sả
+    (71, 139),  -- Đậu phụ
+    (71, 80),   -- Dầu oliu
+    (71, 105),  -- Ớt đỏ (thay sả)
+    (71, 10),   -- Muối
+
+    -- 72. Đậu hủ sốt cà
+    (72, 139),  -- Đậu phụ
+    (72, 134),  -- Cà chua
+    (72, 80),   -- Dầu oliu
+    (72, 5),    -- Nước mắm cá
+    (72, 10),   -- Muối
+
+    -- 73. Hủ tiếu bò kho
+    (73, 149),  -- Bún (thay hủ tiếu)
+    (73, 75),   -- Thịt bò
+    (73, 5),    -- Nước mắm cá
+    (73, 116),  -- Hành lá
+    (73, 132),  -- Cà rốt
+
+    -- 74. Bánh canh thịt heo
+    (74, 152),  -- Bột gạo tẻ
+    (74, 71),   -- Thịt heo nạc
+    (74, 5),    -- Nước mắm cá
+    (74, 116),  -- Hành lá
+    (74, 10),   -- Muối
+
+    -- 75. Bánh canh giò heo
+    (75, 152),  -- Bột gạo tẻ
+    (75, 68),   -- Chân giò heo
+    (75, 5),    -- Nước mắm cá
+    (75, 116),  -- Hành lá
+    (75, 10),   -- Muối
+
+    -- 76. Miến gà
+    (76, 142),  -- Miến dong
+    (76, 74),   -- Thịt gà ta
+    (76, 5),    -- Nước mắm cá
+    (76, 116),  -- Hành lá
+    (76, 10),   -- Muối
+
+    -- 77. Bánh bao nhân thịt
+    (77, 151),  -- Bột mì
+    (77, 71),   -- Thịt heo nạc
+    (77, 5),    -- Nước mắm cá
+    (77, 116),  -- Hành lá
+    (77, 27),   -- Trứng gà
+
+    -- 78. Bánh cuốn chả thịt
+    (78, 152),  -- Bột gạo tẻ
+    (78, 64),   -- Giò lụa (thay chả)
+    (78, 71),   -- Thịt heo nạc
+    (78, 5),    -- Nước mắm cá
+    (78, 80),   -- Dầu oliu
+
+    -- 79. Bắp luộc
+    (79, 157),  -- Bắp ngô
+
+    -- 80. Khoai lang luộc
+    (80, 146),  -- Khoai lang
+
+    -- 81. Xôi bắp
+    (81, 160),  -- Cơm gạo nếp
+    (81, 157),  -- Bắp ngô
+    (81, 80),   -- Dầu oliu
+
+    -- 82. Hủ tiếu thịt heo
+    (82, 149),  -- Bún (thay hủ tiếu)
+    (82, 71),   -- Thịt heo nạc
+    (82, 5),    -- Nước mắm cá
+    (82, 116),  -- Hành lá
+    (82, 118),  -- Giá
+
+    -- 83. Canh bún
+    (83, 149),  -- Bún
+    (83, 41),   -- Cua đồng
+    (83, 5),    -- Nước mắm cá
+    (83, 116),  -- Hành lá
+    (83, 134),  -- Cà chua
+
+    -- 84. Bánh canh thịt gà
+    (84, 152),  -- Bột gạo tẻ
+    (84, 74),   -- Thịt gà ta
+    (84, 5),    -- Nước mắm cá
+    (84, 116),  -- Hành lá
+    (84, 10),   -- Muối
+
+    -- 85. Sườn ram
+    (85, 56),   -- Sườn heo
+    (85, 5),    -- Nước mắm cá
+    (85, 16),   -- Đường cát
+    (85, 93),   -- Tỏi
+    (85, 11),   -- Hạt tiêu
+
+    -- 86. Cơm chiên dương châu
+    (86, 159),  -- Cơm trắng
+    (86, 27),   -- Trứng gà
+    (86, 132),  -- Cà rốt
+    (86, 80),   -- Dầu oliu
+    (86, 71),   -- Thịt heo nạc
+
+    -- 87. Bún xào
+    (87, 149),  -- Bún
+    (87, 71),   -- Thịt heo nạc
+    (87, 118),  -- Giá
+    (87, 80),   -- Dầu oliu
+    (87, 5),    -- Nước mắm cá
+
+    -- 88. Thịt heo xào đậu que
+    (88, 71),   -- Thịt heo nạc
+    (88, 121),  -- Đậu cô ve (thay đậu que)
+    (88, 80),   -- Dầu oliu
+    (88, 5),    -- Nước mắm cá
+    (88, 93),   -- Tỏi
+
+    -- 89. Thịt bò xào măng
+    (89, 75),   -- Thịt bò
+    (89, 110),  -- Măng chua
+    (89, 80),   -- Dầu oliu
+    (89, 5),    -- Nước mắm cá
+    (89, 93),   -- Tỏi
+
+    -- 90. Thịt bò xào giá hẹ
+    (90, 75),   -- Thịt bò
+    (90, 118),  -- Giá
+    (90, 113),  -- Hẹ lá
+    (90, 80),   -- Dầu oliu
+    (90, 5),    -- Nước mắm cá
+
+    -- 91. Chả lụa kho
+    (91, 64),   -- Giò lụa (thay chả lụa)
+    (91, 5),    -- Nước mắm cá
+    (91, 16),   -- Đường cát
+    (91, 11),   -- Hạt tiêu
+
+    -- 92. Cá lóc kho
+    (92, 42),   -- Cá trê (thay cá lóc)
+    (92, 5),    -- Nước mắm cá
+    (92, 16),   -- Đường cát
+    (92, 11),   -- Hạt tiêu
+    (92, 93),   -- Tỏi
+
+    -- 93. Bún riêu ốc
+    (93, 149),  -- Bún
+    (93, 36),   -- Ốc bươu
+    (93, 134),  -- Cà chua
+    (93, 5),    -- Nước mắm cá
+    (93, 139),  -- Đậu phụ
+
+    -- 94. Chả giò tôm thịt
+    (94, 152),  -- Bột gạo tẻ
+    (94, 32),   -- Tôm biển
+    (94, 71),   -- Thịt heo nạc
+    (94, 80),   -- Dầu oliu
+    (94, 118),  -- Giá
+
+    -- 95. Gỏi bắp chuối
+    (95, 85),   -- Chuối tiêu (thay bắp chuối)
+    (95, 32),   -- Tôm biển
+    (95, 5),    -- Nước mắm cá
+    (95, 82),   -- Chanh
+    (95, 16),   -- Đường cát
+
+    -- 96. Rau muống luộc
+    (96, 102),  -- Rau muống
+    (96, 5),    -- Nước mắm cá (dùng để chấm)
+
+    -- 97. Canh mồng tơi tôm
+    (97, 103),  -- Rau mồng tơi
+    (97, 32),   -- Tôm biển
+    (97, 10),   -- Muối
+    (97, 116),  -- Hành lá
+
+    -- 98. Cá thu chiên nước mắm
+    (98, 44),   -- Cá thu
+    (98, 5),    -- Nước mắm cá
+    (98, 80),   -- Dầu oliu
+    (98, 10),   -- Muối
+    (98, 93),   -- Tỏi
+
+    -- 99. Thịt gà nướng mật ong
+    (99, 74),   -- Thịt gà ta
+    (99, 15),   -- Mật ong
+    (99, 5),    -- Nước mắm cá
+    (99, 93),   -- Tỏi
+    (99, 11),   -- Hạt tiêu
+
+    -- 100. Bánh mì xíu mại
+    (100, 155), -- Bánh mì
+    (100, 71),  -- Thịt heo nạc
+    (100, 27),  -- Trứng gà
+    (100, 134), -- Cà chua
+    (100, 5),   -- Nước mắm cá
+    (100, 80),  -- Dầu oliu
+
+	-- 101. Cơm trắng
+	(101, 159);
 
 GO
 
 INSERT INTO SystemConfiguration (Name, MinValue, MaxValue, Unit, IsActive, EffectedDateFrom, Description)
 VALUES 
-('MinAge', 15, NULL, 'years', 1, GETDATE(), N'Tuổi tối thiểu để đăng ký tài khoản');
+('MinAge', 13, NULL, 'years', 1, GETDATE(), N'Tuổi tối thiểu để đăng ký tài khoản');
