@@ -76,9 +76,9 @@ namespace NutriDiet.Service.Utilities
             }
         }
 
-        public async Task<IBusinessResult> EnableReminder(string fcmToken)
+        public async Task<IBusinessResult> EnableReminder(int userId)
         {
-            var userId = await GetUserIdByFcmToken(fcmToken);
+            
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
 
             if (user == null)
@@ -86,17 +86,11 @@ namespace NutriDiet.Service.Utilities
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
             }
 
-            if (string.IsNullOrEmpty(fcmToken))
+            if (string.IsNullOrEmpty(user.FcmToken))
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "FCM token is required");
             }
 
-
-            if (string.IsNullOrEmpty(user.FcmToken))
-            {
-                user.FcmToken = fcmToken;
-                await _unitOfWork.UserRepository.UpdateAsync(user);
-            }
 
             // EnableReminder flag
             user.EnableReminder = !(user.EnableReminder ?? false);

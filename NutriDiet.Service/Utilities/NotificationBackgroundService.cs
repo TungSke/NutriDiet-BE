@@ -47,7 +47,7 @@ namespace NutriDiet.Service.BackgroundServices
             var minute = now.Minute;
 
             if (!((hour == 8 && minute == 0) || (hour == 12 && minute == 0) ||
-                  (hour == 15 && minute == 30) || (hour == 19 && minute == 0)))
+                  (hour == 15 && minute == 0) || (hour == 19 && minute == 0)))
             {
                 return;
             }
@@ -65,7 +65,7 @@ namespace NutriDiet.Service.BackgroundServices
                 body = "Đã đến giờ ăn trưa, hãy kiểm tra nhật ký ăn uống.\nBỏ qua thông báo nếu bạn đã ăn hoặc không có món ăn trong bữa trưa hôm nay!";
             }
 
-            else if (hour == 15 && minute == 30)
+            else if (hour == 15 && minute == 0)
             {
                 body = "Đã đến giờ ăn phụ, hãy kiểm tra nhật ký ăn uống.\nBỏ qua thông báo nếu bạn đã ăn hoặc không có món ăn trong bữa phụ hôm nay!";
             }
@@ -81,18 +81,9 @@ namespace NutriDiet.Service.BackgroundServices
 
             foreach (var user in users)
             {
-                var mealLogs = await unitOfWork.MealLogRepository
-                    .GetByWhere(x => x.UserId == user.UserId && x.LogDate.HasValue && x.LogDate.Value.Date == now.Date)
-                    .Include(x => x.MealLogDetails)
-                    .ToListAsync();
-
-                // check có tồn tại meallog ko
-
-                if (mealLogs.Any(x=>x.MealLogDetails.Any()))
-                {
+                
                     await firebaseService.SendNotification(user.FcmToken, title, body);
                     Console.WriteLine($"Đã gửi thông báo tới user {user.UserId} lúc {now}");
-                }
             }
         }
     }

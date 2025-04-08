@@ -22,10 +22,10 @@ namespace NutriDiet.API.Controllers
             return Ok();
         }
 
-        [HttpPost("enable-reminder")]
-        public async Task<IActionResult> EnableReminder([FromBody] string fcmToken)
+        [HttpPost("enable-reminder/{userId}")]
+        public async Task<IActionResult> EnableReminder(int userId)
         {
-            var result = await _firebaseService.EnableReminder(fcmToken);
+            var result = await _firebaseService.EnableReminder(userId);
             return StatusCode(result.StatusCode, result.Message);
         }
     }
