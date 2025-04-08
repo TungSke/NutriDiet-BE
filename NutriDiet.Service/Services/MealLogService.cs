@@ -318,6 +318,7 @@ namespace NutriDiet.Service.Services
                     MealLogDetails = new List<MealLogDetail>()
                 };
                 await _unitOfWork.MealLogRepository.AddAsync(mealLog);
+                await _unitOfWork.SaveChangesAsync();
             }
 
             // Thêm nhanh một MealLogDetail mà không cần chọn món ăn
