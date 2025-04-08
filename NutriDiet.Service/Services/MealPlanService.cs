@@ -206,7 +206,7 @@ namespace NutriDiet.Service.Services
             var mealPlan = new MealPlan
             {
                 UserId = userID,
-                PlanName = mealPlanExisted.PlanName + $" - Clone by {user.FullName}",
+                PlanName = mealPlanExisted.PlanName + $" - Sao chép",
                 HealthGoal = mealPlanExisted.HealthGoal,
                 Duration = mealPlanExisted.Duration,
                 Status = MealplanStatus.Inactive.ToString(),
