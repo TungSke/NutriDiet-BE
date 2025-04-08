@@ -102,10 +102,16 @@ namespace NutriDiet.API.Controllers
                     phoneNumber = user.Phone ?? "0123456789",
                     address = user.Location ?? "Vietnam",
                     avatar = user.Avatar ?? "",
-                    package = user.UserPackages?.FirstOrDefault(x => x.Status.ToLower() == "active")?.Package?.PackageName ?? null,
+                    package = user.UserPackages?
+                            .Where(x =>
+                                x.Status.Equals("active", StringComparison.OrdinalIgnoreCase) &&
+                                x.ExpiryDate.Date >= DateTime.Now.Date)
+                            .OrderByDescending(x => x.ExpiryDate)
+                            .FirstOrDefault()
+                            ?.Package?.PackageName ?? null,
                 });
             }
-            return Unauthorized(new {message = "Unauthorize"});
+            return Unauthorized(new { message = "Unauthorize" });
         }
 
         [HttpPost("forgot-password")]
