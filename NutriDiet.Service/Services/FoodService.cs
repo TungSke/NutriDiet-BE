@@ -516,6 +516,98 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
             return new BusinessResult(Const.HTTP_STATUS_OK, "Danh sách món ăn cần tránh", response);
         }
 
+        public async Task<IBusinessResult> AnalyzeFoodImport(IFormFile excelFile)
+        {
+            if (excelFile == null || excelFile.Length <= 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "File không hợp lệ");
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var newFoods = new List<Food>();
+            var duplicateFoods = new List<Food>();
+            var processedFoodNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals("Food", StringComparison.OrdinalIgnoreCase));
+                        if (worksheet == null)
+                        {
+                            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Food'");
+                        }
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        var existingFoodNames = await _unitOfWork.FoodRepository
+                            .GetAll()
+                            .Select(f => f.FoodName.ToLower().Trim())
+                            .ToListAsync();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var foodName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                            var foodType = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+
+                            if (string.IsNullOrEmpty(foodName) || string.IsNullOrEmpty(foodType))
+                            {
+                                continue;
+                            }
+
+                            foodName = foodName.Normalize(NormalizationForm.FormC);
+
+                            if (processedFoodNames.Contains(foodName.ToLower().Trim()))
+                            {
+                                duplicateFoods.Add(new Food { FoodName = foodName });
+                                continue;
+                            }
+
+                            var food = new Food
+                            {
+                                FoodName = foodName,
+                                MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
+                                FoodType = foodType,
+                                ServingSize = worksheet.Cells[row, 4].Value?.ToString()?.Trim(),
+                                Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
+                                Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fats) ? fats : 0,
+                                Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : 0,
+                                Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : 0,
+                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim()
+                            };
+
+                            processedFoodNames.Add(foodName.ToLower().Trim());
+
+                            if (existingFoodNames.Contains(foodName.ToLower().Trim()))
+                            {
+                                duplicateFoods.Add(food);
+                            }
+                            else
+                            {
+                                newFoods.Add(food);
+                            }
+                        }
+                    }
+                }
+
+                var result = new
+                {
+                    NewFoodCount = newFoods.Count,
+                    DuplicateFoodCount = duplicateFoods.Count
+                };
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Phân tích thành công", result);
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi phân tích: {ex.Message}");
+            }
+        }
+
         public async Task<IBusinessResult> ImportFoodFromExcel(IFormFile excelFile)
         {
             if (excelFile == null || excelFile.Length <= 0)
@@ -525,7 +617,116 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var foodsToImport = new List<Food>();
+            int duplicateCount = 0;
+            var processedFoodNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals("Food", StringComparison.OrdinalIgnoreCase));
+                        if (worksheet == null)
+                        {
+                            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Food'");
+                        }
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        var existingFoodNames = await _unitOfWork.FoodRepository
+                            .GetAll()
+                            .Select(f => f.FoodName.ToLower().Trim())
+                            .ToListAsync();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var foodName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                            var foodType = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+
+                            if (string.IsNullOrEmpty(foodName) || string.IsNullOrEmpty(foodType))
+                            {
+                                continue;
+                            }
+
+                            foodName = foodName.Normalize(NormalizationForm.FormC);
+
+                            if (processedFoodNames.Contains(foodName.ToLower().Trim()))
+                            {
+                                duplicateCount++;
+                                continue;
+                            }
+
+                            if (existingFoodNames.Contains(foodName.ToLower().Trim()))
+                            {
+                                duplicateCount++;
+                                continue;
+                            }
+
+                            processedFoodNames.Add(foodName.ToLower().Trim());
+
+                            foodsToImport.Add(new Food
+                            {
+                                FoodName = foodName,
+                                MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
+                                FoodType = foodType,
+                                ServingSize = worksheet.Cells[row, 4].Value?.ToString()?.Trim(),
+                                Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
+                                Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fats) ? fats : 0,
+                                Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : 0,
+                                Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : 0,
+                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim()
+                            });
+                        }
+                    }
+                }
+
+                if (foodsToImport.Any())
+                {
+                    await _unitOfWork.FoodRepository.AddRangeAsync(foodsToImport);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+
+                string message = $"Import thành công {foodsToImport.Count} món ăn mới.";
+                if (duplicateCount > 0)
+                {
+                    message += $" {duplicateCount} món bị bỏ qua do trùng lặp.";
+                }
+                if (!foodsToImport.Any() && duplicateCount == 0)
+                {
+                    message = "Không có món ăn mới nào được import.";
+                }
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, message.Trim());
+            }
+            catch (DbUpdateException dbEx)
+            {
+                var sqlEx = dbEx.InnerException as SqlException;
+                if (sqlEx != null && sqlEx.Number == 2627)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Dữ liệu bị trùng lặp trong database.");
+                }
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {dbEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {ex.Message}");
+            }
+        }
+
+        public async Task<IBusinessResult> ImportAndUpdateFoodFromExcel(IFormFile excelFile)
+        {
+            if (excelFile == null || excelFile.Length <= 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "File không hợp lệ");
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var foodsToAdd = new List<Food>();
+            var foodsToUpdate = new List<Food>();
+            var processedFoodNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             int duplicateCount = 0;
 
             try
@@ -542,93 +743,99 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                         }
                         var rowCount = worksheet.Dimension.Rows;
 
-                        // Lấy danh sách foodName hiện có trong database
-                        var existingFoodNames = await _unitOfWork.FoodRepository
+                        var existingFoods = await _unitOfWork.FoodRepository
                             .GetAll()
-                            .Select(f => f.FoodName.ToLower().Trim())
-                            .ToListAsync();
+                            .ToDictionaryAsync(f => f.FoodName.ToLower().Trim(), f => f);
 
                         for (int row = 2; row <= rowCount; row++)
                         {
                             var foodName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
-                            var mealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
                             var foodType = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
-                            var servingSize = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
-                            var calories = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
-                            var protein = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
-                            var carbs = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
-                            var fat = worksheet.Cells[row, 8].Value?.ToString()?.Trim();
-                            var glucide = worksheet.Cells[row, 9].Value?.ToString()?.Trim();
-                            var fiber = worksheet.Cells[row, 10].Value?.ToString()?.Trim();
-                            var description = worksheet.Cells[row, 11].Value?.ToString()?.Trim();
 
                             if (string.IsNullOrEmpty(foodName) || string.IsNullOrEmpty(foodType))
                             {
-                                continue; // Bỏ qua nếu dữ liệu không hợp lệ
+                                continue;
                             }
 
-                            // Chuẩn hóa foodName
                             foodName = foodName.Normalize(NormalizationForm.FormC);
 
-                            // Kiểm tra trùng lặp trong database
-                            if (existingFoodNames.Contains(foodName.ToLower().Trim()))
+                            if (processedFoodNames.Contains(foodName.ToLower().Trim()))
                             {
                                 duplicateCount++;
-                                continue; // Bỏ qua nếu foodName đã tồn tại trong database
+                                continue;
                             }
 
-                            // Kiểm tra trùng lặp trong danh sách foodsToImport
-                            if (foodsToImport.Any(f => f.FoodName.Equals(foodName, StringComparison.OrdinalIgnoreCase)))
-                            {
-                                duplicateCount++;
-                                continue; // Bỏ qua nếu foodName đã tồn tại trong foodsToImport
-                            }
-
-                            foodsToImport.Add(new Food
+                            var food = new Food
                             {
                                 FoodName = foodName,
-                                MealType = mealType,
+                                MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
                                 FoodType = foodType,
-                                ServingSize = servingSize,
-                                Calories = double.TryParse(calories, out var cal) ? cal : 0,
-                                Protein = double.TryParse(protein, out var prot) ? prot : 0,
-                                Carbs = double.TryParse(carbs, out var carb) ? carb : 0,
-                                Fat = double.TryParse(fat, out var fats) ? fats : 0,
-                                Glucid = double.TryParse(glucide, out var gluc) ? gluc : 0,
-                                Fiber = double.TryParse(fiber, out var fib) ? fib : 0,
-                                Description = description
-                            });
+                                ServingSize = worksheet.Cells[row, 4].Value?.ToString()?.Trim(),
+                                Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
+                                Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fats) ? fats : 0,
+                                Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : 0,
+                                Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : 0,
+                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim()
+                            };
+
+                            processedFoodNames.Add(foodName.ToLower().Trim());
+
+                            if (existingFoods.TryGetValue(foodName.ToLower().Trim(), out var existingFood))
+                            {
+                                existingFood.MealType = food.MealType;
+                                existingFood.FoodType = food.FoodType;
+                                existingFood.ServingSize = food.ServingSize;
+                                existingFood.Calories = food.Calories;
+                                existingFood.Protein = food.Protein;
+                                existingFood.Carbs = food.Carbs;
+                                existingFood.Fat = food.Fat;
+                                existingFood.Glucid = food.Glucid;
+                                existingFood.Fiber = food.Fiber;
+                                existingFood.Description = food.Description;
+                                foodsToUpdate.Add(existingFood);
+                            }
+                            else
+                            {
+                                foodsToAdd.Add(food);
+                            }
                         }
                     }
                 }
 
-                if (foodsToImport.Any())
+                if (foodsToAdd.Any())
                 {
-                    await _unitOfWork.FoodRepository.AddRangeAsync(foodsToImport);
+                    await _unitOfWork.FoodRepository.AddRangeAsync(foodsToAdd);
+                }
+                if (foodsToUpdate.Any())
+                {
+                    await _unitOfWork.FoodRepository.UpdateRangeAsync(foodsToUpdate);
+                }
+                if (foodsToAdd.Any() || foodsToUpdate.Any())
+                {
                     await _unitOfWork.SaveChangesAsync();
-
-                    string message = $"Import thành công {foodsToImport.Count} món ăn mới. ";
-                    if (duplicateCount > 0)
-                    {
-                        message += $"{duplicateCount} món ăn bị bỏ qua do trùng lặp. ";
-                    }
-
-                    return new BusinessResult(Const.HTTP_STATUS_OK, message.Trim());
-
                 }
-                else
+
+                string message = $"Import thành công: {foodsToAdd.Count} món mới được thêm, {foodsToUpdate.Count} món được cập nhật.";
+                if (duplicateCount > 0)
                 {
-                    return new BusinessResult(Const.HTTP_STATUS_OK, "Không có món ăn mới nào được import (có thể tất cả đã tồn tại)");
+                    message += $" {duplicateCount} món bị bỏ qua do trùng lặp trong file.";
                 }
+                if (!foodsToAdd.Any() && !foodsToUpdate.Any() && duplicateCount == 0)
+                {
+                    message = "Không có món ăn nào được import.";
+                }
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, message.Trim());
             }
             catch (DbUpdateException dbEx)
             {
                 var sqlEx = dbEx.InnerException as SqlException;
-                if (sqlEx != null && sqlEx.Number == 2627) // 2627 là lỗi trùng lặp UNIQUE KEY
+                if (sqlEx != null && sqlEx.Number == 2627)
                 {
                     return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Dữ liệu bị trùng lặp trong database.");
                 }
-
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {dbEx.Message}");
             }
             catch (Exception ex)

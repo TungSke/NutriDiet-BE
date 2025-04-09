@@ -24,6 +24,8 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> RemoveFavoriteFood(int foodId);
         Task<IBusinessResult> CheckFoodAvoidance(int foodId);
         Task<IBusinessResult> GetAvoidFoods();
+        Task<IBusinessResult> AnalyzeFoodImport(IFormFile excelFile);
         Task<IBusinessResult> ImportFoodFromExcel(IFormFile excelFile);
+        Task<IBusinessResult> ImportAndUpdateFoodFromExcel(IFormFile excelFile);
     }
 }

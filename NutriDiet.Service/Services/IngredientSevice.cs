@@ -1,5 +1,6 @@
 ﻿using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
@@ -10,6 +11,7 @@ using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
 using OfficeOpenXml;
+using System.Text;
 
 namespace NutriDiet.Service.Services
 {
@@ -137,7 +139,7 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, userIngredients);
         }
 
-        public async Task<IBusinessResult> ImportIngredientsFromExcel(IFormFile excelFile)
+        public async Task<IBusinessResult> AnalyzeIngredientImport(IFormFile excelFile)
         {
             if (excelFile == null || excelFile.Length <= 0)
             {
@@ -145,9 +147,9 @@ namespace NutriDiet.Service.Services
             }
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            var ingredientsToImport = new List<Ingredient>();
-
-            int duplicateCount = 0;
+            var newIngredients = new List<Ingredient>();
+            var duplicateIngredients = new List<Ingredient>();
+            var processedIngredientNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             try
             {
@@ -157,15 +159,12 @@ namespace NutriDiet.Service.Services
                     using (var package = new ExcelPackage(stream))
                     {
                         var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals("Ingredient", StringComparison.OrdinalIgnoreCase));
-
                         if (worksheet == null)
                         {
-                            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Food'");
+                            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Ingredient'");
                         }
-
                         var rowCount = worksheet.Dimension.Rows;
 
-                        // Lấy danh sách IngredientName hiện có trong database
                         var existingIngredientNames = await _unitOfWork.IngredientRepository
                             .GetAll()
                             .Select(i => i.IngredientName.ToLower().Trim())
@@ -174,32 +173,118 @@ namespace NutriDiet.Service.Services
                         for (int row = 2; row <= rowCount; row++)
                         {
                             var ingredientName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
-                            var calories = worksheet.Cells[row, 2].Value?.ToString()?.Trim();     
-                            var protein = worksheet.Cells[row, 3].Value?.ToString()?.Trim();      
-                            var fat = worksheet.Cells[row, 4].Value?.ToString()?.Trim();           
-                            var carbs = worksheet.Cells[row, 5].Value?.ToString()?.Trim();         
-
-                            // Kiểm tra dữ liệu hợp lệ
                             if (string.IsNullOrEmpty(ingredientName))
                             {
-                                continue; // Bỏ qua nếu tên nguyên liệu rỗng
+                                continue;
                             }
 
-                            // Kiểm tra xem IngredientName đã tồn tại chưa (không phân biệt hoa thường)
+                            ingredientName = ingredientName.Normalize(NormalizationForm.FormC);
+
+                            if (processedIngredientNames.Contains(ingredientName.ToLower().Trim()))
+                            {
+                                duplicateIngredients.Add(new Ingredient { IngredientName = ingredientName });
+                                continue;
+                            }
+
+                            var ingredient = new Ingredient
+                            {
+                                IngredientName = ingredientName,
+                                Calories = double.TryParse(worksheet.Cells[row, 2].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                Protein = double.TryParse(worksheet.Cells[row, 3].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                Fat = double.TryParse(worksheet.Cells[row, 4].Value?.ToString()?.Trim(), out var fats) ? fats : 0,
+                                Carbs = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var carb) ? carb : 0
+                            };
+
+                            processedIngredientNames.Add(ingredientName.ToLower().Trim());
+
+                            if (existingIngredientNames.Contains(ingredientName.ToLower().Trim()))
+                            {
+                                duplicateIngredients.Add(ingredient);
+                            }
+                            else
+                            {
+                                newIngredients.Add(ingredient);
+                            }
+                        }
+                    }
+                }
+
+                var result = new
+                {
+                    NewIngredientCount = newIngredients.Count,
+                    DuplicateIngredientCount = duplicateIngredients.Count
+                };
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Phân tích thành công", result);
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi phân tích: {ex.Message}");
+            }
+        }
+
+        public async Task<IBusinessResult> ImportIngredientsFromExcel(IFormFile excelFile)
+        {
+            if (excelFile == null || excelFile.Length <= 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "File không hợp lệ");
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var ingredientsToImport = new List<Ingredient>();
+            int duplicateCount = 0;
+            var processedIngredientNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals("Ingredient", StringComparison.OrdinalIgnoreCase));
+                        if (worksheet == null)
+                        {
+                            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Ingredient'");
+                        }
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        var existingIngredientNames = await _unitOfWork.IngredientRepository
+                            .GetAll()
+                            .Select(i => i.IngredientName.ToLower().Trim())
+                            .ToListAsync();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var ingredientName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                            if (string.IsNullOrEmpty(ingredientName))
+                            {
+                                continue;
+                            }
+
+                            ingredientName = ingredientName.Normalize(NormalizationForm.FormC);
+
+                            if (processedIngredientNames.Contains(ingredientName.ToLower().Trim()))
+                            {
+                                duplicateCount++;
+                                continue;
+                            }
+
                             if (existingIngredientNames.Contains(ingredientName.ToLower().Trim()))
                             {
                                 duplicateCount++;
                                 continue;
                             }
 
-                            // Tạo mới Ingredient
+                            processedIngredientNames.Add(ingredientName.ToLower().Trim());
+
                             ingredientsToImport.Add(new Ingredient
                             {
                                 IngredientName = ingredientName,
-                                Calories = double.TryParse(calories, out var cal) ? cal : 0,
-                                Protein = double.TryParse(protein, out var prot) ? prot : 0,
-                                Carbs = double.TryParse(carbs, out var carb) ? carb : 0,
-                                Fat = double.TryParse(fat, out var fats) ? fats : 0,
+                                Calories = double.TryParse(worksheet.Cells[row, 2].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                Protein = double.TryParse(worksheet.Cells[row, 3].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                Carbs = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
+                                Fat = double.TryParse(worksheet.Cells[row, 4].Value?.ToString()?.Trim(), out var fats) ? fats : 0,
                                 CreatedAt = DateTime.UtcNow,
                                 UpdatedAt = DateTime.UtcNow
                             });
@@ -211,24 +296,151 @@ namespace NutriDiet.Service.Services
                 {
                     await _unitOfWork.IngredientRepository.AddRangeAsync(ingredientsToImport);
                     await _unitOfWork.SaveChangesAsync();
-
-                    string message = $"Import thành công {ingredientsToImport.Count} nguyên liệu mới. ";
-                    if (duplicateCount > 0)
-                    {
-                        message += $"{duplicateCount} nguyên liệu bị bỏ qua do trùng lặp. ";
-                    }
-
-                    return new BusinessResult(Const.HTTP_STATUS_OK, message.Trim());
                 }
-                else
+
+                string message = $"Import thành công {ingredientsToImport.Count} nguyên liệu mới.";
+                if (duplicateCount > 0)
                 {
-                    return new BusinessResult(Const.HTTP_STATUS_OK, "Không có nguyên liệu mới nào được import (có thể tất cả đã tồn tại)");
+                    message += $" {duplicateCount} nguyên liệu bị bỏ qua do trùng lặp.";
                 }
+                if (!ingredientsToImport.Any() && duplicateCount == 0)
+                {
+                    message = "Không có nguyên liệu mới nào được import.";
+                }
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, message.Trim());
+            }
+            catch (DbUpdateException dbEx)
+            {
+                var sqlEx = dbEx.InnerException as SqlException;
+                if (sqlEx != null && sqlEx.Number == 2627)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Dữ liệu bị trùng lặp trong database.");
+                }
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {dbEx.Message}");
             }
             catch (Exception ex)
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {ex.Message}");
             }
         }
+
+        public async Task<IBusinessResult> ImportAndUpdateIngredientsFromExcel(IFormFile excelFile)
+        {
+            if (excelFile == null || excelFile.Length <= 0)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "File không hợp lệ");
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var ingredientsToAdd = new List<Ingredient>();
+            var ingredientsToUpdate = new List<Ingredient>();
+            var processedIngredientNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int duplicateCount = 0;
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals("Ingredient", StringComparison.OrdinalIgnoreCase));
+                        if (worksheet == null)
+                        {
+                            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Ingredient'");
+                        }
+                        var rowCount = worksheet.Dimension.Rows;
+
+                        var existingIngredients = await _unitOfWork.IngredientRepository
+                            .GetAll()
+                            .ToDictionaryAsync(i => i.IngredientName.ToLower().Trim(), i => i);
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var ingredientName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                            if (string.IsNullOrEmpty(ingredientName))
+                            {
+                                continue;
+                            }
+
+                            ingredientName = ingredientName.Normalize(NormalizationForm.FormC);
+
+                            if (processedIngredientNames.Contains(ingredientName.ToLower().Trim()))
+                            {
+                                duplicateCount++;
+                                continue;
+                            }
+
+                            var ingredient = new Ingredient
+                            {
+                                IngredientName = ingredientName,
+                                Calories = double.TryParse(worksheet.Cells[row, 2].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                Protein = double.TryParse(worksheet.Cells[row, 3].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                Fat = double.TryParse(worksheet.Cells[row, 4].Value?.ToString()?.Trim(), out var fats) ? fats : 0,
+                                Carbs = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            };
+
+                            processedIngredientNames.Add(ingredientName.ToLower().Trim());
+
+                            if (existingIngredients.TryGetValue(ingredientName.ToLower().Trim(), out var existingIngredient))
+                            {
+                                existingIngredient.Calories = ingredient.Calories;
+                                existingIngredient.Protein = ingredient.Protein;
+                                existingIngredient.Fat = ingredient.Fat;
+                                existingIngredient.Carbs = ingredient.Carbs;
+                                existingIngredient.UpdatedAt = DateTime.UtcNow;
+                                ingredientsToUpdate.Add(existingIngredient);
+                            }
+                            else
+                            {
+                                ingredientsToAdd.Add(ingredient);
+                            }
+                        }
+                    }
+                }
+
+                if (ingredientsToAdd.Any())
+                {
+                    await _unitOfWork.IngredientRepository.AddRangeAsync(ingredientsToAdd);
+                }
+                if (ingredientsToUpdate.Any())
+                {
+                    await _unitOfWork.IngredientRepository.UpdateRangeAsync(ingredientsToUpdate);
+                }
+                if (ingredientsToAdd.Any() || ingredientsToUpdate.Any())
+                {
+                    await _unitOfWork.SaveChangesAsync();
+                }
+
+                string message = $"Import thành công: {ingredientsToAdd.Count} nguyên liệu mới được thêm, {ingredientsToUpdate.Count} nguyên liệu được cập nhật.";
+                if (duplicateCount > 0)
+                {
+                    message += $" {duplicateCount} nguyên liệu bị bỏ qua do trùng lặp trong file.";
+                }
+                if (!ingredientsToAdd.Any() && !ingredientsToUpdate.Any() && duplicateCount == 0)
+                {
+                    message = "Không có nguyên liệu nào được import.";
+                }
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, message.Trim());
+            }
+            catch (DbUpdateException dbEx)
+            {
+                var sqlEx = dbEx.InnerException as SqlException;
+                if (sqlEx != null && sqlEx.Number == 2627)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Dữ liệu bị trùng lặp trong database.");
+                }
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {dbEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {ex.Message}");
+            }
+        }
+
     }
 }
