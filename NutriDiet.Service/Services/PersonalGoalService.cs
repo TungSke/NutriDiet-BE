@@ -245,16 +245,25 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> UpdatePersonalGoal(PersonalGoalRequest request)
         {
             var userId = int.Parse(_userIdClaim);
-
             var existingGoal = await _unitOfWork.PersonalGoalRepository
                 .GetByWhere(pg => pg.UserId == userId)
                 .FirstOrDefaultAsync();
 
             if (existingGoal == null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Personal goal not found.", null);
-            }
+                await CreatePersonalGoal(request);
 
+                // Sau khi tạo, truy xuất lại mục tiêu để trả về kết quả:
+                existingGoal = await _unitOfWork.PersonalGoalRepository
+                    .GetByWhere(pg => pg.UserId == userId)
+                    .FirstOrDefaultAsync();
+                if (existingGoal == null)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tạo được personal goal mới.", null);
+                }
+                var newResponse = existingGoal.Adapt<PersonalGoalResponse>();
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Personal goal không tồn tại. Đã tạo mới thành công.", newResponse);
+            }
             var existingUser = await _unitOfWork.UserRepository
                 .GetByWhere(u => u.UserId == userId)
                 .Include(u => u.GeneralHealthProfiles)
@@ -264,7 +273,7 @@ namespace NutriDiet.Service.Services
 
             if (existingUser == null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User does not exist.", null);
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User không tồn tại.", null);
             }
 
             var latestProfile = existingUser.GeneralHealthProfiles
@@ -273,7 +282,7 @@ namespace NutriDiet.Service.Services
 
             if (latestProfile == null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No health profile found.", null);
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Không tìm thấy health profile.", null);
             }
 
             var currentWeight = latestProfile.Weight;
@@ -284,7 +293,7 @@ namespace NutriDiet.Service.Services
 
             if (tdee == 0)
             {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "TDEE data is missing.", null);
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Thiếu dữ liệu TDEE.", null);
             }
 
             try
@@ -302,7 +311,6 @@ namespace NutriDiet.Service.Services
                 request.Adapt(existingGoal);
                 existingGoal.DailyCalories = (int)dailyCalories;
                 existingGoal.TargetDate = targetDate ?? DateTime.Now;
-                // Chuyển đổi % sang gam và làm tròn 2 chữ số:
                 existingGoal.DailyCarb = Math.Round(dailyCalories * (macronutrients.CarbRatio / 100.0) / 4.0, 2);
                 existingGoal.DailyProtein = Math.Round(dailyCalories * (macronutrients.ProteinRatio / 100.0) / 4.0, 2);
                 existingGoal.DailyFat = Math.Round(dailyCalories * (macronutrients.FatRatio / 100.0) / 9.0, 2);
@@ -313,13 +321,14 @@ namespace NutriDiet.Service.Services
                 await _unitOfWork.SaveChangesAsync();
 
                 var response = existingGoal.Adapt<PersonalGoalResponse>();
-                return new BusinessResult(Const.HTTP_STATUS_OK, "Personal goal updated successfully.", response);
+                return new BusinessResult(Const.HTTP_STATUS_OK, "Cập nhật personal goal thành công.", response);
             }
             catch (Exception ex)
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, ex.Message, null);
             }
         }
+
 
         public async Task<IBusinessResult> UpdateDailyMacronutrients(EditDailyMacronutrientsRequest request)
         {
