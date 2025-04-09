@@ -597,7 +597,8 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                 var result = new
                 {
                     NewFoodCount = newFoods.Count,
-                    DuplicateFoodCount = duplicateFoods.Count
+                    DuplicateFoodCount = duplicateFoods.Count,
+                    DuplicateFoodName = duplicateFoods.Select(x=>x.FoodName).ToList()
                 };
 
                 return new BusinessResult(Const.HTTP_STATUS_OK, "Phân tích thành công", result);

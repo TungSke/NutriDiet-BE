@@ -212,7 +212,8 @@ namespace NutriDiet.Service.Services
                 var result = new
                 {
                     NewIngredientCount = newIngredients.Count,
-                    DuplicateIngredientCount = duplicateIngredients.Count
+                    DuplicateIngredientCount = duplicateIngredients.Count,
+                    DuplicateIngredientName = duplicateIngredients.Select(x=>x.IngredientName).ToList()
                 };
 
                 return new BusinessResult(Const.HTTP_STATUS_OK, "Phân tích thành công", result);
