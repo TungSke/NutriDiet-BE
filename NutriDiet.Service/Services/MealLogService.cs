@@ -386,39 +386,33 @@ namespace NutriDiet.Service.Services
                 .Include(m => m.MealLogDetails)
                 .FirstOrDefaultAsync();
 
-            bool isNewMealLog = false;
-
-            if (targetMealLog == null)
+            if (targetMealLog != null)
             {
-                if (targetDate < DateTime.UtcNow.Date)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_OK, "No existing meal log found on the target date. Nothing to copy.");
-                }
-
-                targetMealLog = new MealLog
-                {
-                    UserId = userId,
-                    LogDate = targetDate,
-                    TotalCalories = 0,
-                    TotalProtein = 0,
-                    TotalCarbs = 0,
-                    TotalFat = 0,
-                    MealLogDetails = new List<MealLogDetail>()
-                };
-
-                await _unitOfWork.MealLogRepository.AddAsync(targetMealLog);
-                await _unitOfWork.SaveChangesAsync(); // Lưu ngay để lấy MealLogId
-                isNewMealLog = true;
+                await _unitOfWork.MealLogRepository.DeleteAsync(targetMealLog);
+                await _unitOfWork.SaveChangesAsync();
             }
 
-            // Copy toàn bộ các chi tiết từ nguồn
+            targetMealLog = new MealLog
+            {
+                UserId = userId,
+                LogDate = targetDate,
+                TotalCalories = 0,
+                TotalProtein = 0,
+                TotalCarbs = 0,
+                TotalFat = 0,
+                MealLogDetails = new List<MealLogDetail>()
+            };
+
+            await _unitOfWork.MealLogRepository.AddAsync(targetMealLog);
+            await _unitOfWork.SaveChangesAsync(); 
+
             foreach (var detail in sourceDetails)
             {
                 var copiedDetail = new MealLogDetail
                 {
                     MealLogId = targetMealLog.MealLogId,
                     FoodId = detail.FoodId,
-                    MealType = detail.MealType,  // Giữ nguyên thông tin MealType của bữa ăn gốc
+                    MealType = detail.MealType,  
                     ServingSize = detail.ServingSize,
                     Quantity = detail.Quantity,
                     Calories = detail.Calories,
@@ -435,15 +429,9 @@ namespace NutriDiet.Service.Services
             targetMealLog.TotalCarbs += sourceDetails.Sum(d => d.Carbs);
             targetMealLog.TotalFat += sourceDetails.Sum(d => d.Fat);
 
-            if (!isNewMealLog) 
-            {
-                await _unitOfWork.MealLogRepository.Attach(targetMealLog);
-                await _unitOfWork.MealLogRepository.UpdateAsync(targetMealLog);
-            }
-
             await _unitOfWork.SaveChangesAsync();
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log details copied successfully.");
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log details copied successfully.", null);
         }
 
         private double CalculateRecommendedValue(
