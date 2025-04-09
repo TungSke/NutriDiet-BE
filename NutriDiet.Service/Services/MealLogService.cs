@@ -335,7 +335,6 @@ namespace NutriDiet.Service.Services
 
             mealLog.MealLogDetails.Add(mealLogDetail);
 
-            // Cập nhật tổng giá trị dinh dưỡng của MealLog
             mealLog.TotalCalories += mealLogDetail.Calories;
             mealLog.TotalProtein += mealLogDetail.Protein;
             mealLog.TotalCarbs += mealLogDetail.Carbs;
@@ -351,7 +350,6 @@ namespace NutriDiet.Service.Services
         {
             var userId = int.Parse(_userIdClaim);
 
-            // Kiểm tra ngày hợp lệ
             if (request.SourceDate == null || request.TargetDate == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "SourceDate and TargetDate are required.", null);
@@ -376,19 +374,15 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No meal log found for the source date.", null);
             }
 
-            // Lọc danh sách MealLogDetails theo bữa ăn
-            var sourceDetails = sourceMealLog.MealLogDetails
-                .Where(d => d.MealType == request.MealType.ToString())
-                .ToList();
+            var sourceDetails = sourceMealLog.MealLogDetails.ToList();
 
             if (!sourceDetails.Any())
             {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"No meal log details found for {request.MealType} on source date.", null);
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "No meal log details found for the source date.", null);
             }
 
-            // Lấy hoặc tạo MealLog của ngày đích
             var targetMealLog = await _unitOfWork.MealLogRepository
-                .GetByWhere(m => m.UserId == userId && m.LogDate == targetDate)
+                .GetByWhere(m => m.UserId == userId && m.LogDate.Value.Date == targetDate)
                 .Include(m => m.MealLogDetails)
                 .FirstOrDefaultAsync();
 
@@ -396,7 +390,6 @@ namespace NutriDiet.Service.Services
 
             if (targetMealLog == null)
             {
-                // Không tạo mới MealLog trong quá khứ nếu không tồn tại
                 if (targetDate < DateTime.UtcNow.Date)
                 {
                     return new BusinessResult(Const.HTTP_STATUS_OK, "No existing meal log found on the target date. Nothing to copy.");
@@ -414,18 +407,18 @@ namespace NutriDiet.Service.Services
                 };
 
                 await _unitOfWork.MealLogRepository.AddAsync(targetMealLog);
-                await _unitOfWork.SaveChangesAsync(); // Cần lưu ngay để lấy `MealLogId`
+                await _unitOfWork.SaveChangesAsync(); // Lưu ngay để lấy MealLogId
                 isNewMealLog = true;
             }
 
-            // Sao chép các chi tiết bữa ăn từ ngày nguồn sang ngày đích
+            // Copy toàn bộ các chi tiết từ nguồn
             foreach (var detail in sourceDetails)
             {
                 var copiedDetail = new MealLogDetail
                 {
-                    MealLogId = targetMealLog.MealLogId, // Đảm bảo có MealLogId hợp lệ
+                    MealLogId = targetMealLog.MealLogId,
                     FoodId = detail.FoodId,
-                    MealType = detail.MealType,
+                    MealType = detail.MealType,  // Giữ nguyên thông tin MealType của bữa ăn gốc
                     ServingSize = detail.ServingSize,
                     Quantity = detail.Quantity,
                     Calories = detail.Calories,
@@ -437,13 +430,12 @@ namespace NutriDiet.Service.Services
                 targetMealLog.MealLogDetails.Add(copiedDetail);
             }
 
-            // Cập nhật lại tổng giá trị dinh dưỡng cho ngày đích
             targetMealLog.TotalCalories += sourceDetails.Sum(d => d.Calories);
             targetMealLog.TotalProtein += sourceDetails.Sum(d => d.Protein);
             targetMealLog.TotalCarbs += sourceDetails.Sum(d => d.Carbs);
             targetMealLog.TotalFat += sourceDetails.Sum(d => d.Fat);
 
-            if (!isNewMealLog) // Nếu MealLog đã tồn tại, chỉ cần cập nhật
+            if (!isNewMealLog) 
             {
                 await _unitOfWork.MealLogRepository.Attach(targetMealLog);
                 await _unitOfWork.MealLogRepository.UpdateAsync(targetMealLog);
@@ -452,6 +444,33 @@ namespace NutriDiet.Service.Services
             await _unitOfWork.SaveChangesAsync();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log details copied successfully.");
+        }
+
+        private double CalculateRecommendedValue(
+            List<MealLog> mealLogsList,
+            double targetValue,
+            Func<MealLog, double> selector,
+            double clampMin,
+            double clampMax)
+        {
+            // Nhóm các MealLog theo ngày và tính tổng giá trị theo selector (ví dụ: TotalCalories) cho mỗi ngày
+            var dailyValueDictionary = mealLogsList
+                .GroupBy(m => m.LogDate.Value.Date)
+                .ToDictionary(g => g.Key, g => g.Sum(selector));
+
+            int computedDays = dailyValueDictionary.Count;           // Số ngày có dữ liệu meal log
+            double sumValue = dailyValueDictionary.Values.Sum();       // Tổng giá trị thực tế của các ngày đó
+            double recommendedValue = targetValue;                     // Mặc định nếu không có dữ liệu thì giữ nguyên mục tiêu
+
+            if (computedDays > 0)
+            {
+                double totalTarget = targetValue * computedDays;
+                double totalDifference = totalTarget - sumValue;
+                double adjustment = totalDifference / computedDays;
+                adjustment = Math.Clamp(adjustment, clampMin, clampMax);
+                recommendedValue = targetValue + adjustment;
+            }
+            return recommendedValue;
         }
 
         public async Task<IBusinessResult> CreateMealLogAI()
@@ -490,51 +509,55 @@ namespace NutriDiet.Service.Services
             var weight = userProfile?.Weight ?? 0;
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
             var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
-            var targetDailyCalories = personalGoal?.DailyCalories ?? 0; // Mục tiêu calories mỗi ngày ban đầu
-            var dailyCarb = personalGoal?.DailyCarb ?? 0;
-            var dailyFat = personalGoal?.DailyFat ?? 0;
-            var dailyProtein = personalGoal?.DailyProtein ?? 0;
-            var dietStyle = userProfile.DietStyle;
+            // Các chỉ số mục tiêu được chuyển đổi sang kiểu double
+            double targetDailyCalories = personalGoal?.DailyCalories ?? 0;
+            double dailyCarb = personalGoal?.DailyCarb ?? 0;
+            double dailyFat = personalGoal?.DailyFat ?? 0;
+            double dailyProtein = personalGoal?.DailyProtein ?? 0;
+            var dietStyle = userProfile?.DietStyle ?? "Không xác định";
             var today = DateTime.Now.Date;
-            var userIngredientsReference = userInfo.UserIngreDientPreferences.Select(x => new
-            {
-                x.Ingredient.IngredientName,
-                x.Level,
-            }).ToList();
+            var userIngredientsReference = userInfo.UserIngreDientPreferences
+                .Select(x => new
+                {
+                    x.Ingredient.IngredientName,
+                    x.Level,
+                })
+                .ToList();
 
             string favoriteIngredientsFormatted = userIngredientsReference.Any()
                 ? string.Join(", ", userIngredientsReference.Select(x => $"{x.IngredientName} ({x.Level})"))
                 : "không có";
 
+            // Lấy dữ liệu Meal Log 7 ngày gần nhất
             var mealLogs = await GetMealLogsByDateRange(null, DateTime.Now.AddDays(-7), DateTime.Now);
             var formattedMealLogs = JsonSerializer.Serialize(mealLogs.Data);
 
             var mealLogsList = mealLogs.Data as List<MealLog> ?? new List<MealLog>();
 
-            var dailyCaloriesDictionary = mealLogsList
-                .GroupBy(m => m.LogDate.Value.Date)
-                .ToDictionary(g => g.Key, g => g.Sum(m => m.TotalCalories));
+            // Sử dụng helper để tính toán các chỉ số dinh dưỡng cho hôm nay dựa vào dữ liệu các ngày có meal log
+            double recommendedTodayCalories = CalculateRecommendedValue(
+                mealLogsList,
+                targetDailyCalories,
+                m => (double)m.TotalCalories,
+                -500, 500);
 
-            int sumCalories = 0;
-            for (int i = 1; i <= 7; i++)
-            {
-                var date = DateTime.Today.AddDays(-i);
-                if (dailyCaloriesDictionary.ContainsKey(date))
-                {
-                    sumCalories += (int)dailyCaloriesDictionary[date];
-                }
-                else
-                {
-                    sumCalories += (int)targetDailyCalories;
-                }
-            }
+            double recommendedTodayProtein = CalculateRecommendedValue(
+                mealLogsList,
+                dailyProtein,
+                m => (double)m.TotalProtein,
+                -20, 20);
 
-            // Tổng mục tiêu calories cho 7 ngày
-            int totalTargetFor7Days = (int)(targetDailyCalories * 7);
-            int totalDifference = totalTargetFor7Days - sumCalories;
-            int adjustment = Math.Clamp(totalDifference, -200, 500);
-            int recommendedTodayCalories = (int)(targetDailyCalories + adjustment);
-            // ------------------------------
+            double recommendedTodayCarb = CalculateRecommendedValue(
+                mealLogsList,
+                dailyCarb,
+                m => (double)m.TotalCarbs,
+                -50, 50);
+
+            double recommendedTodayFat = CalculateRecommendedValue(
+                mealLogsList,
+                dailyFat,
+                m => (double)m.TotalFat,
+                -20, 20);
 
             // Lấy danh sách thực phẩm có thể ăn
             var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
@@ -579,7 +602,7 @@ namespace NutriDiet.Service.Services
 
             var jsonSampleOutput = JsonSerializer.Serialize(mealogrequestSample);
 
-            // Cập nhật chuỗi prompt cho AI, thay dailyCalories ban đầu bằng recommendedTodayCalories
+            // Cập nhật chuỗi prompt cho AI, thay các giá trị mục tiêu ban đầu bởi giá trị đã điều chỉnh
             var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng cho ngày hôm nay {today}.
 
 Thông tin người dùng:
@@ -590,7 +613,7 @@ Thông tin người dùng:
 - **Cân nặng:** {weight} kg
 - **Mức độ vận động:** {activityLevel}
 - **Mục tiêu:** {goalType}
-- DietStyle: {dietStyle}
+- Lưu ý quan trọng Phong cách ăn uống : **{dietStyle}**
 
 Dữ liệu Meal Log 7 ngày gần nhất:
 {formattedMealLogs}
@@ -603,23 +626,22 @@ Yêu cầu cho Meal Log ngày hôm nay:
 
 Giá trị dinh dưỡng đề xuất cho user nạp đủ trong ngày hôm nay:
 - **Calories:** {recommendedTodayCalories}
-- **Carb:** {dailyCarb}
-- **Fat:** {dailyFat}
-- **Protein:** {dailyProtein}
+- **Carb:** {recommendedTodayCarb}g
+- **Fat:** {recommendedTodayFat}g
+- **Protein:** {recommendedTodayProtein}g
 
 Yêu cầu bắt buộc:
 - Tổng giá trị dinh dưỡng của các món ăn trong ngày **phải đạt tối thiểu**:
     - Calories >= {recommendedTodayCalories}
-    - Carbs >= {dailyCarb}
-    - Fat >= {dailyFat}
-    - Protein >= {dailyProtein}
+    - Carbs >= {recommendedTodayCarb}g
+    - Fat >= {recommendedTodayFat}g
+    - Protein >= {recommendedTodayProtein}g
 - Nếu không thể đạt đúng, hãy chọn món khác từ danh sách để đảm bảo đủ chỉ tiêu.
 - Không được gửi kết quả nếu tổng Calories dưới {recommendedTodayCalories}.
 
 Quy định phản hồi:
 - Trả về theo đúng định dạng JSON mẫu như sau: {jsonSampleOutput}
 - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích, chú thích, markdown hoặc mô tả.";
-
 
             var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
 
@@ -671,11 +693,14 @@ Quy định phản hồi:
                         Fat = (m.Quantity ?? 1) * (food.Fat ?? 0)
                     };
                 })
-                .Where(m => m != null) // Loại bỏ food null
+                .Where(m => m != null)
                 .ToList();
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Input đã tạo thành công", mealLogDetails);
         }
+
+
+
 
 
         private async Task SaveMeallogOneDay(List<MealLogRequest> requests)
