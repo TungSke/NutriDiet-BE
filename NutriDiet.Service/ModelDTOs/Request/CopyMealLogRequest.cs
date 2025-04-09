@@ -11,7 +11,6 @@ namespace NutriDiet.Service.ModelDTOs.Request
     {
         public DateTime? SourceDate { get; set; } 
         public DateTime? TargetDate { get; set; }  
-        public MealType MealType { get; set; }     
     }
 
 }
