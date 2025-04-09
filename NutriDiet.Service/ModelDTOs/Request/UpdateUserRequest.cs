@@ -7,8 +7,6 @@ namespace NutriDiet.Service.ModelDTOs.Request
     public class UpdateUserRequest
     {
         [Required(ErrorMessage = "Full name is required")]
-        [RegularExpression(@"^[a-zA-Z\s]+$",
-            ErrorMessage = "Full name can only contain letters and spaces")]
         public string FullName { get; set; } = null!;
 
         [Required(ErrorMessage = "Age is required")]
