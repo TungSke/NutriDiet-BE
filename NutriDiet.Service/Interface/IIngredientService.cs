@@ -25,6 +25,8 @@ namespace NutriDiet.Service.Interface
 
         Task<IBusinessResult> GetPreferenceIngredient();
 
+        Task<IBusinessResult> AnalyzeIngredientImport(IFormFile excelFile);
         Task<IBusinessResult> ImportIngredientsFromExcel(IFormFile excelFile);
+        Task<IBusinessResult> ImportAndUpdateIngredientsFromExcel(IFormFile excelFile);
     }
 }

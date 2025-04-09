@@ -119,6 +119,14 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpPost("excel-analyze")]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        public async Task<IActionResult> AnalyzeFoodImport(IFormFile excelFile)
+        {
+            var result = await _foodService.AnalyzeFoodImport(excelFile);
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpPost("excel")]
         [Authorize(Roles = nameof(RoleEnum.Admin))]
         public async Task<IActionResult> ImportFoodFromExcel(IFormFile excelFile)
@@ -126,5 +134,14 @@ namespace NutriDiet.API.Controllers
             var result = await _foodService.ImportFoodFromExcel(excelFile);
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpPost("excel-duplicate")]
+        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        public async Task<IActionResult> ImportAndUpdateFoodFromExcel(IFormFile excelFile)
+        {
+            var result = await _foodService.ImportAndUpdateFoodFromExcel(excelFile);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }
