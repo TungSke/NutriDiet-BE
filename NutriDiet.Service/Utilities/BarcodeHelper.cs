@@ -1,5 +1,4 @@
 ﻿using Mapster;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
@@ -13,7 +12,7 @@ namespace NutriDiet.Service.Utilities
 {
     public class BarcodeHelper
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new();
 
         public async Task<IBusinessResult> GetProductFromBarcodeAsync(string barcode)
         {
@@ -21,33 +20,30 @@ namespace NutriDiet.Service.Utilities
             {
                 string url = $"https://world.openfoodfacts.net/api/v2/product/{barcode}?fields=product_name,nutriments,nutrition_grades,serving_size,image_front_url&lang=vi";
 
-                // Gọi API
                 var response = await _httpClient.GetStringAsync(url);
-                dynamic data = JsonConvert.DeserializeObject(response);
+                var json = JObject.Parse(response);
 
-                // Kiểm tra nếu sản phẩm không tồn tại
-                if (data.status == 0)
+                // Kiểm tra sản phẩm có tồn tại không
+                if (json["status"]?.ToObject<int>() != 1)
                 {
                     return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Không tìm thấy sản phẩm với barcode này.", null);
                 }
 
-                // Lấy thông tin sản phẩm
-                string productName = data.product.product_name ?? "Không xác định";
-                string nutritionGrade = data.product.nutrition_grades ?? "Không có";
-                string servingSize = data.product.serving_size ?? "100g";
-                string imageUrl = data.product.image_front_url ?? null;
+                var product = json["product"];
+                var nutriments = product["nutriments"];
 
-                // Lấy thông tin dinh dưỡng từ nutriments
-                var nutriments = data.product.nutriments;
+                string productName = product["product_name"]?.ToString() ?? "Không xác định";
+                string nutritionGrade = product["nutrition_grades"]?.ToString() ?? "Không có";
+                string servingSize = product["serving_size"]?.ToString() ?? "100g";
+                string imageUrl = product["image_front_url"]?.ToString();
 
-                // ✅ Kiểm tra calories, nếu có giá trị thì lấy, nếu không thì giữ nguyên 0
-                float calories = GetNutrientValue(nutriments, "energy-kcal_serving", "energy-kcal_100g");
-                float protein = GetNutrientValue(nutriments, "proteins_serving", "proteins_100g");
-                float carbs = GetNutrientValue(nutriments, "carbohydrates_serving", "carbohydrates_100g");
-                float fat = GetNutrientValue(nutriments, "fat_serving", "fat_100g");
-                float fiber = GetNutrientValue(nutriments, "sugars_serving", "sugars_100g");
+                // ✅ Lấy giá trị trực tiếp, không dùng serving
+                float calories = GetNutrientValue(nutriments, "energy-kcal");
+                float protein = GetNutrientValue(nutriments, "proteins");
+                float carbs = GetNutrientValue(nutriments, "carbohydrates");
+                float fat = GetNutrientValue(nutriments, "fat");
+                float fiber = GetNutrientValue(nutriments, "sugars");
 
-                // Tạo đối tượng Food
                 var food = new Food
                 {
                     FoodName = productName,
@@ -64,9 +60,7 @@ namespace NutriDiet.Service.Utilities
                     Fiber = fiber
                 };
 
-                // Chuyển đổi sang FoodResponse
                 var foodResponse = food.Adapt<FoodResponse>();
-
                 return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodResponse);
             }
             catch (Exception ex)
@@ -75,20 +69,12 @@ namespace NutriDiet.Service.Utilities
             }
         }
 
-        /// <summary>
-        /// Hàm lấy giá trị dinh dưỡng, ưu tiên giá trị theo khẩu phần trước, nếu không có thì lấy theo 100g
-        /// </summary>
-        private float GetNutrientValue(dynamic nutriments, string servingKey, string per100gKey)
+        // ✅ Lấy 1 key duy nhất, đơn giản hóa
+        private float GetNutrientValue(JToken nutriments, string key)
         {
-            if (nutriments == null) return 0f;
+            if (nutriments == null || key == null) return 0f;
 
-            // Lấy giá trị theo khẩu phần trước, nếu không có thì lấy theo 100g, nếu vẫn không có thì trả về 0
-            return (nutriments[servingKey] != null && nutriments[servingKey].Type != JTokenType.Null)
-                ? (float)nutriments[servingKey]
-                : (nutriments[per100gKey] != null && nutriments[per100gKey].Type != JTokenType.Null)
-                    ? (float)nutriments[per100gKey]
-                    : 0f;
+            return float.TryParse(nutriments[key]?.ToString(), out var value) ? value : 0f;
         }
-
     }
 }

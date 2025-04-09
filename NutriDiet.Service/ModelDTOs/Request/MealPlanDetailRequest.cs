@@ -14,7 +14,6 @@ namespace NutriDiet.Service.ModelDTOs.Request
         public int FoodId { get; set; }
 
         [JsonPropertyName("quantity")]
-        [Range(1, double.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
         public double? Quantity { get; set; }
 
         [JsonPropertyName("mealType")]
