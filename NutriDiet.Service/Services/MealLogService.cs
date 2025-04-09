@@ -582,35 +582,44 @@ namespace NutriDiet.Service.Services
             // Cập nhật chuỗi prompt cho AI, thay dailyCalories ban đầu bằng recommendedTodayCalories
             var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng cho ngày hôm nay {today}.
 
-                Thông tin người dùng:
-                - **Họ tên:** {userInfo.FullName}
-                - **Giới tính:** {userInfo.Gender}
-                - **Tuổi:** {userInfo.Age}
-                - **Chiều cao:** {height} cm
-                - **Cân nặng:** {weight} kg
-                - **Mức độ vận động:** {activityLevel}
-                - **Mục tiêu:** {goalType}
-                - DietStyle: {dietStyle}
+Thông tin người dùng:
+- **Họ tên:** {userInfo.FullName}
+- **Giới tính:** {userInfo.Gender}
+- **Tuổi:** {userInfo.Age}
+- **Chiều cao:** {height} cm
+- **Cân nặng:** {weight} kg
+- **Mức độ vận động:** {activityLevel}
+- **Mục tiêu:** {goalType}
+- DietStyle: {dietStyle}
 
-                Dữ liệu Meal Log 7 ngày gần nhất:
-                {formattedMealLogs}
+Dữ liệu Meal Log 7 ngày gần nhất:
+{formattedMealLogs}
 
-                Yêu cầu cho Meal Log ngày hôm nay:
-                - **Meal Log 1 ngày** với 3 bữa chính (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có 2 món 
-                - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
-                - **Dị ứng thực phẩm:** {formattedAllergies}
-                - **Bệnh lý cần lưu ý:** {formattedDiseases}
+Yêu cầu cho Meal Log ngày hôm nay:
+- **Meal Log 1 ngày** với 3 bữa chính (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có 1-2 món.
+- **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
+- **Dị ứng thực phẩm:** {formattedAllergies}
+- **Bệnh lý cần lưu ý:** {formattedDiseases}
 
-                Giá trị dinh dưỡng đề xuất cho user nạp đủ:
-                - **Calories:** {recommendedTodayCalories} 
-                - **Carb:** {dailyCarb}
-                - **Fat:** {dailyFat}
-                - **Protein:** {dailyProtein}
+Giá trị dinh dưỡng đề xuất cho user nạp đủ trong ngày hôm nay:
+- **Calories:** {recommendedTodayCalories}
+- **Carb:** {dailyCarb}
+- **Fat:** {dailyFat}
+- **Protein:** {dailyProtein}
 
-                Lưu ý:
-                - Hạn chế chọn các món đã ăn quá nhiều trong tuần.
-                - Trả cho tôi theo đúng json output tôi đã gửi: {jsonSampleOutput} 
-                - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.";
+Yêu cầu bắt buộc:
+- Tổng giá trị dinh dưỡng của các món ăn trong ngày **phải đạt tối thiểu**:
+    - Calories >= {recommendedTodayCalories}
+    - Carbs >= {dailyCarb}
+    - Fat >= {dailyFat}
+    - Protein >= {dailyProtein}
+- Nếu không thể đạt đúng, hãy chọn món khác từ danh sách để đảm bảo đủ chỉ tiêu.
+- Không được gửi kết quả nếu tổng Calories dưới {recommendedTodayCalories}.
+
+Quy định phản hồi:
+- Trả về theo đúng định dạng JSON mẫu như sau: {jsonSampleOutput}
+- Chỉ trả về **JSON thuần túy**, không kèm theo giải thích, chú thích, markdown hoặc mô tả.";
+
 
             var airesponse = await _aiGeneratorService.AIResponseJson(input, jsonSampleOutput);
 

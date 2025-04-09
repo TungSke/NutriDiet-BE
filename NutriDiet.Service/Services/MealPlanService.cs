@@ -493,37 +493,39 @@ namespace NutriDiet.Service.Services
             string jsonOutputSample = JsonSerializer.Serialize(mealPlanRequesttest);
 
             var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Plan phù hợp với mục tiêu và điều kiện sức khỏe của người dùng.
-                        
-                        Thông tin người dùng:
-                        - **Họ tên:** {userInfo.FullName}
-                        - **Email:** {userInfo.Email}
-                        - **Giới tính:** {userInfo.Gender}
-                        - **Tuổi:** {userInfo.Age}
-                        - **Chiều cao:** {height} cm
-                        - **Cân nặng:** {weight} kg
-                        - **Mức độ vận động:** {activityLevel}
-                        - **Mục tiêu:** {goalType} ({startDate} - {targetDate})
-                        - **Thành phần yêu thích:** {favoriteIngredientsFormatted} 
-                        - DietStyle: {dietStyle}
+                
+Thông tin người dùng:
+- **Họ tên:** {userInfo.FullName}
+- **Email:** {userInfo.Email}
+- **Giới tính:** {userInfo.Gender}
+- **Tuổi:** {userInfo.Age}
+- **Chiều cao:** {height} cm
+- **Cân nặng:** {weight} kg
+- **Mức độ vận động:** {activityLevel}
+- **Mục tiêu:** {goalType} ({startDate} - {targetDate})
+- **Thành phần yêu thích:** {favoriteIngredientsFormatted} 
+- **DietStyle:** {dietStyle}
 
-                        Yêu cầu cho Meal Plan:
-                        - **Thực đơn 7 ngày** với 3 bữa chính mỗi ngày (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có 1-2 món
-                        - Đảm bảo Meal Plan cung cấp đầy đủ các giá trị dinh dưỡng đã nêu trên và **cung cấp thực đơn sao cho tổng calories mỗi ngày gần bằng hoặc đạt yêu cầu**. Nếu tổng calories quá thấp (ví dụ: < {dailyCalories} kcal), hãy gợi ý thêm món ăn cho ngày hôm đó để đạt đúng mục tiêu dinh dưỡng (cả calories và các chất dinh dưỡng khác như carbs, fat, protein).
-                        - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
-                        - **Dị ứng thực phẩm:** {formattedAllergies}
-                        - **Bệnh lý cần lưu ý:** {formattedDiseases}                        
+Yêu cầu cho Meal Plan:
+- **Thực đơn 7 ngày** với 3 bữa chính mỗi ngày (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có 1-2 món.
+- Đảm bảo Meal Plan cung cấp đầy đủ các giá trị dinh dưỡng đã nêu trên và **cung cấp thực đơn sao cho tổng calories mỗi ngày gần bằng hoặc đạt yêu cầu**. Nếu tổng calories quá thấp (ví dụ: < {dailyCalories} kcal), hãy gợi ý thêm món ăn cho ngày hôm đó để đạt đúng mục tiêu dinh dưỡng (cả calories và các chất dinh dưỡng khác như carbs, fat, protein).
+- **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
+- **Dị ứng thực phẩm:** {formattedAllergies}
+- **Bệnh lý cần lưu ý:** {formattedDiseases}
 
-                        Giá trị dinh dưỡng mỗi ngày:
-                        - **Calories:** {dailyCalories}
-                        - **Carb:** {dailyCarb}
-                        - **Fat:** {dailyFat}
-                        - **Protein:** {dailyProtein}
+Giá trị dinh dưỡng mỗi ngày:
+- **Calories:** {dailyCalories}
+- **Carb:** {dailyCarb}
+- **Fat:** {dailyFat}
+- **Protein:** {dailyProtein}
 
-                        Lưu ý:
-                        - **Hãy trả theo kiểu dữ liệu json tôi đã gửi** : {jsonOutputSample}
-                        - Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
-                        - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
-                        - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}";
+Lưu ý:
+- **Hãy trả về theo kiểu dữ liệu JSON tôi đã gửi**: {jsonOutputSample}
+- Mức độ yêu thích của thực phẩm là -1(ghét), 0(bình thường), 1(thích).
+- Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
+- Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}";
+
+
 
             // Xử lý dữ liệu đầu vào và gửi yêu cầu tạo Meal Plan phù hợp
             var airesponse = await _aIGeneratorService.AIResponseJson(input, jsonOutputSample);
