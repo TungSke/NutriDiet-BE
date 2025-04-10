@@ -262,7 +262,7 @@ namespace NutriDiet.Service.Services
             PayOS _payOS = new PayOS(Environment.GetEnvironmentVariable("PAYOS_CLIENTID"), Environment.GetEnvironmentVariable("PAYOS_APIKEY"), Environment.GetEnvironmentVariable("PAYOS_CHECKSUMKEY"));
 
             long orderCode = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            PaymentData paymentData = new PaymentData(orderCode, Convert.ToInt32(package.Price.Value * 1000), "Thanh toan don hang", itemdata, cancelUrl, returnUrl, null, user.FullName, user.Email, user.Phone, "Không có", DateTimeOffset.Now.AddMinutes(5).ToUnixTimeSeconds());
+            PaymentData paymentData = new PaymentData(orderCode, Convert.ToInt32(package.Price.Value), "Thanh toan don hang", itemdata, cancelUrl, returnUrl, null, user.FullName, user.Email, user.Phone, "Không có", DateTimeOffset.Now.AddMinutes(5).ToUnixTimeSeconds());
 
             CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, createPayment.checkoutUrl);
