@@ -136,8 +136,9 @@ namespace NutriDiet.Service.Services
             if(percentage < 0)
             {
                 return;
-            }else if(percentage > 100)
+            }else if(percentage >= 100)
             {
+                existgoal.GoalType = GoalType.Maintain.ToString();
                 percentage = 100;
             }
             existgoal.ProgressPercentage = percentage;
