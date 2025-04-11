@@ -88,6 +88,7 @@ namespace NutriDiet.Service.Services
                     var today = DateTime.Today.Date;
                     var existingRecord = await _unitOfWork.HealthProfileRepository
                         .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.Value.Date == today)
+                        .OrderByDescending(hp => hp.CreatedAt)
                         .FirstOrDefaultAsync();
                     var oldestRecord = await _unitOfWork.HealthProfileRepository
                         .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.HasValue && hp.CreatedAt.Value.Date == today)
