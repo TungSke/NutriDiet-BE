@@ -115,10 +115,10 @@ namespace NutriDiet.Service.Services
                     {
                         foodExistedInMeal.Quantity += mealPlanDetailRequest.Quantity;
                         
-                        foodExistedInMeal.TotalCalories = foodExist.Calories * (foodExistedInMeal.Quantity ?? 1);
-                        foodExistedInMeal.TotalCarbs = foodExist.Carbs * (foodExistedInMeal.Quantity ?? 1);
-                        foodExistedInMeal.TotalFat = foodExist.Fat * (foodExistedInMeal.Quantity ?? 1);
-                        foodExistedInMeal.TotalProtein = foodExist.Protein * (foodExistedInMeal.Quantity ?? 1);
+                        //foodExistedInMeal.TotalCalories = foodExist.Calories * (foodExistedInMeal.Quantity ?? 1);
+                        //foodExistedInMeal.TotalCarbs = foodExist.Carbs * (foodExistedInMeal.Quantity ?? 1);
+                        //foodExistedInMeal.TotalFat = foodExist.Fat * (foodExistedInMeal.Quantity ?? 1);
+                        //foodExistedInMeal.TotalProtein = foodExist.Protein * (foodExistedInMeal.Quantity ?? 1);
 
                         await _unitOfWork.MealPlanDetailRepository.UpdateAsync(foodExistedInMeal);
                     }
@@ -127,10 +127,10 @@ namespace NutriDiet.Service.Services
                         var mealPlanDetail = mealPlanDetailRequest.Adapt<MealPlanDetail>();
                         mealPlanDetail.MealPlanId = mealPlan.MealPlanId;
                         mealPlanDetail.FoodName = foodExist.FoodName;
-                        mealPlanDetail.TotalCalories = (foodExist.Calories) * (mealPlanDetailRequest.Quantity ?? 1);
-                        mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (mealPlanDetailRequest.Quantity ?? 1);
-                        mealPlanDetail.TotalFat = (foodExist.Fat) * (mealPlanDetailRequest.Quantity ?? 1);
-                        mealPlanDetail.TotalProtein = (foodExist.Protein) * (mealPlanDetailRequest.Quantity ?? 1);
+                        //mealPlanDetail.TotalCalories = (foodExist.Calories) * (mealPlanDetailRequest.Quantity ?? 1);
+                        //mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (mealPlanDetailRequest.Quantity ?? 1);
+                        //mealPlanDetail.TotalFat = (foodExist.Fat) * (mealPlanDetailRequest.Quantity ?? 1);
+                        //mealPlanDetail.TotalProtein = (foodExist.Protein) * (mealPlanDetailRequest.Quantity ?? 1);
                 
                         await _unitOfWork.MealPlanDetailRepository.AddAsync(mealPlanDetail);
                     }
@@ -181,10 +181,10 @@ namespace NutriDiet.Service.Services
                     mealPlanDetail.Quantity = updateRequest.Quantity;
                     mealPlanDetail.MealType = updateRequest.MealType;
                     mealPlanDetail.DayNumber = updateRequest.DayNumber;
-                    mealPlanDetail.TotalCalories = (foodExist.Calories) * (updateRequest.Quantity ?? 1);
-                    mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (updateRequest.Quantity ?? 1);
-                    mealPlanDetail.TotalFat = (foodExist.Fat) * (updateRequest.Quantity ?? 1);
-                    mealPlanDetail.TotalProtein = (foodExist.Protein) * (updateRequest.Quantity ?? 1);
+                    //mealPlanDetail.TotalCalories = (foodExist.Calories) * (updateRequest.Quantity ?? 1);
+                    //mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (updateRequest.Quantity ?? 1);
+                    //mealPlanDetail.TotalFat = (foodExist.Fat) * (updateRequest.Quantity ?? 1);
+                    //mealPlanDetail.TotalProtein = (foodExist.Protein) * (updateRequest.Quantity ?? 1);
                 
                 await _unitOfWork.MealPlanDetailRepository.UpdateAsync(mealPlanDetail);
 

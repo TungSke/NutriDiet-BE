@@ -51,13 +51,13 @@ namespace NutriDiet.Service.Utilities
                     ImageUrl = imageUrl,
                     FoodType = null,
                     Description = $"Sản phẩm từ barcode {barcode}, nutrition grade: {nutritionGrade}",
-                    ServingSize = servingSize,
-                    Calories = calories,
-                    Protein = protein,
-                    Carbs = carbs,
-                    Fat = fat,
-                    Glucid = carbs,
-                    Fiber = fiber
+                    //ServingSize = servingSize,
+                    //Calories = calories,
+                    //Protein = protein,
+                    //Carbs = carbs,
+                    //Fat = fat,
+                    //Glucid = carbs,
+                    //Fiber = fiber
                 };
 
                 var foodResponse = food.Adapt<FoodResponse>();

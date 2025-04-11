@@ -17,19 +17,9 @@ public partial class Food
 
     public string? Description { get; set; }
 
-    public string? ServingSize { get; set; }
+    public int? ServingSizeId { get; set; }
 
-    public double? Calories { get; set; }
-
-    public double? Protein { get; set; }
-
-    public double? Carbs { get; set; }
-
-    public double? Fat { get; set; }
-
-    public double? Glucid { get; set; }
-
-    public double? Fiber { get; set; }
+    public virtual ICollection<FoodServingSize> FoodServingSizes { get; set; } = new List<FoodServingSize>();
 
     public virtual ICollection<FoodSubstitution> FoodSubstitutionOriginalFoods { get; set; } = new List<FoodSubstitution>();
 
@@ -40,6 +30,8 @@ public partial class Food
     public virtual ICollection<MealPlanDetail> MealPlanDetails { get; set; } = new List<MealPlanDetail>();
 
     public virtual ICollection<RecipeSuggestion> RecipeSuggestions { get; set; } = new List<RecipeSuggestion>();
+
+    public virtual ServingSize? ServingSize { get; set; }
 
     public virtual ICollection<UserFoodPreference> UserFoodPreferences { get; set; } = new List<UserFoodPreference>();
 

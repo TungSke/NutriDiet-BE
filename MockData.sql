@@ -35,9 +35,11 @@ DELETE FROM MealLogDetail;
 DELETE FROM MealLog;
 DELETE FROM PersonalGoal;
 
+DELETE FROM FoodServingSize;
+DELETE FROM Food;
+DELETE FROM ServingSize;
 DELETE FROM Disease;
 DELETE FROM Allergy;
-DELETE FROM Food;
 DELETE FROM Ingredient; -- Thêm xóa dữ liệu bảng Ingredient
 DELETE FROM Package;
 DELETE FROM [User];
@@ -540,113 +542,245 @@ VALUES
     (8, 73),  -- Thịt heo mỡ
     (8, 80),  -- Dầu oliu
     (8, 81);  -- Dầu ăn Tường An
+-- Xóa dữ liệu cũ trong các bảng liên quan để tránh xung đột khóa ngoại
+DELETE FROM MealPlanDetail;
+DELETE FROM FoodIngredient;
+DELETE FROM FoodServingSize;
+DELETE FROM Food;
+DELETE FROM ServingSize;
 
-SET IDENTITY_INSERT Food ON;
-INSERT INTO Food (FoodID, FoodName, MealType, FoodType, Description, ServingSize, Calories, Protein, Carbs, Fat, Glucid, Fiber, ImageUrl)
+-- Chèn dữ liệu vào bảng ServingSize
+-- Chèn dữ liệu vào bảng ServingSize
+SET IDENTITY_INSERT ServingSize ON;
+
+INSERT INTO ServingSize (ServingSizeID, UnitName, Description, CreatedAt, UpdatedAt)
 VALUES
-    (1, N'Phở bò', 'Main', 'Noodle', N'Phở truyền thống với thịt bò', N'1 tô', 450, 25, 50, 10, 5, 2,'https://fohlafood.vn/cdn/shop/articles/bi-quyet-nau-phi-bo-ngon-tuyet-dinh.jpg?v=1712213789'),
-    (2, N'Bánh mì thịt', 'Main', 'Bread', N'Bánh mì kẹp thịt, chả, rau sống', N'1 ổ', 350, 15, 40, 12, 3, 1,'https://cdn.tgdd.vn/2021/05/CookRecipe/Avatar/banh-mi-thit-bo-nuong-thumbnail-1.jpg'),
-    (3, N'Cơm tấm sườn', 'Main', 'Rice', N'Cơm tấm với sườn nướng', N'1 đĩa', 600, 30, 70, 20, 10, 3,'https://i.ytimg.com/vi/OVb5uoDWspM/maxresdefault.jpg'),
-    (4, N'Bún chả', 'Main', 'Noodle', N'Bún với thịt nướng và nước mắm', N'1 tô', 400, 20, 50, 15, 5, 2,'https://cdn.tgdd.vn/2022/01/CookDishThumb/huong-dan-cach-lam-bun-cha-ha-noi-thom-ngon-nhu-ngoai-hang-thumb-620x620.jpg'),
-    (5, N'Gỏi cuốn', 'Appetizer', 'Roll', N'Gỏi cuốn tôm thịt', N'1 cuốn', 100, 5, 10, 3, 1, 1,'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Summer_roll.jpg/800px-Summer_roll.jpg'),
-    (6, N'Bánh xèo', 'Main', 'Pancake', N'Bánh xèo nhân tôm thịt', N'1 cái', 300, 10, 30, 15, 5, 2,'https://i-giadinh.vnecdn.net/2023/09/19/Bc10Thnhphm11-1695107510-2493-1695107555.jpg'),
-    (7, N'Chả giò', 'Appetizer', 'Fried', N'Chả giò chiên giòn', N'1 cái', 150, 5, 10, 8, 2, 1,'https://assets.unileversolutions.com/recipes-v2/157768.jpg'),
-    (8, N'Canh chua cá lóc', 'Soup', 'Soup', N'Canh chua với cá lóc', N'1 tô', 200, 15, 10, 5, 2, 1,'https://i-giadinh.vnecdn.net/2023/04/25/Thanh-pham-1-1-7239-1682395675.jpg'),
-    (9, N'Bún riêu', 'Main', 'Noodle', N'Bún riêu cua', N'1 tô', 350, 20, 40, 10, 5, 2,'https://cdn.tgdd.vn/2020/08/CookProduct/Untitled-1-1200x676-10.jpg'),
-    (10, N'Cá kho tộ', 'Main', 'Fish', N'Cá kho tộ với nước dừa', N'1 đĩa', 400, 25, 10, 20, 5, 1,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEEM3RpIcckZXR_XrXEuyOqZhEXJrFzxg_kQ&s'),
-    (11, N'Bánh cuốn', 'Main', 'Roll', N'Bánh cuốn nhân thịt', N'1 đĩa', 300, 10, 40, 8, 3, 2,'https://upload.wikimedia.org/wikipedia/commons/a/a7/Banh_cuon.jpg'),
-    (12, N'Chè đậu đen', 'Dessert', 'Dessert', N'Chè đậu đen nước cốt dừa', N'1 chén', 200, 5, 30, 5, 2, 3,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZRmTbQ0DL6ZVKhlFJvsieDnVKDgT4dPoj2g&s'),
-    (13, N'Bánh bèo', 'Snack', 'Cake', N'Bánh bèo nhân tôm', N'1 đĩa', 250, 8, 30, 10, 3, 1,'https://upload.wikimedia.org/wikipedia/commons/d/d3/B%C3%A1nh_b%C3%A8o.jpg'),
-    (14, N'Bánh ướt', 'Snack', 'Roll', N'Bánh ướt cuốn thịt', N'1 đĩa', 200, 10, 25, 5, 2, 1,'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Typical_serving_of_B%C3%A1nh_%C6%B0%E1%BB%9Bt.jpg/1200px-Typical_serving_of_B%C3%A1nh_%C6%B0%E1%BB%9Bt.jpg'),
-    (15, N'Bánh canh cua', 'Main', 'Noodle', N'Bánh canh với cua', N'1 tô', 400, 20, 40, 15, 5, 2,'https://cdn.tgdd.vn/2021/05/CookProduct/thumbcmscn-1200x676-4.jpg'),
-    (16, N'Bánh tét', 'Main', 'Rice', N'Bánh tét nhân đậu xanh', N'1 lát', 300, 10, 40, 10, 5, 2,'https://file.hstatic.net/200000868155/file/1489-post-cach-goi-banh-tet-truyen-thong-nam-bo-dep-don-gian-1.jpg'),
-    (17, N'Bánh chưng', 'Main', 'Rice', N'Bánh chưng truyền thống', N'1 miếng', 350, 15, 45, 12, 5, 3,'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Banh_chung_vuong.jpg/1200px-Banh_chung_vuong.jpg'),
-    (18, N'Bánh đúc', 'Snack', 'Cake', N'Bánh đúc nóng', N'1 đĩa', 150, 5, 20, 5, 2, 1,'https://i-giadinh.vnecdn.net/2024/11/02/Bc7Thnhphm17-1730530097-3638-1730530219.jpg'),
-    (19, N'Bánh khọt', 'Snack', 'Cake', N'Bánh khọt nhân tôm', N'1 đĩa', 200, 10, 20, 10, 3, 1,'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/B%C3%A1nh_kh%E1%BB%8Dt_tr%C3%AAn_khu%C3%B4n.jpg/240px-B%C3%A1nh_kh%E1%BB%8Dt_tr%C3%AAn_khu%C3%B4n.jpg'),
-    (20, N'Bánh tráng trộn', 'Snack', 'Snack', N'Bánh tráng trộn đặc biệt', N'1 đĩa', 250, 5, 30, 10, 3, 2,'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Mixed_rice_paper.jpg/1200px-Mixed_rice_paper.jpg'),
-    (21, N'Salad ức gà', 'Main', 'Salad', N'Salad với ức gà, rau xanh và sốt chanh leo', N'1 dĩa', 300, 35, 20, 8, 5, 4,'https://cdn.tgdd.vn/2021/10/CookRecipe/GalleryStep/thanh-pham-975.jpg'),
-    (22, N'Cháo yến mạch', 'Breakfast', 'Porridge', N'Cháo yến mạch với chuối và hạt chia', N'1 chén', 250, 8, 40, 6, 2, 6,'https://cdn.tgdd.vn/Files/2018/11/25/1133505/yen-mach-la-gi-cach-nau-chao-yen-mach-bo-duong-ngon-ngat-ngay-10.jpg'),
-    (23, N'Smoothie bơ chuối', 'Snack', 'Smoothie', N'Sinh tố bơ chuối giàu chất xơ và chất béo lành mạnh', N'1 ly', 220, 5, 30, 10, 5, 5,'https://cdn.tgdd.vn/Files/2019/04/22/1162314/dang-xinh-da-dep-voi-sinh-to-bo-chuoi-thom-ngon-202201071430267959.jpg'),
-    (24, N'Cá hồi áp chảo', 'Main', 'Fish', N'Cá hồi áp chảo với bông cải xanh', N'1 phần', 400, 40, 10, 20, 2, 3,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWX07IGQspfz6npRQhw-rjgBpCBPyf9alEzA&s'),
-    (25, N'Súp lơ hấp', 'Side', 'Vegetable', N'Súp lơ hấp với dầu oliu và hạt lanh', N'1 dĩa', 180, 5, 20, 10, 3, 5,'https://giadinh.mediacdn.vn/2021/1/7/hap-rau-16099992712071268362112.jpg'),
-    (26, N'Bánh pancake chuối yến mạch', 'Breakfast', 'Cake', N'Bánh pancake từ chuối và yến mạch', N'1 cái', 200, 6, 30, 5, 3, 4,'https://cdn.tgdd.vn/Files/2021/09/28/1386199/huong-dan-lam-banh-pancake-chuoi-yen-mach-thom-ngon-day-dinh-duong-202202211133148108.jpg'),
-    (27, N'Trà gừng mật ong', 'Drink', 'Tea', N'Trà gừng mật ong giúp tăng cường miễn dịch', N'1 ly', 100, 0, 25, 0, 5, 1,'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Ginger_tea.jpg/1200px-Ginger_tea.jpg'),
-    (28, N'Xôi gạo lứt', 'Main', 'Rice', N'Xôi gạo lứt ăn kèm đậu phộng và mè đen', N'1 chén', 320, 8, 55, 7, 5, 6,'https://cdn.tgdd.vn/Files/2018/12/28/1141156/cach-nau-xoi-nep-cam-bang-noi-com-dien-don-gian-ma-thom-ngon-tai-nha-10-760x367.jpg'),
-    (29, N'Súp bí đỏ', 'Soup', 'Soup', N'Súp bí đỏ với sữa hạnh nhân', N'1 chén', 230, 6, 35, 8, 5, 4,'https://cdn.tgdd.vn/Files/2021/09/10/1381722/huong-dan-lam-sup-bi-do-tai-nha-ngon-nhu-nha-hang-202208311606274453.jpg'),
-    (30, N'Salad cá ngừ', 'Main', 'Salad', N'Salad cá ngừ với rau xanh và sốt dầu giấm', N'1 dĩa', 350, 40, 15, 10, 4, 5,'https://cdn.tgdd.vn/2020/07/CookProductThumb/Untitled-1-620x620-364.jpg'),
-	(31, N'Lẩu gà lá é', 'Main', 'Hotpot', N'Lẩu gà nấu với lá é, đặc sản Đà Lạt', N'1 nồi', 600, 40, 50, 20, 5, 3, 'https://cdn.tgdd.vn/2021/05/CookRecipe/GalleryStep/thanh-pham-248.jpg'),
-    (32, N'Lẩu thái hải sản', 'Main', 'Hotpot', N'Lẩu chua cay với tôm, mực, nghêu', N'1 nồi', 700, 50, 60, 25, 8, 4, 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Hotpot.jpg/640px-Hotpot.jpg'),
-    (33, N'Lẩu bò nhúng giấm', 'Main', 'Hotpot', N'Lẩu bò nhúng giấm chấm mắm nêm', N'1 nồi', 750, 60, 40, 30, 5, 3, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1R-koXWIGx2boTVLFJpN7RMvDVHalEP4Beg&s'),
-    (34, N'Bún bò Huế', 'Main', 'Noodle', N'Bún bò đặc sản Huế với chân giò, chả cua', N'1 tô', 480, 30, 55, 12, 6, 2, 'https://upload.wikimedia.org/wikipedia/commons/0/00/Bun-Bo-Hue-from-Huong-Giang-2011.jpg'),
-    (35, N'Hủ tiếu Nam Vang', 'Main', 'Noodle', N'Hủ tiếu Nam Vang với tôm, thịt bằm, trứng cút', N'1 tô', 450, 28, 50, 10, 5, 2, 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/H%E1%BB%A7_ti%E1%BA%BFu_Nam_Vang.jpg/1280px-H%E1%BB%A7_ti%E1%BA%BFu_Nam_Vang.jpg'),
-    (36, N'Bánh đúc mặn', 'Snack', 'Cake', N'Bánh đúc mặn ăn kèm nước mắm và đậu phộng', N'1 dĩa', 250, 8, 30, 8, 3, 1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Banhduc-northern.jpg/640px-Banhduc-northern.jpg'),
-    (37, N'Mì Quảng', 'Main', 'Noodle', N'Mì Quảng đặc sản Quảng Nam với tôm, thịt, trứng', N'1 tô', 500, 35, 55, 15, 5, 3, 'https://upload.wikimedia.org/wikipedia/commons/d/df/Mi_Quang_1A_Danang.jpg'),
-    (38, N'Bánh giò', 'Snack', 'Cake', N'Bánh giò nhân thịt, nấm mèo', N'1 cái', 320, 12, 40, 10, 5, 2, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnLGO2_Vb49AUNjOLXV_UZOcYd_M_KQMDPIQ&s'),
-    (39, N'Xôi xéo', 'Breakfast', 'Rice', N'Xôi xéo với đậu xanh, hành phi, mỡ gà', N'1 chén', 350, 10, 50, 12, 5, 3, 'https://upload.wikimedia.org/wikipedia/commons/f/f9/X%C3%B4i_x%C3%A9o.jpg'),
-    (40, N'Cá nướng', 'Main', 'Fish', N'Cá nướng với gia vị thơm ngon', N'1 phần', 400, 35, 10, 20, 5, 3, 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Gurame_bakar_kecap_2.JPG'),
-    (41, N'Ốc hương xào bơ tỏi', 'Snack', 'Seafood', N'Ốc hương xào bơ tỏi thơm béo', N'1 dĩa', 380, 25, 15, 18, 4, 2, 'https://cdn.tgdd.vn/Files/2021/08/25/1377750/cach-lam-oc-huong-xao-bo-toi-thom-ngon-don-gian-tai-nha-202108251415105438.jpg'),
-    (42, N'Bánh bột lọc', 'Snack', 'Cake', N'Bánh bột lọc nhân tôm thịt', N'1 đĩa', 270, 8, 35, 8, 3, 1, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTk8g6FBCxXxRjs3IZe-r6JIz03ewWQivoDgQ&s'),
-    (43, N'Cơm gà', 'Main', 'Rice', N'Cơm gà', N'1 dĩa', 450, 35, 50, 12, 5, 2, 'https://upload.wikimedia.org/wikipedia/commons/3/39/Arroz-con-Pollo.jpg'),
-    (44, N'Chè bắp', 'Dessert', 'Dessert', N'Chè bắp nước cốt dừa thơm ngon', N'1 chén', 200, 5, 35, 5, 5, 3, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5Qqi9lImimEMclmIFQtgRAt2yTIeufoULXA&s'),
-    (45, N'Gỏi bò bóp thấu', 'Appetizer', 'Salad', N'Gỏi bò bóp thấu chua ngọt hấp dẫn', N'1 dĩa', 320, 30, 15, 12, 5, 3, 'https://upload.wikimedia.org/wikipedia/commons/9/9f/G%E1%BB%8Fi_%C4%91u_%C4%91%E1%BB%A7_kh%C3%B4_b%C3%B2.jpg'),
-    (46, N'Tiết canh vịt', 'Appetizer', 'Soup', N'Tiết canh vịt - món ăn truyền thống', N'1 chén', 250, 20, 5, 8, 3, 2, 'https://upload.wikimedia.org/wikipedia/commons/f/fd/Tiet.jpg'),
-    (47, N'Lòng xào dưa', 'Main', 'Meat', N'Lòng non xào dưa chua', N'1 đĩa', 400, 30, 10, 20, 4, 2, 'https://cdn.tgdd.vn/2020/07/CookProduct/Screenshot_7-1200x676.jpg'),
-    (48, N'Dê tái chanh', 'Main', 'Meat', N'Dê tái chanh chấm tương gừng', N'1 dĩa', 380, 40, 10, 15, 4, 2, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/T%C3%A1i_d%C3%AA.jpg/300px-T%C3%A1i_d%C3%AA.jpg'),
-    (49, N'Bánh khoai mì nướng', 'Dessert', 'Cake', N'Bánh khoai mì nướng béo thơm, ăn kèm nước cốt dừa', N'1 miếng', 280, 3, 40, 12, 5, 2, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRONh1-lqvwZ1RqJazYGCSbBI1YExkD2XEodQ&s'),
-    (50, N'Gỏi ngó sen tôm thịt', 'Appetizer', 'Salad', N'Gỏi ngó sen tôm thịt chua ngọt, ăn kèm bánh phồng tôm', N'1 đĩa', 220, 15, 20, 8, 4, 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Ph%E1%BB%93ng_t%C3%B4m.jpg/640px-Ph%E1%BB%93ng_t%C3%B4m.jpg'),
-	(51, N'Thịt bò xào hành tây', 'Lunch', 'Main Course', N'Thịt bò xào với hành tây', N'1 đĩa', 132, 11.8, 5.8, 6.9, 5.03, 0.77, 'https://daotaobeptruong.vn/wp-content/uploads/2019/12/thit-bo-xao-hanh-tay.jpg'),
-    (52, N'Bầu xào trứng', 'Lunch', 'Main Course', N'Bầu xào với trứng gà', N'1 đĩa', 109, 4, 4, 8.5, 7.2, 1.3, 'https://img-global.cpcdn.com/recipes/8a8df44ab98f2162/400x400cq70/photo.jpg'),
-    (53, N'Cá hú kho', 'Lunch', 'Seafood', N'Cá hú kho với nước mắm', N'1 đĩa', 109, 4, 8.5, 4, 7.2, 1.3, 'https://homestory.com.vn/wp-content/uploads/2023/06/ca-hu-kho-tieu-dam-da-hao-com.jpg'),
-    (54, N'Cá lóc chiên', 'Lunch', 'Fish', N'Cá lóc chiên giòn', N'1 lát', 169, 14.9, 12.2, 0, 12.2, 0, 'https://khaihoanphuquoc.com.vn/wp-content/uploads/2023/11/kho%CC%82-ca%CC%81-lo%CC%81c-kho-tho%CC%9Bm.jpg'),
-    (55, N'Canh bắp cải', 'Lunch', 'Soup', N'Canh bắp cải nấu đơn giản', N'1 chén', 37, 1.8, 2.8, 2.1, 1.98, 0.82, 'https://cdn.tgdd.vn/2021/04/CookRecipe/GalleryStep/7f05d5e84b27b979e036.jpg'),
-    (56, N'Canh bầu', 'Lunch', 'Soup', N'Canh bầu nấu với tôm', N'1 chén', 30, 1.2, 1.5, 2.1, 0.98, 0.52, 'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2023/5/22/canh-hen-nau-bau-816769-1684773425707149599131.jpg'),
-    (57, N'Canh bí đao', 'Lunch', 'Soup', N'Canh bí đao thanh mát', N'1 chén', 29, 1.2, 1.3, 2.1, 0.78, 0.52, 'https://cdn.tgdd.vn/2021/05/CookRecipe/GalleryStep/thanh-pham-761.jpg'),
-    (58, N'Canh cải ngọt', 'Lunch', 'Soup', N'Canh cải ngọt bổ dưỡng', N'1 chén', 30, 1.7, 1.1, 2.1, 0.2, 0.9, 'https://cdn.tgdd.vn/2021/04/CookProduct/caingotthitbamthumb-1200x676-1200x676.jpg'),
-    (59, N'Đậu hũ dồn thịt', 'Lunch', 'Main Course', N'Đậu hũ nhồi thịt heo', N'1 miếng lớn', 328, 18.7, 5.3, 25.8, 4.72, 0.58, 'https://cdn-i.vtcnews.vn/resize/th/upload/2024/11/17/dau-hu-3-22133709.jpg'),
-    (60, N'Gà kho gừng', 'Lunch', 'Poultry', N'Gà kho với gừng thơm lừng', N'1 đĩa', 301, 21.9, 10.3, 19.1, 9.39, 0.91, 'https://www.cet.edu.vn/wp-content/uploads/2021/03/ga-kho-gung-nghe-vua-thom-ngon.jpg'),
-    (61, N'Gà xào sả ớt', 'Lunch', 'Poultry', N'Gà xào sả ớt cay nồng', N'1 đĩa', 272, 20.4, 4.7, 19.1, 4.7, 0, 'https://beptruong.edu.vn/wp-content/uploads/2013/01/ga-xao-sa-ot.jpg'),
-    (62, N'Gan heo xào', 'Lunch', 'Poultry', N'Gan heo xào hành tây', N'1 đĩa', 200, 24.8, 3.4, 9.7, 3.25, 0.15, 'https://cdn.tgdd.vn/2021/04/CookProduct/GANHEOXAOTOImemngotbeobeo-monngondelam5-44screenshot-1200x676.jpg'),
-    (63, N'Thịt heo quay', 'Lunch', 'Meat', N'Thịt heo quay giòn da', N'1 đĩa', 250, 7, 23.7, 14.1, 22.32, 1.38, 'https://cdn.tgdd.vn/Files/2021/08/03/1372804/bi-quyet-che-bien-thit-heo-quay-chao-gion-tan-khong-bi-vang-dau-202108040638158166.jpg'),
-    (64, N'Thịt bò xào đậu que', 'Lunch', 'Meat', N'Thịt bò xào đậu que giòn', N'1 đĩa', 195, 16.8, 16.6, 6.9, 15.35, 1.25, 'https://cdn.tgdd.vn/2021/07/CookProduct/thumct1-1200x676.jpg'),
-    (65, N'Thịt bò xào nấm rơm', 'Lunch', 'Meat', N'Thịt bò xào nấm rơm thơm', N'1 đĩa', 152, 13.5, 2.9, 9.6, 1.98, 0.92, 'https://anhhoangthy.com/wp-content/uploads/2024/06/cach-lam-thit-bo-xao-nam-3.jpeg'),
-    (66, N'Thịt heo xào giá hẹ', 'Lunch', 'Meat', N'Thịt heo xào giá và hẹ', N'1 đĩa', 188, 19.3, 4.8, 10.2, 2.93, 1.87, 'https://cdn3.ivivu.com/2020/12/gia-do-xao-thit-ivivu-1.jpg'),
-    (67, N'Thịt heo kho tiêu', 'Lunch', 'Meat', N'Thịt heo kho với hạt tiêu', N'1 đĩa', 200, 21.2, 11.5, 7.6, 11.33, 0.17, 'https://cdn.tgdd.vn/2021/01/CookProduct/Thitkhotieu-1200x676.jpg'),
-    (68, N'Thịt kho trứng', 'Lunch', 'Meat', N'Thịt heo kho với trứng gà', N'1 trứng+2 miếng thịt', 315, 19.8, 7.5, 22.9, 7.5, 0, 'https://cdn.tgdd.vn/Files/2017/03/28/965845/cach-lam-thit-kho-trung-thom-ngon-dam-da-bat-com-tai-nha-202202261110487084.jpg'),
-    (69, N'Bún thịt nướng', 'Breakfast', 'Noodle', N'Bún với thịt nướng thơm', N'1 tô', 451, 14.7, 67.3, 13.7, 63.34, 3.96, 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Bun_thit_nuong.jpg/1200px-Bun_thit_nuong.jpg'),
-    (70, N'Bún riêu cua', 'Breakfast', 'Noodle', N'Bún riêu cua truyền thống', N'1 tô', 414, 17.8, 58, 12.2, 55.24, 2.76, 'https://cdn.tgdd.vn/2020/08/CookProduct/Untitled-1-1200x676-10.jpg'),
-    (71, N'Đậu hủ chiên sả', 'Lunch', 'Main Course', N'Đậu hủ chiên với sả', N'1 miếng', 148, 11.6, 0.7, 11, 0.3, 0.4, 'https://i.ytimg.com/vi/cv2CfQjZoVY/sddefault.jpg'),
-    (72, N'Đậu hủ sốt cà', 'Lunch', 'Main Course', N'Đậu hủ sốt cà chua', N'1 đĩa', 239, 18.1, 11, 13.6, 9.56, 1.44, 'https://cdn.tgdd.vn/2021/05/CookRecipe/GalleryStep/thanh-pham-1052.jpg'),
-    (73, N'Hủ tiếu bò kho', 'Breakfast', 'Noodle', N'Hủ tiếu với bò kho', N'1 tô', 410, 17, 55.4, 13.4, 52.2, 3.2, 'https://tiki.vn/blog/wp-content/uploads/2023/04/hu-tieu-bo-kho-3.jpg'),
-    (74, N'Bánh canh thịt heo', 'Breakfast', 'Noodle', N'Bánh canh với thịt heo', N'1 tô', 322, 12.8, 48.5, 8.5, 47.5, 1, 'https://cdn3.ivivu.com/2021/05/banh-canh-thit-bam-ivivu-1.jpg'),
-    (75, N'Bánh canh giò heo', 'Breakfast', 'Noodle', N'Bánh canh với giò heo', N'1 tô', 483, 19, 48.6, 23.6, 47.59, 1.01, 'https://daynauan.info.vn/wp-content/uploads/2019/05/banh-canh-gio-heo.jpg'),
-    (76, N'Miến gà', 'Breakfast', 'Noodle', N'Miến nấu với thịt gà', N'1 tô', 635, 17.8, 100.2, 18.1, 93.8, 6.4, 'https://daynauan.info.vn/wp-content/uploads/2020/04/mien-ga-la-mon-an-dan-da.jpg'),
-    (77, N'Bánh bao nhân thịt', 'Breakfast', 'Bread', N'Bánh bao nhân thịt heo', N'1 cái', 328, 16.1, 48.1, 7.9, 47.2, 0.9, 'https://thophat.com/wp-content/uploads/2022/03/BB-Thit-Heo-1.jpg'),
-    (78, N'Bánh cuốn chả thịt', 'Breakfast', 'Rice', N'Bánh cuốn với chả và thịt', N'1 đĩa', 590, 25.7, 64.3, 25.6, 62.77, 1.53, 'https://file.hstatic.net/200000667673/file/045b2aae-3699-4ce7-afec-9f0087c89f62_50c07454f52d4e97bfcf710638ce5b31_grande.jpeg'),
-    (79, N'Bắp luộc', 'Dinner', 'Grain', N'Bắp luộc nguyên trái', N'1 trái', 192, 4.5, 37.8, 2.5, 36.42, 1.38, 'https://cdn.tgdd.vn/2022/04/CookDishThumb/3-cach-luoc-bap-nhanh-mem-ngon-ngot-sieu-don-gian-ai-cung-lam-thumb-620x620.jpeg'),
-    (80, N'Khoai lang luộc', 'Dinner', 'Grain', N'Khoai lang luộc bổ dưỡng', N'1 củ', 131, 0.3, 30.6, 0.3, 29.7, 0.9, 'https://images2.thanhnien.vn/528068263637045248/2023/11/30/sk291103-anh1-17013387164901983869702.jpg'),
-    (81, N'Xôi bắp', 'Breakfast', 'Rice', N'Xôi nấu với bắp', N'1 gói', 313, 8.2, 51.3, 8.3, 49.75, 1.55, 'https://i.ytimg.com/vi/uS-FBhXhemE/maxresdefault.jpg'),
-    (82, N'Hủ tiếu thịt heo', 'Breakfast', 'Noodle', N'Hủ tiếu với thịt heo', N'1 tô', 361, 14.4, 47.8, 12.5, 46.57, 1.23, 'https://i.ytimg.com/vi/E2bG25UOySg/sddefault.jpg'),
-    (83, N'Canh bún', 'Breakfast', 'Noodle', N'Canh bún truyền thống', N'1 tô', 296, 13.6, 44.6, 6.9, 43.05, 1.55, 'https://cdn.tgdd.vn/Files/2019/10/16/1209065/cach-nau-canh-bun-chuan-vi-an-la-ghien-201910160754243097.jpg'),
-    (84, N'Bánh canh thịt gà', 'Breakfast', 'Noodle', N'Bánh canh với thịt gà', N'1 tô', 346, 12.8, 48.5, 11.1, 47.5, 1, 'https://cdn.tgdd.vn/Files/2020/12/19/1314847/cach-nau-banh-canh-ga-ngon-mieng-thit-ngot-da-gion-ca-nha-thich-me-202012191421273526.jpg'),
-    (85, N'Sườn ram', 'Dinner', 'Meat', N'Sườn heo ram mặn ngọt', N'1 miếng', 264, 8.3, 46.7, 5.8, 46.51, 0.19, 'https://i.ytimg.com/vi/UlnY2tlt5rE/maxresdefault.jpg'),
-    (86, N'Cơm chiên dương châu', 'Lunch', 'Rice', N'Cơm chiên với trứng và rau củ', N'1 đĩa', 530, 14.9, 92.7, 11.3, 91.14, 1.56, 'https://www.cet.edu.vn/wp-content/uploads/2018/03/com-chien-duong-chau.jpg'),
-    (87, N'Bún xào', 'Breakfast', 'Noodle', N'Bún xào với thịt và rau', N'1 đĩa', 570, 23.4, 56, 28, 53.83, 2.17, 'https://cdn.tgdd.vn/2021/04/CookProduct/2cachlambunxaoraucai-1200x676.jpg'),
-    (88, N'Thịt heo xào đậu que', 'Lunch', 'Main Course', N'Thịt heo xào đậu que giòn', N'1 đĩa', 240, 20.5, 16.6, 10.2, 15.35, 1.25, 'https://cdn.tgdd.vn/Files/2019/06/15/1173363/cach-lam-dau-que-xao-thit-heo-gion-ngon-8_800x450.jpg'),
-    (89, N'Thịt bò xào măng', 'Lunch', 'Main Course', N'Thịt bò xào măng tươi', N'1 đĩa', 104, 10.5, 0, 6.9, 0, 0, 'https://img-global.cpcdn.com/recipes/nvmgfm5opnwl1hqdgnda/400x400cq70/photo.jpg'),
-    (90, N'Thịt bò xào giá hẹ', 'Lunch', 'Main Course', N'Thịt bò xào giá và hẹ', N'1 đĩa', 143, 15.6, 4.8, 6.9, 2.93, 1.87, 'https://img-global.cpcdn.com/recipes/2bbec9a18fc6657b/680x482cq70/th%E1%BB%8Bt-bo-xao-gia-h%E1%BA%B9-recipe-main-photo.jpg'),
-    (91, N'Chả lụa kho', 'Lunch', 'Meat', N'Chả lụa kho với nước mắm', N'1 khoanh', 102, 11.7, 3.5, 4.6, 3.49, 0.01, 'https://cdn.tgdd.vn/2020/11/CookRecipe/GalleryStep/thanh-pham-690.jpg'),
-    (92, N'Cá lóc kho', 'Lunch', 'Seafood', N'Cá lóc kho tộ', N'1 lát', 131, 15.7, 8.7, 3.8, 8.66, 0.04, 'https://cdn.tgdd.vn/Files/2019/09/02/1194292/cach-lam-ca-loc-kho-to-ngon-com-chuan-vi-mien-nam-202201041313092690.jpg'),
-    (93, N'Bún riêu ốc', 'Breakfast', 'Soup', N'Bún riêu với ốc', N'1 tô', 531, 28.4, 65.5, 17.2, 62.77, 2.73, 'https://cdn.tgdd.vn/2021/04/CookProduct/thum-1200x676-25.jpg'),
-    (94, N'Chả giò tôm thịt', 'Snack', 'Wrap', N'Chả giò nhân tôm và thịt', N'3 cuốn', 300, 12, 25, 18, 23, 2, 'https://cdn.tgdd.vn/Files/2020/01/16/1231776/cach-lam-cha-gio-tom-gion-rum-an-hoai-khong-chan-202110261450249960.jpg'),
-    (95, N'Gỏi bắp chuối', 'Lunch', 'Salad', N'Gỏi bắp chuối trộn tôm', N'1 đĩa', 180, 8, 20, 6, 17, 3, 'https://img-global.cpcdn.com/recipes/0c74d70196aac354/1200x630cq70/photo.jpg'),
-    (96, N'Rau muống luộc', 'Dinner', 'Main Course', N'Rau muống luộc chấm mắm', N'1 đĩa', 60, 3, 10, 1, 8, 2, 'https://i-giadinh.vnecdn.net/2024/05/30/Buoc-4-Anh-dai-dien-4-3836-1717053570.jpg'),
-    (97, N'Canh mồng tơi tôm', 'Dinner', 'Soup', N'Canh mồng tơi nấu tôm', N'1 chén', 80, 6, 5, 3, 4, 1, 'https://cdn.tgdd.vn/2021/01/CookProduct/Untitled-1-1200x676-1.jpg'),
-    (98, N'Cá thu chiên nước mắm', 'Dinner', 'Fish', N'Cá thu chiên với nước mắm', N'1 miếng', 280, 22, 5, 20, 5, 0, 'https://cdn.tgdd.vn/Files/2020/05/24/1257970/2-cach-lam-ca-thu-chien-nuoc-mam-va-chien-gion-tho-760x367.png'),
-	(99, N'Thịt gà nướng mật ong', 'Dinner', 'Poultry', N'Gà nướng ướp mật ong', N'1 đĩa', 320, 25, 10, 18, 10, 0, 'https://www.cet.edu.vn/wp-content/uploads/2018/03/ga-nuong-mat-ong.jpg'),
-	(100, N'Bánh mì xíu mại', 'Breakfast', 'Bread', N'Bánh mì xíu mại đầy đủ', N'1 ổ', 400, 15, 50, 18, 48, 2, 'https://cdn.tgdd.vn/2021/09/CookDish/cach-lam-banh-mi-xiu-mai-trung-muoi-sieu-ngon-hap-dan-cho-bua-avt-1200x676-1.jpg'),
-	(101, N'Cơm trắng', 'Main', 'Rice', N'Cơm trắng', N'1 chén', 130, 2.7, 28.2, 0.3, 0.05, 0.4, 'https://cdn.nhathuoclongchau.com.vn/unsafe/800x0/https://cms-prod.s3-sgn09.fptcloud.com/4_tac_dung_bat_ngo_tu_viec_an_com_gao_trang_1_235f8a42fd.png');
+    (1, N'tô', N'Một tô, thường dùng cho các món nước như phở, bún (tiêu chuẩn 500ml)', GETDATE(), GETDATE()),
+    (2, N'ổ', N'Một ổ bánh mì (tiêu chuẩn 150g)', GETDATE(), GETDATE()),
+    (3, N'đĩa', N'Một đĩa, thường dùng cho món cơm, salad hoặc món xào (tiêu chuẩn 300g)', GETDATE(), GETDATE()),
+    (4, N'cuốn', N'Một cuốn, thường dùng cho gỏi cuốn, chả giò (tiêu chuẩn 80g)', GETDATE(), GETDATE()),
+    (5, N'cái', N'Một cái, thường dùng cho bánh hoặc món ăn đơn lẻ (tiêu chuẩn 100g)', GETDATE(), GETDATE()),
+    (6, N'chén', N'Một chén nhỏ, thường dùng cho chè, súp hoặc cơm (tiêu chuẩn 200ml)', GETDATE(), GETDATE()),
+    (7, N'phần', N'Một phần ăn, thường dùng cho món cá hoặc thịt (tiêu chuẩn 150g)', GETDATE(), GETDATE()),
+    (8, N'ly', N'Một ly, thường dùng cho đồ uống như sinh tố, trà (tiêu chuẩn 300ml)', GETDATE(), GETDATE()),
+    (9, N'nồi', N'Một nồi, thường dùng cho món lẩu (tiêu chuẩn cho 4 người)', GETDATE(), GETDATE()),
+    (10, N'miếng', N'Một miếng, dùng cho bánh, thịt, cá (tiêu chuẩn 50g)', GETDATE(), GETDATE());
+
+SET IDENTITY_INSERT ServingSize OFF;
+
+-- Chèn dữ liệu vào bảng Food
+SET IDENTITY_INSERT Food ON;
+
+INSERT INTO Food (FoodID, FoodName, MealType, FoodType, Description, ServingSizeID, ImageUrl)
+VALUES
+    (1, N'Phở bò', N'Main', N'Noodle', N'Phở truyền thống với thịt bò', 1, 'https://fohlafood.vn/cdn/shop/articles/bi-quyet-nau-phi-bo-ngon-tuyet-dinh.jpg?v=1712213789'),
+    (2, N'Bánh mì thịt', N'Main', N'Bread', N'Bánh mì kẹp thịt, chả, rau sống', 2, 'https://cdn.tgdd.vn/2021/05/CookRecipe/Avatar/banh-mi-thit-bo-nuong-thumbnail-1.jpg'),
+    (3, N'Cơm tấm sườn', N'Main', N'Rice', N'Cơm tấm với sườn nướng', 3, 'https://i.ytimg.com/vi/OVb5uoDWspM/maxresdefault.jpg'),
+    (4, N'Bún chả', N'Main', N'Noodle', N'Bún với thịt nướng và nước mắm', 1, 'https://cdn.tgdd.vn/2022/01/CookDishThumb/huong-dan-cach-lam-bun-cha-ha-noi-thom-ngon-nhu-ngoai-hang-thumb-620x620.jpg'),
+    (5, N'Gỏi cuốn', N'Appetizer', N'Roll', N'Gỏi cuốn tôm thịt', 4, 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Summer_roll.jpg/800px-Summer_roll.jpg'),
+    (6, N'Bánh xèo', N'Main', N'Pancake', N'Bánh xèo nhân tôm thịt', 5, 'https://i-giadinh.vnecdn.net/2023/09/19/Bc10Thnhphm11-1695107510-2493-1695107555.jpg'),
+    (7, N'Chả giò', N'Appetizer', N'Fried', N'Chả giò chiên giòn', 4, 'https://assets.unileversolutions.com/recipes-v2/157768.jpg'),
+    (8, N'Canh chua cá lóc', N'Soup', N'Soup', N'Canh chua với cá lóc', 1, 'https://i-giadinh.vnecdn.net/2023/04/25/Thanh-pham-1-1-7239-1682395675.jpg'),
+    (9, N'Bún riêu', N'Main', N'Noodle', N'Bún riêu cua', 1, 'https://cdn.tgdd.vn/2020/08/CookProduct/Untitled-1-1200x676-10.jpg'),
+    (10, N'Cá kho tộ', N'Main', N'Fish', N'Cá kho tộ với nước dừa', 3, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEEM3RpIcckZXR_XrXEuyOqZhEXJrFzxg_kQ&s'),
+    (11, N'Bánh cuốn', N'Main', N'Roll', N'Bánh cuốn nhân thịt', 3, 'https://upload.wikimedia.org/wikipedia/commons/a/a7/Banh_cuon.jpg'),
+    (12, N'Chè đậu đen', N'Dessert', N'Dessert', N'Chè đậu đen nước cốt dừa', 6, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZRmTbQ0DL6ZVKhlFJvsieDnVKDgT4dPoj2g&s'),
+    (13, N'Bánh bèo', N'Snack', N'Cake', N'Bánh bèo nhân tôm', 3, 'https://upload.wikimedia.org/wikipedia/commons/d/d3/B%C3%A1nh_b%C3%A8o.jpg'),
+    (14, N'Bánh ướt', N'Snack', N'Roll', N'Bánh ướt cuốn thịt', 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Typical_serving_of_B%C3%A1nh_%C6%B0%E1%BB%9Bt.jpg/1200px-Typical_serving_of_B%C3%A1nh_%C6%B0%E1%BB%9Bt.jpg'),
+    (15, N'Bánh canh cua', N'Main', N'Noodle', N'Bánh canh với cua', 1, 'https://cdn.tgdd.vn/2021/05/CookProduct/thumbcmscn-1200x676-4.jpg'),
+    (16, N'Bánh tét', N'Main', N'Rice', N'Bánh tét nhân đậu xanh', 10, 'https://file.hstatic.net/200000868155/file/1489-post-cach-goi-banh-tet-truyen-thong-nam-bo-dep-don-gian-1.jpg'),
+    (17, N'Bánh chưng', N'Main', N'Rice', N'Bánh chưng truyền thống', 10, 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Banh_chung_vuong.jpg/1200px-Banh_chung_vuong.jpg'),
+    (18, N'Bánh đúc', N'Snack', N'Cake', N'Bánh đúc nóng', 3, 'https://i-giadinh.vnecdn.net/2024/11/02/Bc7Thnhphm17-1730530097-3638-1730530219.jpg'),
+    (19, N'Bánh khọt', N'Snack', N'Cake', N'Bánh khọt nhân tôm', 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/B%C3%A1nh_kh%E1%BB%8Dt_tr%C3%AAn_khu%C3%B4n.jpg/240px-B%C3%A1nh_kh%E1%BB%8Dt_tr%C3%AAn_khu%C3%B4n.jpg'),
+    (20, N'Bánh tráng trộn', N'Snack', N'Snack', N'Bánh tráng trộn đặc biệt', 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Mixed_rice_paper.jpg/1200px-Mixed_rice_paper.jpg'),
+    (21, N'Salad ức gà', N'Main', N'Salad', N'Salad với ức gà, rau xanh và sốt chanh leo', 3, 'https://cdn.tgdd.vn/2021/10/CookRecipe/GalleryStep/thanh-pham-975.jpg'),
+    (22, N'Cháo yến mạch', N'Breakfast', N'Porridge', N'Cháo yến mạch với chuối và hạt chia', 6, 'https://cdn.tgdd.vn/Files/2018/11/25/1133505/yen-mach-la-gi-cach-nau-chao-yen-mach-bo-duong-ngon-ngat-ngay-10.jpg'),
+    (23, N'Smoothie bơ chuối', N'Snack', N'Smoothie', N'Sinh tố bơ chuối giàu chất xơ và chất béo lành mạnh', 8, 'https://cdn.tgdd.vn/Files/2019/04/22/1162314/dang-xinh-da-dep-voi-sinh-to-bo-chuoi-thom-ngon-202201071430267959.jpg'),
+    (24, N'Cá hồi áp chảo', N'Main', N'Fish', N'Cá hồi áp chảo với bông cải xanh', 7, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWX07IGQspfz6npRQhw-rjgBpCBPyf9alEzA&s'),
+    (25, N'Súp lơ hấp', N'Side', N'Vegetable', N'Súp lơ hấp với dầu oliu và hạt lanh', 3, 'https://giadinh.mediacdn.vn/2021/1/7/hap-rau-16099992712071268362112.jpg'),
+    (26, N'Bánh pancake chuối yến mạch', N'Breakfast', N'Cake', N'Bánh pancake từ chuối và yến mạch', 5, 'https://cdn.tgdd.vn/Files/2021/09/28/1386199/huong-dan-lam-banh-pancake-chuoi-yen-mach-thom-ngon-day-dinh-duong-202202211133148108.jpg'),
+    (27, N'Trà gừng mật ong', N'Drink', N'Tea', N'Trà gừng mật ong giúp tăng cường miễn dịch', 8, 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Ginger_tea.jpg/1200px-Ginger_tea.jpg'),
+    (28, N'Xôi gạo lứt', N'Main', N'Rice', N'Xôi gạo lứt ăn kèm đậu phộng và mè đen', 6, 'https://cdn.tgdd.vn/Files/2018/12/28/1141156/cach-nau-xoi-nep-cam-bang-noi-com-dien-don-gian-ma-thom-ngon-tai-nha-10-760x367.jpg'),
+    (29, N'Súp bí đỏ', N'Soup', N'Soup', N'Súp bí đỏ với sữa hạnh nhân', 6, 'https://cdn.tgdd.vn/Files/2021/09/10/1381722/huong-dan-lam-sup-bi-do-tai-nha-ngon-nhu-nha-hang-202208311606274453.jpg'),
+    (30, N'Salad cá ngừ', N'Main', N'Salad', N'Salad cá ngừ với rau xanh và sốt dầu giấm', 3, 'https://cdn.tgdd.vn/2020/07/CookProductThumb/Untitled-1-620x620-364.jpg'),
+    (31, N'Lẩu gà lá é', N'Main', N'Hotpot', N'Lẩu gà nấu với lá é, đặc sản Đà Lạt', 9, 'https://cdn.tgdd.vn/2021/05/CookRecipe/GalleryStep/thanh-pham-248.jpg'),
+    (32, N'Lẩu thái hải sản', N'Main', N'Hotpot', N'Lẩu chua cay với tôm, mực, nghêu', 9, 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Hotpot.jpg/640px-Hotpot.jpg'),
+    (33, N'Lẩu bò nhúng giấm', N'Main', N'Hotpot', N'Lẩu bò nhúng giấm chấm mắm nêm', 9, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1R-koXWIGx2boTVLFJpN7RMvDVHalEP4Beg&s'),
+    (34, N'Bún bò Huế', N'Main', N'Noodle', N'Bún bò đặc sản Huế với chân giò, chả cua', 1, 'https://upload.wikimedia.org/wikipedia/commons/0/00/Bun-Bo-Hue-from-Huong-Giang-2011.jpg'),
+    (35, N'Hủ tiếu Nam Vang', N'Main', N'Noodle', N'Hủ tiếu Nam Vang với tôm, thịt bằm, trứng cút', 1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/H%E1%BB%A7_ti%E1%BA%BFu_Nam_Vang.jpg/1280px-H%E1%BB%A7_ti%E1%BA%BFu_Nam_Vang.jpg'),
+    (36, N'Bánh đúc mặn', N'Snack', N'Cake', N'Bánh đúc mặn ăn kèm nước mắm và đậu phộng', 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Banhduc-northern.jpg/640px-Banhduc-northern.jpg'),
+    (37, N'Mì Quảng', N'Main', N'Noodle', N'Mì Quảng đặc sản Quảng Nam với tôm, thịt, trứng', 1, 'https://upload.wikimedia.org/wikipedia/commons/d/df/Mi_Quang_1A_Danang.jpg'),
+    (38, N'Bánh giò', N'Snack', N'Cake', N'Bánh giò nhân thịt, nấm mèo', 5, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnLGO2_Vb49AUNjOLXV_UZOcYd_M_KQMDPIQ&s'),
+    (39, N'Xôi xéo', N'Breakfast', N'Rice', N'Xôi xéo với đậu xanh, hành phi, mỡ gà', 6, 'https://upload.wikimedia.org/wikipedia/commons/f/f9/X%C3%B4i_x%C3%A9o.jpg'),
+    (40, N'Cá nướng', N'Main', N'Fish', N'Cá nướng với gia vị thơm ngon', 7, 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Gurame_bakar_kecap_2.JPG'),
+    (41, N'Ốc hương xào bơ tỏi', N'Snack', N'Seafood', N'Ốc hương xào bơ tỏi thơm béo', 3, 'https://cdn.tgdd.vn/Files/2021/08/25/1377750/cach-lam-oc-huong-xao-bo-toi-thom-ngon-don-gian-tai-nha-202108251415105438.jpg'),
+    (42, N'Bánh bột lọc', N'Snack', N'Cake', N'Bánh bột lọc nhân tôm thịt', 3, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTk8g6FBCxXxRjs3IZe-r6JIz03ewWQivoDgQ&s'),
+    (43, N'Cơm gà', N'Main', N'Rice', N'Cơm gà', 3, 'https://upload.wikimedia.org/wikipedia/commons/3/39/Arroz-con-Pollo.jpg'),
+    (44, N'Chè bắp', N'Dessert', N'Dessert', N'Chè bắp nước cốt dừa thơm ngon', 6, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5Qqi9lImimEMclmIFQtgRAt2yTIeufoULXA&s'),
+    (45, N'Gỏi bò bóp thấu', N'Appetizer', N'Salad', N'Gỏi bò bóp thấu chua ngọt hấp dẫn', 3, 'https://upload.wikimedia.org/wikipedia/commons/9/9f/G%E1%BB%8Fi_%C4%91u_%C4%91%E1%BB%A7_kh%C3%B4_b%C3%B2.jpg'),
+    (46, N'Tiết canh vịt', N'Appetizer', N'Soup', N'Tiết canh vịt - món ăn truyền thống', 6, 'https://upload.wikimedia.org/wikipedia/commons/f/fd/Tiet.jpg'),
+    (47, N'Lòng xào dưa', N'Main', N'Meat', N'Lòng non xào dưa chua', 3, 'https://cdn.tgdd.vn/2020/07/CookProduct/Screenshot_7-1200x676.jpg'),
+    (48, N'Dê tái chanh', N'Main', N'Meat', N'Dê tái chanh chấm tương gừng', 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/T%C3%A1i_d%C3%AA.jpg/300px-T%C3%A1i_d%C3%AA.jpg'),
+    (49, N'Bánh khoai mì nướng', N'Dessert', N'Cake', N'Bánh khoai mì nướng béo thơm, ăn kèm nước cốt dừa', 10, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRONh1-lqvwZ1RqJazYGCSbBI1YExkD2XEodQ&s'),
+    (50, N'Gỏi ngó sen tôm thịt', N'Appetizer', N'Salad', N'Gỏi ngó sen tôm thịt chua ngọt, ăn kèm bánh phồng tôm', 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Ph%E1%BB%93ng_t%C3%B4m.jpg/640px-Ph%E1%BB%93ng_t%C3%B4m.jpg'),
+    (51, N'Thịt bò xào hành tây', N'Main', N'Main Course', N'Thịt bò xào với hành tây', 3, 'https://daotaobeptruong.vn/wp-content/uploads/2019/12/thit-bo-xao-hanh-tay.jpg'),
+    (52, N'Bầu xào trứng', N'Main', N'Main Course', N'Bầu xào với trứng gà', 3, 'https://img-global.cpcdn.com/recipes/8a8df44ab98f2162/400x400cq70/photo.jpg'),
+    (53, N'Cá hú kho', N'Main', N'Seafood', N'Cá hú kho với nước mắm', 3, 'https://homestory.com.vn/wp-content/uploads/2023/06/ca-hu-kho-tieu-dam-da-hao-com.jpg'),
+    (54, N'Cá lóc chiên', N'Main', N'Fish', N'Cá lóc chiên giòn', 10, 'https://khaihoanphuquoc.com.vn/wp-content/uploads/2023/11/kho%CC%82-ca%CC%81-lo%CC%81c-kho-tho%CC%9Bm.jpg'),
+    (55, N'Canh bắp cải', N'Main', N'Soup', N'Canh bắp cải nấu đơn giản', 6, 'https://cdn.tgdd.vn/2021/04/CookRecipe/GalleryStep/7f05d5e84b27b979e036.jpg'),
+    (56, N'Canh bầu', N'Main', N'Soup', N'Canh bầu nấu với tôm', 6, 'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2023/5/22/canh-hen-nau-bau-816769-1684773425707149599131.jpg'),
+    (57, N'Canh bí đao', N'Main', N'Soup', N'Canh bí đao thanh mát', 6, 'https://cdn.tgdd.vn/2021/05/CookRecipe/GalleryStep/thanh-pham-761.jpg'),
+    (58, N'Canh cải ngọt', N'Main', N'Soup', N'Canh cải ngọt bổ dưỡng', 6, 'https://cdn.tgdd.vn/2021/04/CookProduct/caingotthitbamthumb-1200x676.jpg'),
+    (59, N'Đậu hũ dồn thịt', N'Main', N'Main Course', N'Đậu hũ nhồi thịt heo', 10, 'https://cdn-i.vtcnews.vn/resize/th/upload/2024/11/17/dau-hu-3-22133709.jpg'),
+    (60, N'Gà kho gừng', N'Main', N'Poultry', N'Gà kho với gừng thơm lừng', 3, 'https://www.cet.edu.vn/wp-content/uploads/2021/03/ga-kho-gung-nghe-vua-thom-ngon.jpg'),
+    (61, N'Gà xào sả ớt', N'Main', N'Poultry', N'Gà xào sả ớt cay nồng', 3, 'https://beptruong.edu.vn/wp-content/uploads/2013/01/ga-xao-sa-ot.jpg'),
+    (62, N'Gan heo xào', N'Main', N'Poultry', N'Gan heo xào hành tây', 3, 'https://cdn.tgdd.vn/2021/04/CookProduct/GANHEOXAOTOImemngotbeobeo-monngondelam5-44screenshot-1200x676.jpg'),
+    (63, N'Thịt heo quay', N'Main', N'Meat', N'Thịt heo quay giòn da', 3, 'https://cdn.tgdd.vn/Files/2021/08/03/1372804/bi-quyet-che-bien-thit-heo-quay-chao-gion-tan-khong-bi-vang-dau-202108040638158166.jpg'),
+    (64, N'Thịt bò xào đậu que', N'Main', N'Meat', N'Thịt bò xào đậu que giòn', 3, 'https://cdn.tgdd.vn/2021/07/CookProduct/thumct1-1200x676.jpg'),
+    (65, N'Thịt bò xào nấm rơm', N'Main', N'Meat', N'Thịt bò xào nấm rơm thơm', 3, 'https://anhhoangthy.com/wp-content/uploads/2024/06/cach-lam-thit-bo-xao-nam-3.jpeg'),
+    (66, N'Thịt heo xào giá hẹ', N'Main', N'Meat', N'Thịt heo xào giá và hẹ', 3, 'https://cdn3.ivivu.com/2020/12/gia-do-xao-thit-ivivu-1.jpg'),
+    (67, N'Thịt heo kho tiêu', N'Main', N'Meat', N'Thịt heo kho với hạt tiêu', 3, 'https://cdn.tgdd.vn/2021/01/CookProduct/Thitkhotieu-1200x676.jpg'),
+    (68, N'Thịt kho trứng', N'Main', N'Meat', N'Thịt heo kho với trứng gà', 7, 'https://cdn.tgdd.vn/Files/2017/03/28/965845/cach-lam-thit-kho-trung-thom-ngon-dam-da-bat-com-tai-nha-202202261110487084.jpg'),
+    (69, N'Bún thịt nướng', N'Breakfast', N'Noodle', N'Bún với thịt nướng thơm', 1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Bun_thit_nuong.jpg/1200px-Bun_thit_nuong.jpg'),
+    (70, N'Bún riêu cua', N'Breakfast', N'Noodle', N'Bún riêu cua truyền thống', 1, 'https://cdn.tgdd.vn/2020/08/CookProduct/Untitled-1-1200x676-10.jpg'),
+    (71, N'Đậu hủ chiên sả', N'Main', N'Main Course', N'Đậu hủ chiên với sả', 10, 'https://i.ytimg.com/vi/cv2CfQjZoVY/sddefault.jpg'),
+    (72, N'Đậu hủ sốt cà', N'Main', N'Main Course', N'Đậu hủ sốt cà chua', 3, 'https://cdn.tgdd.vn/2021/05/CookRecipe/GalleryStep/thanh-pham-1052.jpg'),
+    (73, N'Hủ tiếu bò kho', N'Breakfast', N'Noodle', N'Hủ tiếu với bò kho', 1, 'https://tiki.vn/blog/wp-content/uploads/2023/04/hu-tieu-bo-kho-3.jpg'),
+    (74, N'Bánh canh thịt heo', N'Breakfast', N'Noodle', N'Bánh canh với thịt heo', 1, 'https://cdn3.ivivu.com/2021/05/banh-canh-thit-bam-ivivu-1.jpg'),
+    (75, N'Bánh canh giò heo', N'Breakfast', N'Noodle', N'Bánh canh với giò heo', 1, 'https://daynauan.info.vn/wp-content/uploads/2019/05/banh-canh-gio-heo.jpg'),
+    (76, N'Miến gà', N'Breakfast', N'Noodle', N'Miến nấu với thịt gà', 1, 'https://daynauan.info.vn/wp-content/uploads/2020/04/mien-ga-la-mon-an-dan-da.jpg'),
+    (77, N'Bánh bao nhân thịt', N'Breakfast', N'Bread', N'Bánh bao nhân thịt heo', 5, 'https://thophat.com/wp-content/uploads/2022/03/BB-Thit-Heo-1.jpg'),
+    (78, N'Bánh cuốn chả thịt', N'Breakfast', N'Rice', N'Bánh cuốn với chả và thịt', 3, 'https://file.hstatic.net/200000667673/file/045b2aae-3699-4ce7-afec-9f0087c89f62_50c07454f52d4e97bfcf710638ce5b31_grande.jpeg'),
+    (79, N'Bắp luộc', N'Main', N'Grain', N'Bắp luộc nguyên trái', 10, 'https://cdn.tgdd.vn/2022/04/CookDishThumb/3-cach-luoc-bap-nhanh-mem-ngon-ngot-sieu-don-gian-ai-cung-lam-thumb-620x620.jpeg'),
+    (80, N'Khoai lang luộc', N'Main', N'Grain', N'Khoai lang luộc bổ dưỡng', 10, 'https://images2.thanhnien.vn/528068263637045248/2023/11/30/sk291103-anh1-17013387164901983869702.jpg'),
+    (81, N'Xôi bắp', N'Breakfast', N'Rice', N'Xôi nấu với bắp', 10, 'https://i.ytimg.com/vi/uS-FBhXhemE/maxresdefault.jpg'),
+    (82, N'Hủ tiếu thịt heo', N'Breakfast', N'Noodle', N'Hủ tiếu với thịt heo', 1, 'https://i.ytimg.com/vi/E2bG25UOySg/sddefault.jpg'),
+    (83, N'Canh bún', N'Breakfast', N'Noodle', N'Canh bún truyền thống', 1, 'https://cdn.tgdd.vn/Files/2019/10/16/1209065/cach-nau-canh-bun-chuan-vi-an-la-ghien-201910160754243097.jpg'),
+    (84, N'Bánh canh thịt gà', N'Breakfast', N'Noodle', N'Bánh canh với thịt gà', 1, 'https://cdn.tgdd.vn/Files/2020/12/19/1314847/cach-nau-banh-canh-ga-ngon-mieng-thit-ngot-da-gion-ca-nha-thich-me-202012191421273526.jpg'),
+    (85, N'Sườn ram', N'Main', N'Meat', N'Sườn heo ram mặn ngọt', 10, 'https://i.ytimg.com/vi/UlnY2tlt5rE/maxresdefault.jpg'),
+    (86, N'Cơm chiên dương châu', N'Main', N'Rice', N'Cơm chiên với trứng và rau củ', 3, 'https://www.cet.edu.vn/wp-content/uploads/2018/03/com-chien-duong-chau.jpg'),
+    (87, N'Bún xào', N'Breakfast', N'Noodle', N'Bún xào với thịt và rau', 3, 'https://cdn.tgdd.vn/2021/04/CookProduct/2cachlambunxaoraucai-1200x676.jpg'),
+    (88, N'Thịt heo xào đậu que', N'Main', N'Main Course', N'Thịt heo xào đậu que giòn', 3, 'https://cdn.tgdd.vn/Files/2019/06/15/1173363/cach-lam-dau-que-xao-thit-heo-gion-ngon-8_800x450.jpg'),
+    (89, N'Thịt bò xào măng', N'Main', N'Main Course', N'Thịt bò xào măng tươi', 3, 'https://img-global.cpcdn.com/recipes/nvmgfm5opnwl1hqdgnda/400x400cq70/photo.jpg'),
+    (90, N'Thịt bò xào giá hẹ', N'Main', N'Main Course', N'Thịt bò xào giá và hẹ', 3, 'https://img-global.cpcdn.com/recipes/2bbec9a18fc6657b/680x482cq70/th%E1%BB%8Bt-bo-xao-gia-h%E1%BA%B9-recipe-main-photo.jpg'),
+    (91, N'Chả lụa kho', N'Main', N'Meat', N'Chả lụa kho với nước mắm', 10, 'https://cdn.tgdd.vn/2020/11/CookRecipe/GalleryStep/thanh-pham-690.jpg'),
+    (92, N'Cá lóc kho', N'Main', N'Seafood', N'Cá lóc kho tộ', 10, 'https://cdn.tgdd.vn/Files/2019/09/02/1194292/cach-lam-ca-loc-kho-to-ngon-com-chuan-vi-mien-nam-202201041313092690.jpg'),
+    (93, N'Bún riêu ốc', N'Breakfast', N'Soup', N'Bún riêu với ốc', 1, 'https://cdn.tgdd.vn/2021/04/CookProduct/thum-1200x676-25.jpg'),
+    (94, N'Chả giò tôm thịt', N'Snack', N'Wrap', N'Chả giò nhân tôm và thịt', 4, 'https://cdn.tgdd.vn/Files/2020/01/16/1231776/cach-lam-cha-gio-tom-gion-rum-an-hoai-khong-chan-202110261450249960.jpg'),
+    (95, N'Gỏi bắp chuối', N'Main', N'Salad', N'Gỏi bắp chuối trộn tôm', 3, 'https://img-global.cpcdn.com/recipes/0c74d70196aac354/1200x630cq70/photo.jpg'),
+    (96, N'Rau muống luộc', N'Main', N'Main Course', N'Rau muống luộc chấm mắm', 3, 'https://i-giadinh.vnecdn.net/2024/05/30/Buoc-4-Anh-dai-dien-4-3836-1717053570.jpg'),
+    (97, N'Canh mồng tơi tôm', N'Main', N'Soup', N'Canh mồng tơi nấu tôm', 6, 'https://cdn.tgdd.vn/2021/01/CookProduct/Untitled-1-1200x676-1.jpg'),
+    (98, N'Cá thu chiên nước mắm', N'Main', N'Fish', N'Cá thu chiên với nước mắm', 10, 'https://cdn.tgdd.vn/Files/2020/05/24/1257970/2-cach-lam-ca-thu-chien-nuoc-mam-va-chien-gion-tho-760x367.png'),
+    (99, N'Thịt gà nướng mật ong', N'Main', N'Poultry', N'Gà nướng ướp mật ong', 3, 'https://www.cet.edu.vn/wp-content/uploads/2018/03/ga-nuong-mat-ong.jpg'),
+    (100, N'Bánh mì xíu mại', N'Breakfast', N'Bread', N'Bánh mì xíu mại đầy đủ', 2, 'https://cdn.tgdd.vn/2021/09/CookDish/cach-lam-banh-mi-xiu-mai-trung-muoi-sieu-ngon-hap-dan-cho-bua-avt-1200x676-1.jpg'),
+    (101, N'Cơm trắng', N'Main', N'Rice', N'Cơm trắng', 6, 'https://cdn.nhathuoclongchau.com.vn/unsafe/800x0/https://cms-prod.s3-sgn09.fptcloud.com/4_tac_dung_bat_ngo_tu_viec_an_com_gao_trang_1_235f8a42fd.png');
 
 SET IDENTITY_INSERT Food OFF;
+
+-- Chèn dữ liệu vào bảng FoodServingSize
+INSERT INTO FoodServingSize (FoodID, ServingSizeID, Quantity, Calories, Protein, Carbs, Fat, Glucid, Fiber)
+VALUES
+    (1, 1, 1.0, 450, 25, 50, 10, 5, 2),   -- Phở bò: 1 tô
+    (2, 2, 1.0, 350, 15, 40, 12, 3, 1),   -- Bánh mì thịt: 1 ổ
+    (3, 3, 1.0, 600, 30, 70, 20, 10, 3),  -- Cơm tấm sườn: 1 đĩa
+    (4, 1, 1.0, 400, 20, 50, 15, 5, 2),   -- Bún chả: 1 tô
+    (5, 4, 1.0, 100, 5, 10, 3, 1, 1),     -- Gỏi cuốn: 1 cuốn
+    (6, 5, 1.0, 300, 10, 30, 15, 5, 2),   -- Bánh xèo: 1 cái
+    (7, 4, 1.0, 150, 5, 10, 8, 2, 1),     -- Chả giò: 1 cuốn
+    (8, 1, 1.0, 200, 15, 10, 5, 2, 1),    -- Canh chua cá lóc: 1 tô
+    (9, 1, 1.0, 350, 20, 40, 10, 5, 2),   -- Bún riêu: 1 tô
+    (10, 3, 1.0, 400, 25, 10, 20, 5, 1),  -- Cá kho tộ: 1 đĩa
+    (11, 3, 1.0, 300, 10, 40, 8, 3, 2),   -- Bánh cuốn: 1 đĩa
+    (12, 6, 1.0, 200, 5, 30, 5, 2, 3),    -- Chè đậu đen: 1 chén
+    (13, 3, 1.0, 250, 8, 30, 10, 3, 1),   -- Bánh bèo: 1 đĩa
+    (14, 3, 1.0, 200, 10, 25, 5, 2, 1),   -- Bánh ướt: 1 đĩa
+    (15, 1, 1.0, 400, 20, 40, 15, 5, 2),  -- Bánh canh cua: 1 tô
+    (16, 10, 1.0, 300, 10, 40, 10, 5, 2), -- Bánh tét: 1 miếng
+    (17, 10, 1.0, 350, 15, 45, 12, 5, 3), -- Bánh chưng: 1 miếng
+    (18, 3, 1.0, 150, 5, 20, 5, 2, 1),    -- Bánh đúc: 1 đĩa
+    (19, 3, 1.0, 200, 10, 20, 10, 3, 1),  -- Bánh khọt: 1 đĩa
+    (20, 3, 1.0, 250, 5, 30, 10, 3, 2),   -- Bánh tráng trộn: 1 đĩa
+    (21, 3, 1.0, 300, 35, 20, 8, 5, 4),   -- Salad ức gà: 1 đĩa
+    (22, 6, 1.0, 250, 8, 40, 6, 2, 6),    -- Cháo yến mạch: 1 chén
+    (23, 8, 1.0, 220, 5, 30, 10, 5, 5),   -- Smoothie bơ chuối: 1 ly
+    (24, 7, 1.0, 400, 40, 10, 20, 2, 3),  -- Cá hồi áp chảo: 1 phần
+    (25, 3, 1.0, 180, 5, 20, 10, 3, 5),   -- Súp lơ hấp: 1 đĩa
+    (26, 5, 1.0, 200, 6, 30, 5, 3, 4),    -- Bánh pancake chuối yến mạch: 1 cái
+    (27, 8, 1.0, 100, 0, 25, 0, 5, 1),    -- Trà gừng mật ong: 1 ly
+    (28, 6, 1.0, 320, 8, 55, 7, 5, 6),    -- Xôi gạo lứt: 1 chén
+    (29, 6, 1.0, 230, 6, 35, 8, 5, 4),    -- Súp bí đỏ: 1 chén
+    (30, 3, 1.0, 350, 40, 15, 10, 4, 5),  -- Salad cá ngừ: 1 đĩa
+    (31, 9, 1.0, 600, 40, 50, 20, 5, 3),  -- Lẩu gà lá é: 1 nồi
+    (32, 9, 1.0, 700, 50, 60, 25, 8, 4),  -- Lẩu thái hải sản: 1 nồi
+    (33, 9, 1.0, 750, 60, 40, 30, 5, 3),  -- Lẩu bò nhúng giấm: 1 nồi
+    (34, 1, 1.0, 480, 30, 55, 12, 6, 2),  -- Bún bò Huế: 1 tô
+    (35, 1, 1.0, 450, 28, 50, 10, 5, 2),  -- Hủ tiếu Nam Vang: 1 tô
+    (36, 3, 1.0, 250, 8, 30, 8, 3, 1),    -- Bánh đúc mặn: 1 đĩa
+    (37, 1, 1.0, 500, 35, 55, 15, 5, 3),  -- Mì Quảng: 1 tô
+    (38, 5, 1.0, 320, 12, 40, 10, 5, 2),  -- Bánh giò: 1 cái
+    (39, 6, 1.0, 350, 10, 50, 12, 5, 3),  -- Xôi xéo: 1 chén
+    (40, 7, 1.0, 400, 35, 10, 20, 5, 3),  -- Cá nướng: 1 phần
+    (41, 3, 1.0, 380, 25, 15, 18, 4, 2),  -- Ốc hương xào bơ tỏi: 1 đĩa
+    (42, 3, 1.0, 270, 8, 35, 8, 3, 1),    -- Bánh bột lọc: 1 đĩa
+    (43, 3, 1.0, 450, 35, 50, 12, 5, 2),  -- Cơm gà: 1 đĩa
+    (44, 6, 1.0, 200, 5, 35, 5, 5, 3),    -- Chè bắp: 1 chén
+    (45, 3, 1.0, 320, 30, 15, 12, 5, 3),  -- Gỏi bò bóp thấu: 1 đĩa
+    (46, 6, 1.0, 250, 20, 5, 8, 3, 2),    -- Tiết canh vịt: 1 chén
+    (47, 3, 1.0, 400, 30, 10, 20, 4, 2),  -- Lòng xào dưa: 1 đĩa
+    (48, 3, 1.0, 380, 40, 10, 15, 4, 2),  -- Dê tái chanh: 1 đĩa
+    (49, 10, 1.0, 280, 3, 40, 12, 5, 2),  -- Bánh khoai mì nướng: 1 miếng
+    (50, 3, 1.0, 220, 15, 20, 8, 4, 3),   -- Gỏi ngó sen tôm thịt: 1 đĩa
+    (51, 3, 1.0, 132, 11.8, 5.8, 6.9, 5.03, 0.77), -- Thịt bò xào hành tây: 1 đĩa
+    (52, 3, 1.0, 109, 4, 4, 8.5, 7.2, 1.3),       -- Bầu xào trứng: 1 đĩa
+    (53, 3, 1.0, 109, 4, 8.5, 4, 7.2, 1.3),       -- Cá hú kho: 1 đĩa
+    (54, 10, 1.0, 169, 14.9, 12.2, 0, 12.2, 0),   -- Cá lóc chiên: 1 miếng
+    (55, 6, 1.0, 37, 1.8, 2.8, 2.1, 1.98, 0.82),  -- Canh bắp cải: 1 chén
+    (56, 6, 1.0, 30, 1.2, 1.5, 2.1, 0.98, 0.52),  -- Canh bầu: 1 chén
+    (57, 6, 1.0, 29, 1.2, 1.3, 2.1, 0.78, 0.52),  -- Canh bí đao: 1 chén
+    (58, 6, 1.0, 30, 1.7, 1.1, 2.1, 0.2, 0.9),    -- Canh cải ngọt: 1 chén
+    (59, 10, 1.0, 328, 18.7, 5.3, 25.8, 4.72, 0.58), -- Đậu hũ dồn thịt: 1 miếng
+    (60, 3, 1.0, 301, 21.9, 10.3, 19.1, 9.39, 0.91), -- Gà kho gừng: 1 đĩa
+    (61, 3, 1.0, 272, 20.4, 4.7, 19.1, 4.7, 0),   -- Gà xào sả ớt: 1 đĩa
+    (62, 3, 1.0, 200, 24.8, 3.4, 9.7, 3.25, 0.15), -- Gan heo xào: 1 đĩa
+    (63, 3, 1.0, 250, 7, 23.7, 14.1, 22.32, 1.38), -- Thịt heo quay: 1 đĩa
+    (64, 3, 1.0, 195, 16.8, 16.6, 6.9, 15.35, 1.25), -- Thịt bò xào đậu que: 1 đĩa
+    (65, 3, 1.0, 152, 13.5, 2.9, 9.6, 1.98, 0.92), -- Thịt bò xào nấm rơm: 1 đĩa
+    (66, 3, 1.0, 188, 19.3, 4.8, 10.2, 2.93, 1.87), -- Thịt heo xào giá hẹ: 1 đĩa
+    (67, 3, 1.0, 200, 21.2, 11.5, 7.6, 11.33, 0.17), -- Thịt heo kho tiêu: 1 đĩa
+    (68, 7, 1.0, 315, 19.8, 7.5, 22.9, 7.5, 0),   -- Thịt kho trứng: 1 phần
+    (69, 1, 1.0, 451, 14.7, 67.3, 13.7, 63.34, 3.96), -- Bún thịt nướng: 1 tô
+    (70, 1, 1.0, 414, 17.8, 58, 12.2, 55.24, 2.76), -- Bún riêu cua: 1 tô
+    (71, 10, 1.0, 148, 11.6, 0.7, 11, 0.3, 0.4),  -- Đậu hủ chiên sả: 1 miếng
+    (72, 3, 1.0, 239, 18.1, 11, 13.6, 9.56, 1.44), -- Đậu hủ sốt cà: 1 đĩa
+    (73, 1, 1.0, 410, 17, 55.4, 13.4, 52.2, 3.2), -- Hủ tiếu bò kho: 1 tô
+    (74, 1, 1.0, 322, 12.8, 48.5, 8.5, 47.5, 1),  -- Bánh canh thịt heo: 1 tô
+    (75, 1, 1.0, 483, 19, 48.6, 23.6, 47.59, 1.01), -- Bánh canh giò heo: 1 tô
+    (76, 1, 1.0, 635, 17.8, 100.2, 18.1, 93.8, 6.4), -- Miến gà: 1 tô
+    (77, 5, 1.0, 328, 16.1, 48.1, 7.9, 47.2, 0.9), -- Bánh bao nhân thịt: 1 cái
+    (78, 3, 1.0, 590, 25.7, 64.3, 25.6, 62.77, 1.53), -- Bánh cuốn chả thịt: 1 đĩa
+    (79, 10, 1.0, 192, 4.5, 37.8, 2.5, 36.42, 1.38), -- Bắp luộc: 1 miếng
+    (80, 10, 1.0, 131, 0.3, 30.6, 0.3, 29.7, 0.9), -- Khoai lang luộc: 1 miếng
+    (81, 10, 1.0, 313, 8.2, 51.3, 8.3, 49.75, 1.55), -- Xôi bắp: 1 miếng
+    (82, 1, 1.0, 361, 14.4, 47.8, 12.5, 46.57, 1.23), -- Hủ tiếu thịt heo: 1 tô
+    (83, 1, 1.0, 296, 13.6, 44.6, 6.9, 43.05, 1.55), -- Canh bún: 1 tô
+    (84, 1, 1.0, 346, 12.8, 48.5, 11.1, 47.5, 1),  -- Bánh canh thịt gà: 1 tô
+    (85, 10, 1.0, 264, 8.3, 46.7, 5.8, 46.51, 0.19), -- Sườn ram: 1 miếng
+    (86, 3, 1.0, 530, 14.9, 92.7, 11.3, 91.14, 1.56), -- Cơm chiên dương châu: 1 đĩa
+    (87, 3, 1.0, 570, 23.4, 56, 28, 53.83, 2.17), -- Bún xào: 1 đĩa
+    (88, 3, 1.0, 240, 20.5, 16.6, 10.2, 15.35, 1.25), -- Thịt heo xào đậu que: 1 đĩa
+    (89, 3, 1.0, 104, 10.5, 0, 6.9, 0, 0),       -- Thịt bò xào măng: 1 đĩa
+    (90, 3, 1.0, 143, 15.6, 4.8, 6.9, 2.93, 1.87), -- Thịt bò xào giá hẹ: 1 đĩa
+    (91, 10, 1.0, 102, 11.7, 3.5, 4.6, 3.49, 0.01), -- Chả lụa kho: 1 miếng
+    (92, 10, 1.0, 131, 15.7, 8.7, 3.8, 8.66, 0.04), -- Cá lóc kho: 1 miếng
+    (93, 1, 1.0, 531, 28.4, 65.5, 17.2, 62.77, 2.73), -- Bún riêu ốc: 1 tô
+    (94, 4, 3.0, 300, 12, 25, 18, 23, 2),        -- Chả giò tôm thịt: 3 cuốn
+    (95, 3, 1.0, 180, 8, 20, 6, 17, 3),          -- Gỏi bắp chuối: 1 đĩa
+    (96, 3, 1.0, 60, 3, 10, 1, 8, 2),            -- Rau muống luộc: 1 đĩa
+    (97, 6, 1.0, 80, 6, 5, 3, 4, 1),             -- Canh mồng tơi tôm: 1 chén
+    (98, 10, 1.0, 280, 22, 5, 20, 5, 0),         -- Cá thu chiên nước mắm: 1 miếng
+    (99, 3, 1.0, 320, 25, 10, 18, 10, 0),        -- Thịt gà nướng mật ong: 1 đĩa
+    (100, 2, 1.0, 400, 15, 50, 18, 48, 2),       -- Bánh mì xíu mại: 1 ổ
+    (101, 6, 1.0, 130, 2.7, 28.2, 0.3, 0.05, 0.4); -- Cơm trắng: 1 chén
 
 -- Bật chế độ IDENTITY_INSERT
 SET IDENTITY_INSERT CuisineType ON;

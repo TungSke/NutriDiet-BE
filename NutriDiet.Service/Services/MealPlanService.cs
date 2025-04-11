@@ -108,10 +108,10 @@ namespace NutriDiet.Service.Services
                             dayNumberSet.Add(detail.DayNumber);
 
                             var mealPlanDetail = detail.Adapt<MealPlanDetail>();
-                            mealPlanDetail.TotalCalories = (foodExist.Calories) * (detail.Quantity ?? 1);
-                            mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (detail.Quantity ?? 1);
-                            mealPlanDetail.TotalFat = (foodExist.Fat) * (detail.Quantity ?? 1);
-                            mealPlanDetail.TotalProtein = (foodExist.Protein) * (detail.Quantity ?? 1);
+                            //mealPlanDetail.TotalCalories = (foodExist.Calories) * (detail.Quantity ?? 1);
+                            //mealPlanDetail.TotalCarbs = (foodExist.Carbs) * (detail.Quantity ?? 1);
+                            //mealPlanDetail.TotalFat = (foodExist.Fat) * (detail.Quantity ?? 1);
+                            //mealPlanDetail.TotalProtein = (foodExist.Protein) * (detail.Quantity ?? 1);
                             mealPlanDetail.MealPlanId = mealPlan.MealPlanId;
                             mealPlanDetail.FoodName = foodExist.FoodName;
                             mealPlanDetails.Add(mealPlanDetail);
@@ -280,10 +280,10 @@ namespace NutriDiet.Service.Services
                         existingDetail.Quantity = detail.Quantity;
                         existingDetail.DayNumber = detail.DayNumber;
                         existingDetail.MealType = detail.MealType;
-                        existingDetail.TotalCalories = foodExist.Calories * (detail.Quantity ?? 1);
-                        existingDetail.TotalCarbs = foodExist.Carbs * (detail.Quantity ?? 1);
-                        existingDetail.TotalFat = foodExist.Fat * (detail.Quantity ?? 1);
-                        existingDetail.TotalProtein = foodExist.Protein * (detail.Quantity ?? 1);
+                        //existingDetail.TotalCalories = foodExist.Calories * (detail.Quantity ?? 1);
+                        //existingDetail.TotalCarbs = foodExist.Carbs * (detail.Quantity ?? 1);
+                        //existingDetail.TotalFat = foodExist.Fat * (detail.Quantity ?? 1);
+                        //existingDetail.TotalProtein = foodExist.Protein * (detail.Quantity ?? 1);
                         existingDetail.MealPlanId = mealPlan.MealPlanId;
                         updatedDetails.Add(existingDetail);
                     }
@@ -294,10 +294,10 @@ namespace NutriDiet.Service.Services
                             FoodId = detail.FoodId,
                             Quantity = detail.Quantity,
                             MealType = detail.MealType,
-                            TotalCalories = foodExist.Calories * (detail.Quantity ?? 1),
-                            TotalCarbs = foodExist.Carbs * (detail.Quantity ?? 1),
-                            TotalFat = foodExist.Fat * (detail.Quantity ?? 1),
-                            TotalProtein = foodExist.Protein * (detail.Quantity ?? 1),
+                            //TotalCalories = foodExist.Calories * (detail.Quantity ?? 1),
+                            //TotalCarbs = foodExist.Carbs * (detail.Quantity ?? 1),
+                            //TotalFat = foodExist.Fat * (detail.Quantity ?? 1),
+                            //TotalProtein = foodExist.Protein * (detail.Quantity ?? 1),
                             MealPlanId = mealPlan.MealPlanId,
                             DayNumber = detail.DayNumber,
                             FoodName = foodExist.FoodName
@@ -702,7 +702,7 @@ Lưu ý:
                         FoodId = detail.FoodId,
                         Quantity = detail.Quantity,
                         MealType = detail.MealType,
-                        ServingSize = detail.Food.ServingSize,
+                        ServingSize = detail.Food.ServingSize.UnitName,
                         Calories = detail.TotalCalories,
                         Carbs = detail.TotalCarbs,
                         Fat = detail.TotalFat,
