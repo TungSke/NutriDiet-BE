@@ -25,6 +25,12 @@ namespace NutriDiet.API.Controllers
             var result = await _personalGoalService.GetPersonalGoal();
             return StatusCode(result.StatusCode, result);
         }
+        [HttpGet("list")]
+        public async Task<IActionResult> GetListPersonalGoal()
+        {
+            var result = await _personalGoalService.GetAllPersonalGoals();
+            return StatusCode(result.StatusCode, result);
+        }
 
         [HttpPost]
         public async Task<IActionResult> CreatePersonalGoal([FromForm] PersonalGoalRequest request)
@@ -36,18 +42,6 @@ namespace NutriDiet.API.Controllers
 
             await _personalGoalService.CreatePersonalGoal(request);
             return StatusCode(201); // HTTP 201 cho việc tạo resource
-        }
-
-        [HttpPut]
-        public async Task<IActionResult> UpdatePersonalGoal([FromForm] PersonalGoalRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var result = await _personalGoalService.UpdatePersonalGoal(request);
-            return StatusCode(result.StatusCode, result);
         }
 
         [HttpPut("daily-macronutrients")]
