@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using Azure.Core;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -15,6 +16,7 @@ using System;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace NutriDiet.Service.Services
 {
@@ -51,12 +53,6 @@ namespace NutriDiet.Service.Services
             {
                 throw new Exception("User does not exist.");
             }
-
-            if (request.Weight != null)
-            {
-                await UpdateGoalProgress(request.Weight, userId);
-            }
-            
             // Chuyển đổi request thành GeneralHealthProfile
             var healthProfile = request.Adapt<GeneralHealthProfile>();
             healthProfile.CreatedAt = DateTime.Now;
@@ -93,10 +89,21 @@ namespace NutriDiet.Service.Services
                     var existingRecord = await _unitOfWork.HealthProfileRepository
                         .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.Value.Date == today)
                         .FirstOrDefaultAsync();
+                    var oldestRecord = await _unitOfWork.HealthProfileRepository
+                        .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.HasValue && hp.CreatedAt.Value.Date == today)
+                        .OrderBy(hp => hp.CreatedAt) 
+                        .FirstOrDefaultAsync();
+                    if(oldestRecord != null && oldestRecord.ProfileId == existingRecord?.ProfileId)
+                    {
+                        await UpdateGoalProgress(request.Weight, userId, true);
+                    }
                     if (existingRecord != null)
                     {
                         await _unitOfWork.HealthProfileRepository.DeleteAsync(existingRecord);
                     }
+                }else
+                {
+                    await UpdateGoalProgress(request.Weight, userId, false);
                 }
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
                 if (IsValidHealthData(request))
@@ -149,21 +156,26 @@ namespace NutriDiet.Service.Services
                 existingUser.Allergies.Add(allergy);
             }
         }
-        private async Task UpdateGoalProgress(double? weight, int userId)
+        private async Task UpdateGoalProgress(double? weight, int userId, bool isfirst)
         {
-            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).FirstOrDefaultAsync();
+            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).OrderByDescending(pg => pg.CreatedAt).FirstOrDefaultAsync();
             if (existgoal == null)
             {
+                return;
+            }
+            if (isfirst)
+            {
+                existgoal.ProgressRate = (int)(weight - existgoal.TargetWeight);
                 return;
             }
             var newrate = weight - existgoal.TargetWeight.Value;
             var percentage = 100 - (int)((newrate / existgoal.ProgressRate) * 100);
             if(percentage < 0)
             {
+                percentage = 0;
                 return;
-            }else if(percentage >= 100)
+            }else if(percentage > 100)
             {
-                existgoal.GoalType = GoalType.Maintain.ToString();
                 percentage = 100;
             }
             existgoal.ProgressPercentage = percentage;
@@ -394,7 +406,7 @@ namespace NutriDiet.Service.Services
 
             if (latestProfile != null)
             {
-                await UpdateGoalProgress(latestProfile.Weight, profile.UserId);
+                await UpdateGoalProgress(latestProfile.Weight, profile.UserId,false);
                 await _unitOfWork.SaveChangesAsync();
             }
 

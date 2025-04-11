@@ -91,5 +91,7 @@ namespace NutriDiet.API.Controllers
             var result = await _healthprofileService.HasCreatedHealthProfileToday();
             return Ok(result);
         }
+
+
     }
 }
