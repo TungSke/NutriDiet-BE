@@ -85,6 +85,11 @@ namespace NutriDiet.API.Controllers
             var result = await _healthprofileService.DeleteImageFromHealthProfile(profileId);
             return StatusCode(result.StatusCode, result);
         }
-
+        [HttpGet("today-check")]
+        public async Task<IActionResult> CheckCreateProfile()
+        {
+            var result = await _healthprofileService.HasCreatedHealthProfileToday();
+            return Ok(result);
+        }
     }
 }

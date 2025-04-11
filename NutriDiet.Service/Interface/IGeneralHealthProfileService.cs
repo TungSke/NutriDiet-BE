@@ -21,5 +21,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> DeleteProfileById(int profileId);
         Task<IBusinessResult> AddImageToHealthProfile(int profileId, AddImageRequest request);
         Task<IBusinessResult> DeleteImageFromHealthProfile(int profileId);
+        Task<bool> HasCreatedHealthProfileToday();
     }
 }

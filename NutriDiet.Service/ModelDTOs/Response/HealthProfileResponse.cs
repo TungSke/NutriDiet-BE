@@ -13,6 +13,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
         public string FullName { get; set; } = null!;
         public string? Avatar { get; set; }
         public int? Age { get; set; }
+        public string? Evaluate { get; set; }
         public string? Gender { get; set; }
         public string? Location { get; set; }
         public double? Height { get; set; }
