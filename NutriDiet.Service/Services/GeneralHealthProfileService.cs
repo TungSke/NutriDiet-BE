@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using Azure.Core;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -15,6 +16,7 @@ using System;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace NutriDiet.Service.Services
 {
@@ -32,13 +34,11 @@ namespace NutriDiet.Service.Services
             _aiGeneratorService = aIGeneratorService;
             _userIdClaim = GetUserIdClaim();
         }
-
         private string GetUserIdClaim()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             return user?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         }
-
         public async Task CreateHealthProfileRecord(HealthProfileRequest request)
         {
             var userId = int.Parse(_userIdClaim);
@@ -53,35 +53,59 @@ namespace NutriDiet.Service.Services
             {
                 throw new Exception("User does not exist.");
             }
-
-            if (request.Weight != null)
-            {
-                await UpdateGoalProgress(request.Weight, userId);
-            }
-
             // Chuyển đổi request thành GeneralHealthProfile
             var healthProfile = request.Adapt<GeneralHealthProfile>();
             healthProfile.CreatedAt = DateTime.Now;
             healthProfile.UpdatedAt = DateTime.Now;
             healthProfile.UserId = userId;
-
-            await _unitOfWork.BeginTransaction();
-            try
+            healthProfile.Evaluate = "";
+            if (request.Weight.HasValue && request.Height.HasValue)
             {
-                // Kiểm tra và xóa hồ sơ sức khỏe của ngày hiện tại nếu có
-                var today = DateTime.Today.Date;
-                var existingRecord = await _unitOfWork.HealthProfileRepository
-                    .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.Value.Date == today)
-                    .FirstOrDefaultAsync();
-                if (existingRecord != null)
+                double percentile = CalculateGlobalWeightPercentile(request.Weight.Value);
+                double weightChange = CalculateWeightChangeForNormalBMI(request.Weight.Value, request.Height.Value);
+                string abnormal = ValidateHealthProfileData(request.Weight.Value, request.Height.Value);
+                string weightChangeMessage = "";
+                if (weightChange > 0)
                 {
-                    await _unitOfWork.HealthProfileRepository.DeleteAsync(existingRecord);
+                    weightChangeMessage = $"Bạn cần tăng {weightChange}kg để đạt trạng thái cân đối";
+                }
+                else if (weightChange < 0)
+                {
+                    weightChangeMessage = $"Bạn cần giảm {Math.Abs(weightChange)}kg để đạt trạng thái cân đối";
+                }
+                else
+                {
+                    weightChangeMessage = "Bạn đã đạt trạng thái cân đối";
                 }
 
-                // Lưu hồ sơ sức khỏe mới (để sinh ra ProfileID)
+                healthProfile.Evaluate = $"Bạn nặng hơn {percentile}% người trên thế giới. {weightChangeMessage}. {abnormal}";
+            }
+            await _unitOfWork.BeginTransaction();
+            try 
+            {
+                if (request.ProfileOption.Equals(ProfileOption.REPLACE))
+                {
+                    var today = DateTime.Today.Date;
+                    var existingRecord = await _unitOfWork.HealthProfileRepository
+                        .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.Value.Date == today)
+                        .FirstOrDefaultAsync();
+                    var oldestRecord = await _unitOfWork.HealthProfileRepository
+                        .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.HasValue && hp.CreatedAt.Value.Date == today)
+                        .OrderBy(hp => hp.CreatedAt) 
+                        .FirstOrDefaultAsync();
+                    if(oldestRecord != null && oldestRecord.ProfileId == existingRecord?.ProfileId)
+                    {
+                        await UpdateGoalProgress(request.Weight, userId, true);
+                    }
+                    if (existingRecord != null)
+                    {
+                        await _unitOfWork.HealthProfileRepository.DeleteAsync(existingRecord);
+                    }
+                }else
+                {
+                    await UpdateGoalProgress(request.Weight, userId, false);
+                }
                 await _unitOfWork.HealthProfileRepository.AddAsync(healthProfile);
-
-                // Sau khi có ProfileID, lưu các chỉ số sức khỏe nếu dữ liệu hợp lệ
                 if (IsValidHealthData(request))
                 {
                     await SaveHealthIndicatorsAsync(healthProfile, request, existingUser);
@@ -99,7 +123,16 @@ namespace NutriDiet.Service.Services
                 throw;
             }
         }
+        public async Task<bool> HasCreatedHealthProfileToday()
+        {
+            var userId = int.Parse(_userIdClaim);
+            var today = DateTime.Today.Date;
 
+            var existingRecord = await _unitOfWork.HealthProfileRepository
+                .GetByWhere(hp => hp.UserId == userId && hp.CreatedAt.HasValue && hp.CreatedAt.Value.Date == today)
+                .FirstOrDefaultAsync();
+            return existingRecord != null;
+        }
         private async Task UpdateUserAllergiesAsync(User existingUser, List<int> allergyIds)
         {
             // Nếu danh sách mới rỗng, xóa toàn bộ dị ứng cũ
@@ -123,18 +156,23 @@ namespace NutriDiet.Service.Services
                 existingUser.Allergies.Add(allergy);
             }
         }
-
-        private async Task UpdateGoalProgress(double? weight, int userId)
+        private async Task UpdateGoalProgress(double? weight, int userId, bool isfirst)
         {
-            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).FirstOrDefaultAsync();
+            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).OrderByDescending(pg => pg.CreatedAt).FirstOrDefaultAsync();
             if (existgoal == null)
             {
+                return;
+            }
+            if (isfirst)
+            {
+                existgoal.ProgressRate = (int)(weight - existgoal.TargetWeight);
                 return;
             }
             var newrate = weight - existgoal.TargetWeight.Value;
             var percentage = 100 - (int)((newrate / existgoal.ProgressRate) * 100);
             if(percentage < 0)
             {
+                percentage = 0;
                 return;
             }else if(percentage > 100)
             {
@@ -142,8 +180,6 @@ namespace NutriDiet.Service.Services
             }
             existgoal.ProgressPercentage = percentage;
         }
-
-        
         private async Task UpdateUserDiseasesAsync(User existingUser, List<int> diseaseIds)
         {
             if (diseaseIds == null || !diseaseIds.Any())
@@ -163,20 +199,11 @@ namespace NutriDiet.Service.Services
                 existingUser.Diseases.Add(disease);
             }
         }
-
-
-        /// <summary>
-        /// Kiểm tra xem request có đủ dữ liệu để tính toán chỉ số sức khỏe hay không.
-        /// </summary>
         private bool IsValidHealthData(HealthProfileRequest request)
         {
             return request.Weight.HasValue && request.Height.HasValue &&
                    request.ActivityLevel.HasValue;
         }
-
-        /// <summary>
-        /// Tính toán và lưu các chỉ số sức khỏe (BMI, TDEE)
-        /// </summary>
         private async Task SaveHealthIndicatorsAsync(GeneralHealthProfile healthProfile, HealthProfileRequest request, User user)
         {
             // Tính toán các chỉ số sức khỏe
@@ -194,18 +221,13 @@ namespace NutriDiet.Service.Services
             var bmiIndicator = CreateHealthIndicator(healthProfile.ProfileId, "Body mass index", bmiCategory, "BMI", bmi);
             var tdeeIndicator = CreateHealthIndicator(healthProfile.ProfileId, "Total daily energy expenditure", "Energy", "TDEE", tdee);
 
-            // Nếu collection chưa khởi tạo, khởi tạo nó
             if (healthProfile.HealthcareIndicators == null)
             {
                 healthProfile.HealthcareIndicators = new List<HealthcareIndicator>();
             }
-            // Thêm các chỉ số vào thuộc tính navigation của healthProfile
             healthProfile.HealthcareIndicators.Add(bmiIndicator);
             healthProfile.HealthcareIndicators.Add(tdeeIndicator);
         }
-
-
-
         private string GetBMICategory(double bmi)
         {
             return bmi switch
@@ -218,7 +240,6 @@ namespace NutriDiet.Service.Services
                 _ => "Béo phì độ 3"
             };
         }
-
         private HealthcareIndicator CreateHealthIndicator(int profileId, string name, string type, string code, double value)
         {
             return new HealthcareIndicatorRequest
@@ -230,8 +251,6 @@ namespace NutriDiet.Service.Services
                 CurrentValue = value
             }.Adapt<HealthcareIndicator>();
         }
-
-
         public async Task<IBusinessResult> GetHealthProfile()
         {
             var userId = int.Parse(_userIdClaim);
@@ -273,8 +292,6 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
-
-
         public async Task<IBusinessResult> DeleteHealthProfile(int userId)
         {
             var profile = _unitOfWork.HealthProfileRepository.GetByWhere(p => p.UserId == userId);
@@ -288,7 +305,6 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
-
         public async Task<IBusinessResult> TrackingHealthProfile(HealProfileFields field)
         {
             var userId = int.Parse(_userIdClaim);
@@ -321,7 +337,6 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
-
         public async Task<IBusinessResult> GetSuggestionImproveFromAI()
         {
             var userId = int.Parse(_userIdClaim);
@@ -339,7 +354,6 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
-
         public async Task<IBusinessResult> GetHealthProfiles()
         {
             var userId = int.Parse(_userIdClaim);
@@ -360,8 +374,6 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
-
-
         public async Task<IBusinessResult> DeleteProfileById(int profileId)
         {
             var profile = await _unitOfWork.HealthProfileRepository
@@ -394,14 +406,12 @@ namespace NutriDiet.Service.Services
 
             if (latestProfile != null)
             {
-                await UpdateGoalProgress(latestProfile.Weight, profile.UserId);
+                await UpdateGoalProgress(latestProfile.Weight, profile.UserId,false);
                 await _unitOfWork.SaveChangesAsync();
             }
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Profile deleted successfully along with its healthcare indicators");
         }
-
-
         public async Task<IBusinessResult> AddImageToHealthProfile(int profileId, AddImageRequest request)
         {
             if (request.Image == null || request.Image.Length == 0)
@@ -446,7 +456,6 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Image added/replaced successfully.", profile.ImageUrl);
         }
-
         private string ExtractPublicIdFromUrl(string imageUrl)
         {
             var uri = new Uri(imageUrl);
@@ -457,7 +466,6 @@ namespace NutriDiet.Service.Services
             var fullPath = string.Join("/", pathParts);
             return Path.Combine(Path.GetDirectoryName(fullPath) ?? "", Path.GetFileNameWithoutExtension(fullPath)).Replace("\\", "/");
         }
-
         public async Task<IBusinessResult> DeleteImageFromHealthProfile(int profileId)
         {
             int userId = int.Parse(_userIdClaim);
@@ -498,8 +506,6 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.ERROR_EXCEPTION, "Error deleting image.", null);
             }
         }
-
-
         public async Task<IBusinessResult> CreateAISuggestion()
         {
             var userId = int.Parse(_userIdClaim);
@@ -594,6 +600,65 @@ Lưu ý:
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Lời khuyên tư vấn đã được tạo và lưu thành công", airesponse);
         }
+        public double CalculateGlobalWeightPercentile(double weight)
+        {
+            double GlobalMeanWeight = 62.0;
+            double GlobalStdDev = 15.0;
+            double z = (weight - GlobalMeanWeight) / GlobalStdDev;
+            double percentile = NormalCdf(z) * 100.0;
+            return Math.Round(percentile, 2);
+        }
+        private double NormalCdf(double z)
+        {
+            return 0.5 * (1.0 + Erf(z / Math.Sqrt(2)));
+        }
+        private double Erf(double x)
+        {
+            int sign = Math.Sign(x);
+            x = Math.Abs(x);
+            double a1 = 0.254829592;
+            double a2 = -0.284496736;
+            double a3 = 1.421413741;
+            double a4 = -1.453152027;
+            double a5 = 1.061405429;
+            double p = 0.3275911;
+            double t = 1.0 / (1.0 + p * x);
+            double y = 1.0 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
+            return sign * y;
+        }
+        public double CalculateWeightChangeForNormalBMI(double currentWeight, double heightCm)
+        {
+            double heightM = heightCm / 100.0;
 
+            double currentBMI = currentWeight / (heightM * heightM);
+            if (currentBMI >= 18.5 && currentBMI <= 24.9)
+            {
+                return 0;
+            }
+            else if (currentBMI < 18.5)
+            {
+                double targetWeight = 18.5 * (heightM * heightM);
+                double weightToGain = targetWeight - currentWeight;
+                return Math.Round(weightToGain, 2);
+            }
+            else
+            {
+                double targetWeight = 24.9 * (heightM * heightM);
+                double weightToLose = targetWeight - currentWeight;
+                return Math.Round(weightToLose, 2);
+            }
+        }
+        public string ValidateHealthProfileData(double currentWeight, double heightCm)
+        {
+            string message = "";
+
+            double heightM = heightCm / 100.0;
+            double currentBMI = currentWeight / (heightM * heightM);
+            if (currentBMI < 10 || currentBMI > 50)
+            {
+                message = ("Chỉ số cơ thể của bạn hiện tại rất bất thường.");
+            }
+            return message; 
+        }
     }
 }

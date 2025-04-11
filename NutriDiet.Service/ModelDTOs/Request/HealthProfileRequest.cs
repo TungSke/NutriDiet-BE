@@ -20,7 +20,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 
         public DietStyleEnum? DietStyle { get; set; }
         public ActivityLevel? ActivityLevel { get; set; }
-
+        public ProfileOption ProfileOption { get; set; } = ProfileOption.ADD;
         public string? Aisuggestion { get; set; }
 
         public List<int> AllergyIds { get; set; } = new();

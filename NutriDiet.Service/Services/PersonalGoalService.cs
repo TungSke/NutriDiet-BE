@@ -81,15 +81,6 @@ namespace NutriDiet.Service.Services
             // Tính toán tỷ lệ macronutrients (%) theo mục tiêu
             var macronutrients = CalculateMacronutrientRatios(request.GoalType);
 
-            // Nếu user đã có personal goal đang Active thì xóa nó đi trước
-            var existingGoal = await _unitOfWork.PersonalGoalRepository
-                .GetByWhere(pg => pg.UserId == userId)
-                .FirstOrDefaultAsync();
-            if (existingGoal != null)
-            {
-                await _unitOfWork.PersonalGoalRepository.DeleteAsync(existingGoal);
-            }
-
             var personalGoal = request.Adapt<PersonalGoal>();
             personalGoal.UserId = userId;
             personalGoal.StartDate = DateTime.Now;
@@ -234,6 +225,7 @@ namespace NutriDiet.Service.Services
 
             var personalGoal = await _unitOfWork.PersonalGoalRepository
                 .GetByWhere(pg => pg.UserId == userid)
+                .OrderByDescending(pg => pg.CreatedAt)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -242,93 +234,23 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
 
-        public async Task<IBusinessResult> UpdatePersonalGoal(PersonalGoalRequest request)
+        public async Task<IBusinessResult> GetAllPersonalGoals()
         {
             var userId = int.Parse(_userIdClaim);
-            var existingGoal = await _unitOfWork.PersonalGoalRepository
-                .GetByWhere(pg => pg.UserId == userId)
-                .FirstOrDefaultAsync();
-
-            if (existingGoal == null)
-            {
-                await CreatePersonalGoal(request);
-
-                // Sau khi tạo, truy xuất lại mục tiêu để trả về kết quả:
-                existingGoal = await _unitOfWork.PersonalGoalRepository
-                    .GetByWhere(pg => pg.UserId == userId)
-                    .FirstOrDefaultAsync();
-                if (existingGoal == null)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tạo được personal goal mới.", null);
-                }
-                var newResponse = existingGoal.Adapt<PersonalGoalResponse>();
-                return new BusinessResult(Const.HTTP_STATUS_OK, "Personal goal không tồn tại. Đã tạo mới thành công.", newResponse);
-            }
-            var existingUser = await _unitOfWork.UserRepository
-                .GetByWhere(u => u.UserId == userId)
-                .Include(u => u.GeneralHealthProfiles)
-                .ThenInclude(u => u.HealthcareIndicators)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
+            var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             if (existingUser == null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User không tồn tại.", null);
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User does not exist.", null);
             }
 
-            var latestProfile = existingUser.GeneralHealthProfiles
-                                            .OrderByDescending(h => h.CreatedAt)
-                                            .FirstOrDefault();
+            var personalGoals = await _unitOfWork.PersonalGoalRepository
+                                    .GetByWhere(pg => pg.UserId == userId)
+                                    .AsNoTracking()
+                                    .ToListAsync();
 
-            if (latestProfile == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Không tìm thấy health profile.", null);
-            }
-
-            var currentWeight = latestProfile.Weight;
-            var tdee = latestProfile.HealthcareIndicators
-                .Where(h => h.Code.Equals("TDEE"))
-                .OrderByDescending(h => h.CreatedAt)
-                .FirstOrDefault()?.CurrentValue ?? 0;
-
-            if (tdee == 0)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Thiếu dữ liệu TDEE.", null);
-            }
-
-            try
-            {
-                // Kiểm tra hợp lệ của mục tiêu
-                ValidatePersonalGoal(request, currentWeight);
-
-                // Tính toán lượng calo hàng ngày và ngày đạt mục tiêu
-                var (dailyCalories, targetDate) = CalculateDailyCaloriesAndTargetDate(request, tdee, currentWeight);
-
-                // Tính toán tỷ lệ macronutrients (%) ban đầu
-                var macronutrients = CalculateMacronutrientRatios(request.GoalType);
-
-                // Cập nhật thông tin mục tiêu
-                request.Adapt(existingGoal);
-                existingGoal.DailyCalories = (int)dailyCalories;
-                existingGoal.TargetDate = targetDate ?? DateTime.Now;
-                existingGoal.DailyCarb = Math.Round(dailyCalories * (macronutrients.CarbRatio / 100.0) / 4.0, 2);
-                existingGoal.DailyProtein = Math.Round(dailyCalories * (macronutrients.ProteinRatio / 100.0) / 4.0, 2);
-                existingGoal.DailyFat = Math.Round(dailyCalories * (macronutrients.FatRatio / 100.0) / 9.0, 2);
-                existingGoal.ProgressRate = (int)(currentWeight - request.TargetWeight);
-                existingGoal.ProgressPercentage = 0;
-
-                await _unitOfWork.PersonalGoalRepository.UpdateAsync(existingGoal);
-                await _unitOfWork.SaveChangesAsync();
-
-                var response = existingGoal.Adapt<PersonalGoalResponse>();
-                return new BusinessResult(Const.HTTP_STATUS_OK, "Cập nhật personal goal thành công.", response);
-            }
-            catch (Exception ex)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, ex.Message, null);
-            }
+            var response = personalGoals.Adapt<List<PersonalGoalResponse>>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
-
 
         public async Task<IBusinessResult> UpdateDailyMacronutrients(EditDailyMacronutrientsRequest request)
         {
