@@ -17,6 +17,8 @@ public partial class GeneralHealthProfile
 
     public string? Aisuggestion { get; set; }
 
+    public string? Evaluate { get; set; }
+
     public string? DietStyle { get; set; }
 
     public string? Status { get; set; }
