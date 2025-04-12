@@ -44,21 +44,24 @@ namespace NutriDiet.Service.Utilities
                 float fat = GetNutrientValue(nutriments, "fat");
                 float fiber = GetNutrientValue(nutriments, "sugars");
 
-                var food = new
+                var food = new Food
                 {
                     FoodName = productName,
+                    MealType = null,
                     ImageUrl = imageUrl,
+                    FoodType = null,
                     Description = $"Sản phẩm từ barcode {barcode}, nutrition grade: {nutritionGrade}",
-                    ServingSize = servingSize,
-                    Calories = calories,
-                    Protein = protein,
-                    Carbs = carbs,
-                    Fat = fat,
-                    Glucid = carbs,
-                    Fiber = fiber
+                    //ServingSize = servingSize,
+                    //Calories = calories,
+                    //Protein = protein,
+                    //Carbs = carbs,
+                    //Fat = fat,
+                    //Glucid = carbs,
+                    //Fiber = fiber
                 };
 
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, food);
+                var foodResponse = food.Adapt<FoodResponse>();
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, foodResponse);
             }
             catch (Exception ex)
             {
