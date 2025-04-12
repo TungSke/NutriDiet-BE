@@ -64,11 +64,10 @@ namespace NutriDiet.API.Extensions
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IMealLogService, MealLogService>();
             services.AddScoped<ICuisineTypeService, CuisineTypeService>();
-            services.AddScoped<IIngreDientService, IngreDientSevice>();
+            services.AddScoped<IIngreDientService, IngreDientSevice>();        
             services.AddScoped<IPackageService, PackageService>();
             services.AddScoped<ISystemConfigurationService, SystemConfigationService>();
             services.AddHostedService<NotificationBackgroundService>();
-            services.AddScoped<IServingSizeService, ServingSizeService>();
         }
 
         public static IServiceCollection AddAuthorizeService(this IServiceCollection services, IConfiguration configuration)
@@ -106,7 +105,7 @@ namespace NutriDiet.API.Extensions
                 {
                     Title = "NutriDiet_API",
                     Version = "v1",
-                    Description = "API for managing NutriDiet app",
+                    Description = "API for managing NutriDiet app",                
                 });
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -176,29 +175,6 @@ namespace NutriDiet.API.Extensions
         {
             TypeAdapterConfig.GlobalSettings.NewConfig<UserPackage, UserPackagesResponse>()
                 .Map(dest => dest.PackageName, src => src.Package.PackageName);
-
-            TypeAdapterConfig<Food, FoodResponse>
-            .NewConfig()
-            .Map(dest => dest.FoodId, src => src.FoodId)
-            .Map(dest => dest.FoodName, src => src.FoodName)
-            .Map(dest => dest.MealType, src => src.MealType)
-            .Map(dest => dest.FoodType, src => src.FoodType)
-            .Map(dest => dest.Description, src => src.Description)
-            .Map(dest => dest.ImageUrl, src => src.ImageUrl)
-            .Map(dest => dest.ServingSizeName, src => src.ServingSize.UnitName)
-            .Map(dest => dest.FoodServingSizes, src => src.FoodServingSizes);
-
-            TypeAdapterConfig<FoodServingSize, FoodServingSizeResponse>
-                .NewConfig()
-                .Map(dest => dest.ServingSizeId, src => src.ServingSizeId)
-                .Map(dest => dest.ServingSizeName, src => src.ServingSize.UnitName)
-                .Map(dest => dest.Quantity, src => src.Quantity)
-                .Map(dest => dest.Calories, src => src.Calories)
-                .Map(dest => dest.Protein, src => src.Protein)
-                .Map(dest => dest.Carbs, src => src.Carbs)
-                .Map(dest => dest.Fat, src => src.Fat)
-                .Map(dest => dest.Glucid, src => src.Glucid)
-                .Map(dest => dest.Fiber, src => src.Fiber);
         }
     }
 }

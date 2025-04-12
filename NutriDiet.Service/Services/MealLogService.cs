@@ -94,10 +94,10 @@ namespace NutriDiet.Service.Services
             {
                 // Nếu món ăn đã tồn tại, chỉ cập nhật số lượng và dinh dưỡng
                 existingMealDetail.Quantity += quantity;
-                //existingMealDetail.Calories += quantity * food.Calories;
-                //existingMealDetail.Protein += quantity * food.Protein;
-                //existingMealDetail.Carbs += quantity * food.Carbs;
-                //existingMealDetail.Fat += quantity * food.Fat;
+                existingMealDetail.Calories += quantity * food.Calories;
+                existingMealDetail.Protein += quantity * food.Protein;
+                existingMealDetail.Carbs += quantity * food.Carbs;
+                existingMealDetail.Fat += quantity * food.Fat;
             }
             else
             {
@@ -106,12 +106,12 @@ namespace NutriDiet.Service.Services
                 {
                     FoodId = request.FoodId,
                     MealType = request.MealType.ToString(),
-                    ServingSize = food.ServingSize.UnitName,
+                    ServingSize = food.ServingSize,
                     Quantity = quantity,
-                    //Calories = quantity * food.Calories,
-                    //Protein = quantity * food.Protein,
-                    //Carbs = quantity * food.Carbs,
-                    //Fat = quantity * food.Fat
+                    Calories = quantity * food.Calories,
+                    Protein = quantity * food.Protein,
+                    Carbs = quantity * food.Carbs,
+                    Fat = quantity * food.Fat
                 };
 
                 existingMealLog.MealLogDetails.Add(mealLogDetail);
@@ -675,10 +675,10 @@ Quy định phản hồi:
                         MealType = m.MealType.ToString(),
                         ServingSize = m.ServingSize,
                         Quantity = m.Quantity,
-                        //Calories = (m.Quantity ?? 1) * (food.Calories ?? 0),
-                        //Protein = (m.Quantity ?? 1) * (food.Protein ?? 0),
-                        //Carbs = (m.Quantity ?? 1) * (food.Carbs ?? 0),
-                        //Fat = (m.Quantity ?? 1) * (food.Fat ?? 0)
+                        Calories = (m.Quantity ?? 1) * (food.Calories ?? 0),
+                        Protein = (m.Quantity ?? 1) * (food.Protein ?? 0),
+                        Carbs = (m.Quantity ?? 1) * (food.Carbs ?? 0),
+                        Fat = (m.Quantity ?? 1) * (food.Fat ?? 0)
                     };
                 })
                 .Where(m => m != null)

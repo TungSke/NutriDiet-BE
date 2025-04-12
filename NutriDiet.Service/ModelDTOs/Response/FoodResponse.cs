@@ -20,11 +20,19 @@ namespace NutriDiet.Service.ModelDTOs.Response
 
         public string? Description { get; set; }
 
-        public int? ServingSizeId { get; set; }
+        public string? ServingSize { get; set; }
 
-        public string? ServingSizeName { get; set; }
+        public double? Calories { get; set; }
 
-        public List<FoodServingSizeResponse> FoodServingSizes { get; set; } = new List<FoodServingSizeResponse>();
+        public double? Protein { get; set; }
+
+        public double? Carbs { get; set; }
+
+        public double? Fat { get; set; }
+
+        public double? Glucid { get; set; }
+
+        public double? Fiber { get; set; }
 
         public List<IngredientResponse>? Ingredients { get; set; }
     }

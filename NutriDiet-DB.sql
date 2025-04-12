@@ -111,14 +111,6 @@ CREATE TABLE UserAllergy (
     FOREIGN KEY (AllergyID) REFERENCES Allergy(AllergyID) ON DELETE CASCADE
 );
 
-CREATE TABLE ServingSize (
-    ServingSizeID INT IDENTITY(1,1) PRIMARY KEY,
-    UnitName NVARCHAR(50) NOT NULL UNIQUE, -- Tên đơn vị (quart, fl oz, oz, ml, g, mg, liter, lb,...)
-    Description NVARCHAR(255) NULL, -- Mô tả đơn vị (nếu cần)
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    UpdatedAt DATETIME DEFAULT GETDATE()
-);
-
 -- Bảng Food
 CREATE TABLE Food (
     FoodID INT IDENTITY(1,1) PRIMARY KEY,
@@ -127,23 +119,13 @@ CREATE TABLE Food (
     ImageUrl NVARCHAR(MAX) NULL,
     FoodType NVARCHAR(100), -- ví dụ: rau củ, thịt
     Description NVARCHAR(255) NULL,
-    ServingSizeID INT NULL, -- Đơn vị khẩu phần mặc định
-    FOREIGN KEY (ServingSizeID) REFERENCES ServingSize(ServingSizeID)
-);
-
-CREATE TABLE FoodServingSize (
-    FoodID INT NOT NULL,
-    ServingSizeID INT NOT NULL,
-    Quantity FLOAT DEFAULT 1.0,
+    ServingSize NVARCHAR(50), -- ví dụ: 100g, 1 thìa
     Calories FLOAT CHECK (Calories >= 0),
     Protein FLOAT CHECK (Protein >= 0),
-    Carbs FLOAT CHECK (Carbs >= 0),
+    Carbs FLOAT CHECK (Carbs >= 0), -- tinh bột
     Fat FLOAT CHECK (Fat >= 0),
     Glucid FLOAT CHECK (Glucid >= 0),
-    Fiber FLOAT CHECK (Fiber >= 0),
-    PRIMARY KEY (FoodID, ServingSizeID),
-    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
-    FOREIGN KEY (ServingSizeID) REFERENCES ServingSize(ServingSizeID) ON DELETE CASCADE
+    Fiber FLOAT CHECK (Fiber >= 0)
 );
 
 -- Bảng CuisineType

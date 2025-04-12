@@ -30,8 +30,6 @@ namespace NutriDiet.Repository
         private ISystemConfigurationRepository _systemConfigurationRepository;
         private IUserFoodPreferenceRepository _userFoodPreferenceRepository;
         private INotificationRepository _notificationRepository;
-        private IFoodServingSizeRepository _foodServingSizeRepository;
-        private IServingSizeRepository _servingSizeRepository;
 
         public UnitOfWork(NutriDietContext context)
         {
@@ -59,8 +57,6 @@ namespace NutriDiet.Repository
         public ISystemConfigurationRepository SystemConfigurationRepository => _systemConfigurationRepository ??= new SystemConfigurationRepository(_context);
         public IUserFoodPreferenceRepository UserFoodPreferenceRepository => _userFoodPreferenceRepository ??= new UserFoodPreferenceRepository(_context);
         public INotificationRepository NotificationRepository => _notificationRepository ??= new NotificationRepository(_context);
-        public IFoodServingSizeRepository FoodServingSizeRepository => _foodServingSizeRepository ??= new FoodServingSizeRepository(_context);
-        public IServingSizeRepository ServingSizeRepository => _servingSizeRepository ??= new ServingSizeRepository(_context);
 
         public async Task BeginTransaction()
         {
