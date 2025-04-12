@@ -185,6 +185,7 @@ namespace NutriDiet.API.Extensions
             .Map(dest => dest.FoodType, src => src.FoodType)
             .Map(dest => dest.Description, src => src.Description)
             .Map(dest => dest.ImageUrl, src => src.ImageUrl)
+            .Map(dest => dest.ServingSizeName, src => src.ServingSize.UnitName)
             .Map(dest => dest.FoodServingSizes, src => src.FoodServingSizes);
 
             TypeAdapterConfig<FoodServingSize, FoodServingSizeResponse>

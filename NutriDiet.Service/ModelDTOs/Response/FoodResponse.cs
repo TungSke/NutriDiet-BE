@@ -22,6 +22,8 @@ namespace NutriDiet.Service.ModelDTOs.Response
 
         public int? ServingSizeId { get; set; }
 
+        public string? ServingSizeName { get; set; }
+
         public List<FoodServingSizeResponse> FoodServingSizes { get; set; } = new List<FoodServingSizeResponse>();
 
         public List<IngredientResponse>? Ingredients { get; set; }
