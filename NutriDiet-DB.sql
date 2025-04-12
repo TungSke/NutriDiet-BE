@@ -142,8 +142,8 @@ CREATE TABLE FoodServingSize (
     Glucid FLOAT CHECK (Glucid >= 0),
     Fiber FLOAT CHECK (Fiber >= 0),
     PRIMARY KEY (FoodID, ServingSizeID),
-    FOREIGN KEY (FoodID) REFERENCES Food(FoodID),
-    FOREIGN KEY (ServingSizeID) REFERENCES ServingSize(ServingSizeID)
+    FOREIGN KEY (FoodID) REFERENCES Food(FoodID) ON DELETE CASCADE,
+    FOREIGN KEY (ServingSizeID) REFERENCES ServingSize(ServingSizeID) ON DELETE CASCADE
 );
 
 -- Bảng CuisineType
