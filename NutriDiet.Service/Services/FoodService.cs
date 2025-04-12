@@ -802,7 +802,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var foodsToImport = new List<Food>();
-            var servingSizesToInsert = new List<FoodServingSize>();
+            var foodServingSizesToImport = new List<FoodServingSize>();
             int duplicateCount = 0;
             var processedFoodNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -818,7 +818,6 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                         {
                             return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy worksheet với tên 'Food'");
                         }
-
                         var rowCount = worksheet.Dimension.Rows;
 
                         var existingServingSizes = await _unitOfWork.ServingSizeRepository
@@ -833,61 +832,79 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                         for (int row = 2; row <= rowCount; row++)
                         {
                             var foodName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
-                            var mealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
                             var foodType = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
-                            var servingText = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
-                            var description = worksheet.Cells[row, 11].Value?.ToString()?.Trim();
 
                             if (string.IsNullOrEmpty(foodName) || string.IsNullOrEmpty(foodType))
+                            {
                                 continue;
+                            }
 
-                            var foodNameKey = foodName.Normalize(NormalizationForm.FormC).ToLower().Trim();
-                            if (processedFoodNames.Contains(foodNameKey) || existingFoodNames.Contains(foodNameKey))
+                            foodName = foodName.Normalize(NormalizationForm.FormC);
+                            var foodNameLower = foodName.ToLower().Trim();
+
+                            if (processedFoodNames.Contains(foodNameLower) || existingFoodNames.Contains(foodNameLower))
                             {
                                 duplicateCount++;
                                 continue;
                             }
 
-                            processedFoodNames.Add(foodNameKey);
+                            // Xử lý cột Khẩu phần
+                            var servingSizeValue = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+                            int? defaultServingSizeId = null;
+                            double defaultQuantity = 1.0;
 
-                            // Parse serving info
-                            int? servingSizeId = null;
-                            double quantity = 1;
-                            if (!string.IsNullOrEmpty(servingText))
+                            if (!string.IsNullOrEmpty(servingSizeValue))
                             {
-                                var parts = servingText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                                if (parts.Length >= 2 && double.TryParse(parts[0], out var parsedQty))
+                                var parts = servingSizeValue.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                                if (parts.Length >= 2 && double.TryParse(parts[0], out var quantity))
                                 {
-                                    quantity = parsedQty;
+                                    defaultQuantity = quantity;
                                     var unitName = parts[1].ToLower().Trim();
-                                    if (!existingServingSizes.TryGetValue(unitName, out var ssid)) continue;
-                                    servingSizeId = ssid;
+                                    if (existingServingSizes.TryGetValue(unitName, out var servingSizeId))
+                                    {
+                                        defaultServingSizeId = servingSizeId;
+                                    }
+                                    else
+                                    {
+                                        continue;
+                                    }
                                 }
                                 else if (parts.Length == 1)
                                 {
                                     var unitName = parts[0].ToLower().Trim();
-                                    if (!existingServingSizes.TryGetValue(unitName, out var ssid)) continue;
-                                    servingSizeId = ssid;
+                                    if (existingServingSizes.TryGetValue(unitName, out var servingSizeId))
+                                    {
+                                        defaultServingSizeId = servingSizeId;
+                                    }
+                                    else
+                                    {
+                                        continue;
+                                    }
                                 }
-                                else continue;
+                                else
+                                {
+                                    continue;
+                                }
                             }
 
-                            var newFood = new Food
+                            // Tạo đối tượng Food
+                            var food = new Food
                             {
                                 FoodName = foodName,
-                                MealType = mealType,
+                                MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
                                 FoodType = foodType,
-                                ServingSizeId = servingSizeId,
-                                Description = description,
+                                ServingSizeId = defaultServingSizeId,
+                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim(),
                                 FoodServingSizes = new List<FoodServingSize>()
                             };
 
-                            if (servingSizeId.HasValue)
+                            // Thêm thông tin dinh dưỡng vào FoodServingSize
+                            if (defaultServingSizeId.HasValue)
                             {
-                                var fss = new FoodServingSize
+                                var foodServingSize = new FoodServingSize
                                 {
-                                    ServingSizeId = servingSizeId.Value,
-                                    Quantity = quantity,
+                                    ServingSizeId = defaultServingSizeId.Value,
+                                    Quantity = defaultQuantity,
                                     Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
                                     Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
                                     Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
@@ -895,42 +912,53 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : 0,
                                     Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : 0
                                 };
-
-                                newFood.FoodServingSizes.Add(fss);
-                                servingSizesToInsert.Add(fss);
+                                food.FoodServingSizes.Add(foodServingSize);
+                                foodServingSizesToImport.Add(foodServingSize);
                             }
 
-                            foodsToImport.Add(newFood);
+                            processedFoodNames.Add(foodNameLower);
+                            foodsToImport.Add(food);
                         }
                     }
                 }
 
                 if (foodsToImport.Any())
                 {
-                    await _unitOfWork.FoodRepository.AddRangeAsync(foodsToImport);
-                    await _unitOfWork.SaveChangesAsync();
-
+                    // Lưu từng Food riêng lẻ để tránh concurrency
                     foreach (var food in foodsToImport)
                     {
-                        var fss = food.FoodServingSizes.FirstOrDefault();
-                        if (fss != null)
+                        try
                         {
-                            fss.FoodId = food.FoodId;
-                            fss.Food = null;
+                            await _unitOfWork.FoodRepository.AddAsync(food);
+                            await _unitOfWork.SaveChangesAsync();
+                        }
+                        catch (DbUpdateException dbEx)
+                        {
+                            duplicateCount++;
+                            continue;
                         }
                     }
 
-                    if (servingSizesToInsert.Any())
+                    foreach (var foodServingSize in foodServingSizesToImport)
                     {
-                        await _unitOfWork.FoodServingSizeRepository.AddRangeAsync(servingSizesToInsert);
+                        var food = foodsToImport.FirstOrDefault(f => f.FoodName.Equals(foodServingSize.Food?.FoodName, StringComparison.OrdinalIgnoreCase));
+                        if (food != null && food.FoodId > 0)
+                        {
+                            foodServingSize.FoodId = food.FoodId;
+                        }
+                    }
+
+                    if (foodServingSizesToImport.Any())
+                    {
+                        await _unitOfWork.FoodServingSizeRepository.AddRangeAsync(foodServingSizesToImport.Where(fss => fss.FoodId > 0));
                         await _unitOfWork.SaveChangesAsync();
                     }
                 }
 
-                string message = $"Import thành công {foodsToImport.Count} món mới.";
+                string message = $"Import thành công {foodsToImport.Count - duplicateCount} món ăn mới.";
                 if (duplicateCount > 0)
                 {
-                    message += $" {duplicateCount} món bị bỏ qua do đã tồn tại.";
+                    message += $" {duplicateCount} món bị bỏ qua do trùng lặp.";
                 }
                 if (!foodsToImport.Any() && duplicateCount == 0)
                 {
@@ -942,11 +970,10 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
             catch (DbUpdateException dbEx)
             {
                 var sqlEx = dbEx.InnerException as SqlException;
-                if (sqlEx?.Number == 2627)
+                if (sqlEx != null && sqlEx.Number == 2627)
                 {
                     return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Dữ liệu bị trùng lặp trong database.");
                 }
-
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {dbEx.Message}");
             }
             catch (Exception ex)
