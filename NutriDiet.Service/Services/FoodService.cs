@@ -688,9 +688,8 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             }
 
                             foodName = foodName.Normalize(NormalizationForm.FormC);
-                            var foodNameLower = foodName.ToLower().Trim();
 
-                            if (processedFoodNames.Contains(foodNameLower))
+                            if (processedFoodNames.Contains(foodName.ToLower().Trim()))
                             {
                                 duplicateFoods.Add(new Food { FoodName = foodName });
                                 continue;
@@ -699,14 +698,14 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             // Xử lý cột Khẩu phần (ServingSize)
                             var servingSizeValue = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
                             int? servingSizeId = null;
-                            double quantity = 1.0;
+                            double quantity = 1.0; // Giá trị mặc định
 
                             if (!string.IsNullOrEmpty(servingSizeValue))
                             {
                                 var parts = servingSizeValue.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                                 if (parts.Length >= 2 && double.TryParse(parts[0], out var parsedQuantity))
                                 {
-                                    quantity = parsedQuantity;
+                                    quantity = parsedQuantity; // Lấy số lượng nếu có (ví dụ: "2 tô")
                                     var unitName = parts[1].ToLower().Trim();
                                     if (existingServingSizes.TryGetValue(unitName, out var id))
                                     {
@@ -726,12 +725,12 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     }
                                     else
                                     {
-                                        continue;
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else
                                 {
-                                    continue;
+                                    continue; // Bỏ qua nếu giá trị Khẩu phần không hợp lệ
                                 }
                             }
 
@@ -741,7 +740,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 FoodName = foodName,
                                 MealType = mealType,
                                 FoodType = foodType,
-                                ServingSizeId = servingSizeId,
+                                ServingSizeId = servingSizeId, // ServingSize mặc định
                                 Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim(),
                                 FoodServingSizes = new List<FoodServingSize>()
                             };
@@ -763,9 +762,9 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 food.FoodServingSizes.Add(foodServingSize);
                             }
 
-                            processedFoodNames.Add(foodNameLower);
+                            processedFoodNames.Add(foodName.ToLower().Trim());
 
-                            if (existingFoodNames.Contains(foodNameLower))
+                            if (existingFoodNames.Contains(foodName.ToLower().Trim()))
                             {
                                 duplicateFoods.Add(food);
                             }
@@ -781,8 +780,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                 {
                     NewFoodCount = newFoods.Count,
                     DuplicateFoodCount = duplicateFoods.Count,
-                    DuplicateFoodNames = duplicateFoods.Select(x => x.FoodName).ToList(),
-                    NewFoods = newFoods // Thêm để sử dụng trong các hàm khác
+                    DuplicateFoodNames = duplicateFoods.Select(x => x.FoodName).ToList()
                 };
 
                 return new BusinessResult(Const.HTTP_STATUS_OK, "Phân tích thành công", result);
@@ -840,9 +838,9 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             }
 
                             foodName = foodName.Normalize(NormalizationForm.FormC);
-                            var foodNameLower = foodName.ToLower().Trim();
 
-                            if (processedFoodNames.Contains(foodNameLower) || existingFoodNames.Contains(foodNameLower))
+                            if (processedFoodNames.Contains(foodName.ToLower().Trim()) ||
+                                existingFoodNames.Contains(foodName.ToLower().Trim()))
                             {
                                 duplicateCount++;
                                 continue;
@@ -866,7 +864,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     }
                                     else
                                     {
-                                        continue;
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else if (parts.Length == 1)
@@ -878,7 +876,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     }
                                     else
                                     {
-                                        continue;
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else
@@ -903,6 +901,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             {
                                 var foodServingSize = new FoodServingSize
                                 {
+                                    Food = food,
                                     ServingSizeId = defaultServingSizeId.Value,
                                     Quantity = defaultQuantity,
                                     Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
@@ -916,7 +915,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 foodServingSizesToImport.Add(foodServingSize);
                             }
 
-                            processedFoodNames.Add(foodNameLower);
+                            processedFoodNames.Add(foodName.ToLower().Trim());
                             foodsToImport.Add(food);
                         }
                     }
@@ -924,38 +923,18 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
                 if (foodsToImport.Any())
                 {
-                    // Lưu từng Food riêng lẻ để tránh concurrency
-                    foreach (var food in foodsToImport)
-                    {
-                        try
-                        {
-                            await _unitOfWork.FoodRepository.AddAsync(food);
-                            await _unitOfWork.SaveChangesAsync();
-                        }
-                        catch (DbUpdateException dbEx)
-                        {
-                            duplicateCount++;
-                            continue;
-                        }
-                    }
+                    await _unitOfWork.FoodRepository.AddRangeAsync(foodsToImport);
+                    await _unitOfWork.SaveChangesAsync();
 
                     foreach (var foodServingSize in foodServingSizesToImport)
                     {
-                        var food = foodsToImport.FirstOrDefault(f => f.FoodName.Equals(foodServingSize.Food?.FoodName, StringComparison.OrdinalIgnoreCase));
-                        if (food != null && food.FoodId > 0)
-                        {
-                            foodServingSize.FoodId = food.FoodId;
-                        }
+                        foodServingSize.FoodId = foodServingSize.Food.FoodId;
                     }
-
-                    if (foodServingSizesToImport.Any())
-                    {
-                        await _unitOfWork.FoodServingSizeRepository.AddRangeAsync(foodServingSizesToImport.Where(fss => fss.FoodId > 0));
-                        await _unitOfWork.SaveChangesAsync();
-                    }
+                    await _unitOfWork.FoodServingSizeRepository.AddRangeAsync(foodServingSizesToImport);
+                    await _unitOfWork.SaveChangesAsync();
                 }
 
-                string message = $"Import thành công {foodsToImport.Count - duplicateCount} món ăn mới.";
+                string message = $"Import thành công {foodsToImport.Count} món ăn mới.";
                 if (duplicateCount > 0)
                 {
                     message += $" {duplicateCount} món bị bỏ qua do trùng lặp.";
@@ -1015,6 +994,11 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             .GetAll()
                             .ToDictionaryAsync(ss => ss.UnitName.ToLower().Trim(), ss => ss.ServingSizeId);
 
+                        var existingFoods = await _unitOfWork.FoodRepository
+                            .GetAll()
+                            .Include(f => f.FoodServingSizes)
+                            .ToDictionaryAsync(f => f.FoodName.ToLower().Trim(), f => f);
+
                         for (int row = 2; row <= rowCount; row++)
                         {
                             var foodName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
@@ -1026,9 +1010,8 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             }
 
                             foodName = foodName.Normalize(NormalizationForm.FormC);
-                            var foodNameLower = foodName.ToLower().Trim();
 
-                            if (processedFoodNames.Contains(foodNameLower))
+                            if (processedFoodNames.Contains(foodName.ToLower().Trim()))
                             {
                                 duplicateCount++;
                                 continue;
@@ -1064,7 +1047,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     }
                                     else
                                     {
-                                        continue;
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else
@@ -1073,14 +1056,9 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 }
                             }
 
-                            // Kiểm tra Food tồn tại ngay trước khi xử lý
-                            var existingFood = await _unitOfWork.FoodRepository
-                                .GetAll()
-                                .Include(f => f.FoodServingSizes)
-                                .FirstOrDefaultAsync(f => f.FoodName.ToLower().Trim() == foodNameLower);
-
-                            bool isNewFood = existingFood == null;
+                            // Tạo hoặc cập nhật Food
                             Food food;
+                            bool isNewFood = !existingFoods.TryGetValue(foodName.ToLower().Trim(), out var existingFood);
 
                             if (isNewFood)
                             {
@@ -1105,7 +1083,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 foodsToUpdate.Add(food);
                             }
 
-                            processedFoodNames.Add(foodNameLower);
+                            processedFoodNames.Add(foodName.ToLower().Trim());
 
                             // Xử lý FoodServingSize
                             if (defaultServingSizeId.HasValue)
@@ -1135,6 +1113,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
                                     if (existingServingSize != null)
                                     {
+                                        // Cập nhật thông tin dinh dưỡng
                                         existingServingSize.Quantity = foodServingSize.Quantity;
                                         existingServingSize.Calories = foodServingSize.Calories;
                                         existingServingSize.Protein = foodServingSize.Protein;
@@ -1156,49 +1135,17 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                     }
                 }
 
-                // Lưu từng Food và FoodServingSize riêng lẻ để tránh concurrency
-                foreach (var food in foodsToAdd)
+                if (foodsToAdd.Any())
                 {
-                    try
-                    {
-                        await _unitOfWork.FoodRepository.AddAsync(food);
-                        await _unitOfWork.SaveChangesAsync();
-                    }
-                    catch (DbUpdateException)
-                    {
-                        duplicateCount++;
-                        continue;
-                    }
+                    await _unitOfWork.FoodRepository.AddRangeAsync(foodsToAdd);
                 }
-
-                foreach (var food in foodsToUpdate)
+                if (foodsToUpdate.Any())
                 {
-                    try
-                    {
-                        // Tải lại Food để đảm bảo dữ liệu mới nhất
-                        var latestFood = await _unitOfWork.FoodRepository
-                            .GetAll()
-                            .FirstOrDefaultAsync(f => f.FoodId == food.FoodId);
-                        if (latestFood != null)
-                        {
-                            latestFood.MealType = food.MealType;
-                            latestFood.FoodType = food.FoodType;
-                            latestFood.ServingSizeId = food.ServingSizeId;
-                            latestFood.Description = food.Description;
-                            await _unitOfWork.FoodRepository.UpdateAsync(latestFood);
-                            await _unitOfWork.SaveChangesAsync();
-                        }
-                        else
-                        {
-                            duplicateCount++;
-                            continue;
-                        }
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        duplicateCount++;
-                        continue; // Bỏ qua nếu có lỗi concurrency
-                    }
+                    await _unitOfWork.FoodRepository.UpdateRangeAsync(foodsToUpdate);
+                }
+                if (foodsToAdd.Any() || foodsToUpdate.Any())
+                {
+                    await _unitOfWork.SaveChangesAsync();
                 }
 
                 foreach (var foodServingSize in foodServingSizesToAdd)
@@ -1207,58 +1154,24 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                     {
                         foodServingSize.FoodId = foodServingSize.Food.FoodId;
                     }
-                    if (foodServingSize.FoodId > 0)
-                    {
-                        try
-                        {
-                            await _unitOfWork.FoodServingSizeRepository.AddAsync(foodServingSize);
-                            await _unitOfWork.SaveChangesAsync();
-                        }
-                        catch (DbUpdateException)
-                        {
-                            continue; // Bỏ qua nếu lỗi
-                        }
-                    }
                 }
-
-                foreach (var foodServingSize in foodServingSizesToUpdate)
+                if (foodServingSizesToAdd.Any())
                 {
-                    try
-                    {
-                        // Tải lại FoodServingSize để đảm bảo dữ liệu mới nhất
-                        var latestServingSize = await _unitOfWork.FoodServingSizeRepository
-                            .GetAll()
-                            .FirstOrDefaultAsync(fss => fss.FoodId == foodServingSize.FoodId && fss.ServingSizeId == foodServingSize.ServingSizeId);
-                        if (latestServingSize != null)
-                        {
-                            latestServingSize.Quantity = foodServingSize.Quantity;
-                            latestServingSize.Calories = foodServingSize.Calories;
-                            latestServingSize.Protein = foodServingSize.Protein;
-                            latestServingSize.Carbs = foodServingSize.Carbs;
-                            latestServingSize.Fat = foodServingSize.Fat;
-                            latestServingSize.Glucid = foodServingSize.Glucid;
-                            latestServingSize.Fiber = foodServingSize.Fiber;
-                            await _unitOfWork.FoodServingSizeRepository.UpdateAsync(latestServingSize);
-                            await _unitOfWork.SaveChangesAsync();
-                        }
-                        else
-                        {
-                            // Nếu không tìm thấy, thêm mới
-                            foodServingSize.FoodId = foodServingSize.FoodId;
-                            await _unitOfWork.FoodServingSizeRepository.AddAsync(foodServingSize);
-                            await _unitOfWork.SaveChangesAsync();
-                        }
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        continue; // Bỏ qua nếu có lỗi concurrency
-                    }
+                    await _unitOfWork.FoodServingSizeRepository.AddRangeAsync(foodServingSizesToAdd);
+                }
+                if (foodServingSizesToUpdate.Any())
+                {
+                    await _unitOfWork.FoodServingSizeRepository.UpdateRangeAsync(foodServingSizesToUpdate);
+                }
+                if (foodServingSizesToAdd.Any() || foodServingSizesToUpdate.Any())
+                {
+                    await _unitOfWork.SaveChangesAsync();
                 }
 
-                string message = $"Import thành công: {foodsToAdd.Count(f => f.FoodId > 0)} món mới được thêm, {foodsToUpdate.Count(f => f.FoodId > 0)} món được cập nhật.";
+                string message = $"Import thành công: {foodsToAdd.Count} món mới được thêm, {foodsToUpdate.Count} món được cập nhật.";
                 if (duplicateCount > 0)
                 {
-                    message += $" {duplicateCount} món bị bỏ qua do trùng lặp hoặc lỗi.";
+                    message += $" {duplicateCount} món bị bỏ qua do trùng lặp trong file.";
                 }
                 if (!foodsToAdd.Any() && !foodsToUpdate.Any() && duplicateCount == 0)
                 {
