@@ -679,11 +679,12 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                         for (int row = 2; row <= rowCount; row++)
                         {
                             var foodName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                            var mealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
                             var foodType = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
 
                             if (string.IsNullOrEmpty(foodName) || string.IsNullOrEmpty(foodType))
                             {
-                                continue;
+                                continue; // Bỏ qua nếu thiếu dữ liệu bắt buộc
                             }
 
                             foodName = foodName.Normalize(NormalizationForm.FormC);
@@ -694,41 +695,33 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 continue;
                             }
 
-                            // Tách số lượng và đơn vị từ cột Khẩu phần (ví dụ: "1 tô")
+                            // Xử lý cột Khẩu phần (ServingSize)
                             var servingSizeValue = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
-                            int? defaultServingSizeId = null;
-                            double defaultQuantity = 1.0; // Giá trị mặc định nếu không tách được số lượng
+                            int? servingSizeId = null;
+                            double quantity = 1.0; // Giá trị mặc định
 
                             if (!string.IsNullOrEmpty(servingSizeValue))
                             {
-                                // Tách số lượng và đơn vị
                                 var parts = servingSizeValue.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                                if (parts.Length >= 2)
+                                if (parts.Length >= 2 && double.TryParse(parts[0], out var parsedQuantity))
                                 {
-                                    // Phần đầu là số lượng (ví dụ: "1")
-                                    if (double.TryParse(parts[0], out var quantity))
-                                    {
-                                        defaultQuantity = quantity;
-                                    }
-
-                                    // Phần sau là đơn vị (ví dụ: "tô")
+                                    quantity = parsedQuantity; // Lấy số lượng nếu có (ví dụ: "2 tô")
                                     var unitName = parts[1].ToLower().Trim();
-                                    if (existingServingSizes.TryGetValue(unitName, out var servingSizeId))
+                                    if (existingServingSizes.TryGetValue(unitName, out var id))
                                     {
-                                        defaultServingSizeId = servingSizeId;
+                                        servingSizeId = id;
                                     }
                                     else
                                     {
-                                        continue; // Bỏ qua nếu đơn vị không tồn tại trong bảng ServingSize
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else if (parts.Length == 1)
                                 {
-                                    // Nếu chỉ có đơn vị (ví dụ: "tô"), mặc định số lượng là 1
                                     var unitName = parts[0].ToLower().Trim();
-                                    if (existingServingSizes.TryGetValue(unitName, out var servingSizeId))
+                                    if (existingServingSizes.TryGetValue(unitName, out var id))
                                     {
-                                        defaultServingSizeId = servingSizeId;
+                                        servingSizeId = id;
                                     }
                                     else
                                     {
@@ -741,20 +734,33 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 }
                             }
 
+                            // Tạo đối tượng Food
                             var food = new Food
                             {
                                 FoodName = foodName,
-                                MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
+                                MealType = mealType,
                                 FoodType = foodType,
-                                ServingSizeId = defaultServingSizeId,
-                                //Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : (double?)null,
-                                //Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : (double?)null,
-                                //Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : (double?)null,
-                                //Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fats) ? fats : (double?)null,
-                                //Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : (double?)null,
-                                //Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : (double?)null,
-                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim()
+                                ServingSizeId = servingSizeId, // ServingSize mặc định
+                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim(),
+                                FoodServingSizes = new List<FoodServingSize>()
                             };
+
+                            // Thêm thông tin dinh dưỡng vào FoodServingSizes
+                            if (servingSizeId.HasValue)
+                            {
+                                var foodServingSize = new FoodServingSize
+                                {
+                                    ServingSizeId = servingSizeId.Value,
+                                    Quantity = quantity,
+                                    Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                    Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                    Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
+                                    Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fat) ? fat : 0,
+                                    Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : 0,
+                                    Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : 0
+                                };
+                                food.FoodServingSizes.Add(foodServingSize);
+                            }
 
                             processedFoodNames.Add(foodName.ToLower().Trim());
 
@@ -833,19 +839,14 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
                             foodName = foodName.Normalize(NormalizationForm.FormC);
 
-                            if (processedFoodNames.Contains(foodName.ToLower().Trim()))
+                            if (processedFoodNames.Contains(foodName.ToLower().Trim()) ||
+                                existingFoodNames.Contains(foodName.ToLower().Trim()))
                             {
                                 duplicateCount++;
                                 continue;
                             }
 
-                            if (existingFoodNames.Contains(foodName.ToLower().Trim()))
-                            {
-                                duplicateCount++;
-                                continue;
-                            }
-
-                            // Tách số lượng và đơn vị từ cột Khẩu phần
+                            // Xử lý cột Khẩu phần
                             var servingSizeValue = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
                             int? defaultServingSizeId = null;
                             double defaultQuantity = 1.0;
@@ -853,13 +854,9 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             if (!string.IsNullOrEmpty(servingSizeValue))
                             {
                                 var parts = servingSizeValue.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                                if (parts.Length >= 2)
+                                if (parts.Length >= 2 && double.TryParse(parts[0], out var quantity))
                                 {
-                                    if (double.TryParse(parts[0], out var quantity))
-                                    {
-                                        defaultQuantity = quantity;
-                                    }
-
+                                    defaultQuantity = quantity;
                                     var unitName = parts[1].ToLower().Trim();
                                     if (existingServingSizes.TryGetValue(unitName, out var servingSizeId))
                                     {
@@ -867,7 +864,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     }
                                     else
                                     {
-                                        continue;
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else if (parts.Length == 1)
@@ -879,7 +876,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     }
                                     else
                                     {
-                                        continue;
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else
@@ -888,34 +885,38 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 }
                             }
 
+                            // Tạo đối tượng Food
                             var food = new Food
                             {
                                 FoodName = foodName,
                                 MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
                                 FoodType = foodType,
                                 ServingSizeId = defaultServingSizeId,
-                                //Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : (double?)null,
-                                //Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : (double?)null,
-                                //Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : (double?)null,
-                                //Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fats) ? fats : (double?)null,
-                                //Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : (double?)null,
-                                //Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : (double?)null,
-                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim()
+                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim(),
+                                FoodServingSizes = new List<FoodServingSize>()
                             };
 
-                            processedFoodNames.Add(foodName.ToLower().Trim());
-                            foodsToImport.Add(food);
-
-                            // Thêm vào bảng FoodServingSize nếu có DefaultServingSizeId
+                            // Thêm thông tin dinh dưỡng vào FoodServingSize
                             if (defaultServingSizeId.HasValue)
                             {
-                                foodServingSizesToImport.Add(new FoodServingSize
+                                var foodServingSize = new FoodServingSize
                                 {
                                     Food = food,
                                     ServingSizeId = defaultServingSizeId.Value,
-                                    //DefaultQuantity = defaultQuantity
-                                });
+                                    Quantity = defaultQuantity,
+                                    Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                    Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                    Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
+                                    Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fat) ? fat : 0,
+                                    Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : 0,
+                                    Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : 0
+                                };
+                                food.FoodServingSizes.Add(foodServingSize);
+                                foodServingSizesToImport.Add(foodServingSize);
                             }
+
+                            processedFoodNames.Add(foodName.ToLower().Trim());
+                            foodsToImport.Add(food);
                         }
                     }
                 }
@@ -1016,7 +1017,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 continue;
                             }
 
-                            // Tách số lượng và đơn vị từ cột Khẩu phần
+                            // Xử lý cột Khẩu phần
                             var servingSizeValue = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
                             int? defaultServingSizeId = null;
                             double defaultQuantity = 1.0;
@@ -1024,13 +1025,9 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                             if (!string.IsNullOrEmpty(servingSizeValue))
                             {
                                 var parts = servingSizeValue.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                                if (parts.Length >= 2)
+                                if (parts.Length >= 2 && double.TryParse(parts[0], out var quantity))
                                 {
-                                    if (double.TryParse(parts[0], out var quantity))
-                                    {
-                                        defaultQuantity = quantity;
-                                    }
-
+                                    defaultQuantity = quantity;
                                     var unitName = parts[1].ToLower().Trim();
                                     if (existingServingSizes.TryGetValue(unitName, out var servingSizeId))
                                     {
@@ -1038,7 +1035,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     }
                                     else
                                     {
-                                        continue;
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else if (parts.Length == 1)
@@ -1050,7 +1047,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                     }
                                     else
                                     {
-                                        continue;
+                                        continue; // Bỏ qua nếu đơn vị không tồn tại
                                     }
                                 }
                                 else
@@ -1059,70 +1056,79 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                                 }
                             }
 
-                            var food = new Food
+                            // Tạo hoặc cập nhật Food
+                            Food food;
+                            bool isNewFood = !existingFoods.TryGetValue(foodName.ToLower().Trim(), out var existingFood);
+
+                            if (isNewFood)
                             {
-                                FoodName = foodName,
-                                MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
-                                FoodType = foodType,
-                                ServingSizeId = defaultServingSizeId,
-                                //Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : (double?)null,
-                                //Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : (double?)null,
-                                //Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : (double?)null,
-                                //Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fats) ? fats : (double?)null,
-                                //Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : (double?)null,
-                                //Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : (double?)null,
-                                Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim()
-                            };
-
-                            processedFoodNames.Add(foodName.ToLower().Trim());
-
-                            if (existingFoods.TryGetValue(foodName.ToLower().Trim(), out var existingFood))
-                            {
-                                existingFood.MealType = food.MealType;
-                                existingFood.FoodType = food.FoodType;
-                                existingFood.ServingSizeId = food.ServingSizeId;
-                                //existingFood.Calories = food.Calories;
-                                //existingFood.Protein = food.Protein;
-                                //existingFood.Carbs = food.Carbs;
-                                //existingFood.Fat = food.Fat;
-                                //existingFood.Glucid = food.Glucid;
-                                //existingFood.Fiber = food.Fiber;
-                                existingFood.Description = food.Description;
-                                foodsToUpdate.Add(existingFood);
-
-                                if (defaultServingSizeId.HasValue)
+                                food = new Food
                                 {
-                                    var existingFoodServingSize = existingFood.FoodServingSizes
-                                        .FirstOrDefault(fss => fss.ServingSizeId == defaultServingSizeId.Value);
-
-                                    if (existingFoodServingSize != null)
-                                    {
-                                        //existingFoodServingSize.DefaultQuantity = defaultQuantity;
-                                        foodServingSizesToUpdate.Add(existingFoodServingSize);
-                                    }
-                                    else
-                                    {
-                                        foodServingSizesToAdd.Add(new FoodServingSize
-                                        {
-                                            FoodId = existingFood.FoodId,
-                                            ServingSizeId = defaultServingSizeId.Value,
-                                            //DefaultQuantity = defaultQuantity
-                                        });
-                                    }
-                                }
+                                    FoodName = foodName,
+                                    MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
+                                    FoodType = foodType,
+                                    ServingSizeId = defaultServingSizeId,
+                                    Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim(),
+                                    FoodServingSizes = new List<FoodServingSize>()
+                                };
+                                foodsToAdd.Add(food);
                             }
                             else
                             {
-                                foodsToAdd.Add(food);
+                                food = existingFood;
+                                food.MealType = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                                food.FoodType = foodType;
+                                food.ServingSizeId = defaultServingSizeId;
+                                food.Description = worksheet.Cells[row, 11].Value?.ToString()?.Trim();
+                                foodsToUpdate.Add(food);
+                            }
 
-                                if (defaultServingSizeId.HasValue)
+                            processedFoodNames.Add(foodName.ToLower().Trim());
+
+                            // Xử lý FoodServingSize
+                            if (defaultServingSizeId.HasValue)
+                            {
+                                var foodServingSize = new FoodServingSize
                                 {
-                                    foodServingSizesToAdd.Add(new FoodServingSize
+                                    ServingSizeId = defaultServingSizeId.Value,
+                                    Quantity = defaultQuantity,
+                                    Calories = double.TryParse(worksheet.Cells[row, 5].Value?.ToString()?.Trim(), out var cal) ? cal : 0,
+                                    Protein = double.TryParse(worksheet.Cells[row, 6].Value?.ToString()?.Trim(), out var prot) ? prot : 0,
+                                    Carbs = double.TryParse(worksheet.Cells[row, 7].Value?.ToString()?.Trim(), out var carb) ? carb : 0,
+                                    Fat = double.TryParse(worksheet.Cells[row, 8].Value?.ToString()?.Trim(), out var fat) ? fat : 0,
+                                    Glucid = double.TryParse(worksheet.Cells[row, 9].Value?.ToString()?.Trim(), out var gluc) ? gluc : 0,
+                                    Fiber = double.TryParse(worksheet.Cells[row, 10].Value?.ToString()?.Trim(), out var fib) ? fib : 0
+                                };
+
+                                if (isNewFood)
+                                {
+                                    foodServingSize.Food = food;
+                                    food.FoodServingSizes.Add(foodServingSize);
+                                    foodServingSizesToAdd.Add(foodServingSize);
+                                }
+                                else
+                                {
+                                    var existingServingSize = food.FoodServingSizes
+                                        .FirstOrDefault(fss => fss.ServingSizeId == defaultServingSizeId.Value);
+
+                                    if (existingServingSize != null)
                                     {
-                                        Food = food,
-                                        ServingSizeId = defaultServingSizeId.Value,
-                                        //DefaultQuantity = defaultQuantity
-                                    });
+                                        // Cập nhật thông tin dinh dưỡng
+                                        existingServingSize.Quantity = foodServingSize.Quantity;
+                                        existingServingSize.Calories = foodServingSize.Calories;
+                                        existingServingSize.Protein = foodServingSize.Protein;
+                                        existingServingSize.Carbs = foodServingSize.Carbs;
+                                        existingServingSize.Fat = foodServingSize.Fat;
+                                        existingServingSize.Glucid = foodServingSize.Glucid;
+                                        existingServingSize.Fiber = foodServingSize.Fiber;
+                                        foodServingSizesToUpdate.Add(existingServingSize);
+                                    }
+                                    else
+                                    {
+                                        foodServingSize.FoodId = food.FoodId;
+                                        food.FoodServingSizes.Add(foodServingSize);
+                                        foodServingSizesToAdd.Add(foodServingSize);
+                                    }
                                 }
                             }
                         }
@@ -1144,7 +1150,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
                 foreach (var foodServingSize in foodServingSizesToAdd)
                 {
-                    if (foodServingSize.Food != null)
+                    if (foodServingSize.Food != null && foodServingSize.FoodId == 0)
                     {
                         foodServingSize.FoodId = foodServingSize.Food.FoodId;
                     }
