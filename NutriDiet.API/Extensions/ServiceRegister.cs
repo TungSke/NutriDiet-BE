@@ -190,6 +190,7 @@ namespace NutriDiet.API.Extensions
             TypeAdapterConfig<FoodServingSize, FoodServingSizeResponse>
                 .NewConfig()
                 .Map(dest => dest.ServingSizeId, src => src.ServingSizeId)
+                .Map(dest => dest.ServingSizeName, src => src.ServingSize.UnitName)
                 .Map(dest => dest.Quantity, src => src.Quantity)
                 .Map(dest => dest.Calories, src => src.Calories)
                 .Map(dest => dest.Protein, src => src.Protein)

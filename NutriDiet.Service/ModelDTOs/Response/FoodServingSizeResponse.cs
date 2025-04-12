@@ -10,6 +10,8 @@ namespace NutriDiet.Service.ModelDTOs.Response
     {
         public int ServingSizeId { get; set; }
 
+        public string? ServingSizeName { get; set; }
+
         public double? Quantity { get; set; }
 
         public double? Calories { get; set; }
