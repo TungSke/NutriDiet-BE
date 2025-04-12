@@ -30,7 +30,5 @@ namespace NutriDiet.Repository.Interface
         ISystemConfigurationRepository SystemConfigurationRepository { get; }
         IUserFoodPreferenceRepository UserFoodPreferenceRepository { get; }
         INotificationRepository NotificationRepository { get; }
-        IFoodServingSizeRepository FoodServingSizeRepository { get; }
-        IServingSizeRepository ServingSizeRepository { get; }
     }
 }
