@@ -83,195 +83,79 @@ namespace NutriDiet.Service.Services
 
         public async Task<IBusinessResult> CreateFood(FoodRequest request)
         {
-            try
+            var existedFood = await _unitOfWork.FoodRepository
+                .GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower()))
+                .AnyAsync();
+
+            if (existedFood == true)
             {
-                // Kiểm tra dữ liệu đầu vào
-                if (string.IsNullOrWhiteSpace(request.FoodName))
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Food name is required");
-                }
-
-                // Kiểm tra tên món ăn đã tồn tại
-                var existedFood = await _unitOfWork.FoodRepository
-                    .GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower()))
-                    .AnyAsync();
-
-                if (existedFood)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name already exists");
-                }
-
-                // Kiểm tra kích thước khẩu phần mặc định
-                if (request.ServingSizeId.HasValue)
-                {
-                    var servingSizeExists = await _unitOfWork.ServingSizeRepository
-                        .GetByWhere(x => x.ServingSizeId == request.ServingSizeId)
-                        .AnyAsync();
-                    if (!servingSizeExists)
-                    {
-                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Serving size not found");
-                    }
-                }
-
-                // Tạo mới món ăn
-                var food = request.Adapt<Food>();
-
-                // Xử lý nguyên liệu
-                if (request.Ingredients != null && request.Ingredients.Count > 0)
-                {
-                    var ingredients = await _unitOfWork.IngredientRepository
-                        .GetByWhere(x => request.Ingredients.Contains(x.IngredientId))
-                        .ToListAsync();
-
-                    if (ingredients.Count != request.Ingredients.Count)
-                    {
-                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found");
-                    }
-
-                    food.Ingredients = ingredients;
-                }
-                else
-                {
-                    food.Ingredients = new List<Ingredient>();
-                }
-
-                // Xử lý FoodServingSizes
-                if (request.FoodServingSizes != null && request.FoodServingSizes.Count > 0)
-                {
-                    var servingSizeIds = request.FoodServingSizes.Select(fss => fss.ServingSizeId).ToList();
-                    var servingSizes = await _unitOfWork.ServingSizeRepository
-                        .GetByWhere(x => servingSizeIds.Contains(x.ServingSizeId))
-                        .ToListAsync();
-
-                    if (servingSizes.Count != request.FoodServingSizes.Count)
-                    {
-                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more serving sizes not found");
-                    }
-
-                    food.FoodServingSizes = request.FoodServingSizes.Adapt<List<FoodServingSize>>();
-                }
-                else
-                {
-                    food.FoodServingSizes = new List<FoodServingSize>();
-                }
-
-                // Lưu vào cơ sở dữ liệu
-                await _unitOfWork.FoodRepository.AddAsync(food);
-                await _unitOfWork.SaveChangesAsync();
-
-                // Ánh xạ sang FoodResponse để trả về
-                var response = food.Adapt<FoodResponse>();
-
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG, response);
+                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name already exists");
             }
-            catch (Exception ex)
+
+            var food = request.Adapt<Food>();
+
+            if (request.Ingredients != null && request.Ingredients.Count > 0)
             {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Error creating food: {ex.Message}");
+                var ingredients = await _unitOfWork.IngredientRepository
+                    .GetByWhere(x => request.Ingredients.Contains(x.IngredientId))
+                    .ToListAsync();
+
+                if (ingredients.Count != request.Ingredients.Count)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found");
+                }
+
+                food.Ingredients = ingredients;
             }
+
+            if (request.FoodImageUrl != null)
+            {
+                var cloudinaryHelper = new CloudinaryHelper();
+                food.ImageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
+            }
+
+            await _unitOfWork.FoodRepository.AddAsync(food);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
         }
 
         public async Task<IBusinessResult> UpdateFood(int foodId, FoodRequest request)
         {
-            try
+            var existedFood = await _unitOfWork.FoodRepository.GetByWhere(x => x.FoodId == foodId).Include(f => f.Ingredients).FirstOrDefaultAsync();
+            if (existedFood == null)
             {
-                // Kiểm tra dữ liệu đầu vào
-                if (string.IsNullOrWhiteSpace(request.FoodName))
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Food name is required");
-                }
-
-                // Tìm món ăn cần cập nhật
-                var existedFood = await _unitOfWork.FoodRepository
-                    .GetByWhere(x => x.FoodId == foodId)
-                    .Include(f => f.Ingredients)
-                    .Include(f => f.FoodServingSizes)
-                    .FirstOrDefaultAsync();
-
-                if (existedFood == null)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
-                }
-
-                // Kiểm tra tên món ăn đã tồn tại (trừ chính món ăn đang cập nhật)
-                var nameExists = await _unitOfWork.FoodRepository
-                    .GetByWhere(x => x.FoodName.ToLower().Equals(request.FoodName.ToLower()) && x.FoodId != foodId)
-                    .AnyAsync();
-
-                if (nameExists)
-                {
-                    return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name already exists");
-                }
-
-                // Kiểm tra kích thước khẩu phần mặc định
-                if (request.ServingSizeId.HasValue)
-                {
-                    var servingSizeExists = await _unitOfWork.ServingSizeRepository
-                        .GetByWhere(x => x.ServingSizeId == request.ServingSizeId)
-                        .AnyAsync();
-                    if (!servingSizeExists)
-                    {
-                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Serving size not found");
-                    }
-                }
-
-                // Ánh xạ thông tin cơ bản từ request sang existedFood
-                request.Adapt(existedFood);
-
-                // Xử lý nguyên liệu
-                if (request.Ingredients != null)
-                {
-                    existedFood.Ingredients.Clear();
-
-                    var ingredients = await _unitOfWork.IngredientRepository
-                        .GetByWhere(x => request.Ingredients.Contains(x.IngredientId))
-                        .ToListAsync();
-
-                    if (ingredients.Count != request.Ingredients.Count)
-                    {
-                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found");
-                    }
-
-                    existedFood.Ingredients = ingredients;
-                }
-                else
-                {
-                    existedFood.Ingredients.Clear(); // Xóa nguyên liệu nếu request không gửi Ingredients
-                }
-
-                // Xử lý FoodServingSizes
-                if (request.FoodServingSizes != null && request.FoodServingSizes.Count > 0)
-                {
-                    var servingSizeIds = request.FoodServingSizes.Select(fss => fss.ServingSizeId).ToList();
-                    var servingSizes = await _unitOfWork.ServingSizeRepository
-                        .GetByWhere(x => servingSizeIds.Contains(x.ServingSizeId))
-                        .ToListAsync();
-
-                    if (servingSizes.Count != request.FoodServingSizes.Count)
-                    {
-                        return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more serving sizes not found");
-                    }
-
-                    existedFood.FoodServingSizes.Clear();
-                    existedFood.FoodServingSizes = request.FoodServingSizes.Adapt<List<FoodServingSize>>();
-                }
-                else
-                {
-                    existedFood.FoodServingSizes.Clear(); // Xóa FoodServingSizes nếu request không gửi dữ liệu
-                }
-
-                // Cập nhật vào cơ sở dữ liệu
-                await _unitOfWork.FoodRepository.UpdateAsync(existedFood);
-                await _unitOfWork.SaveChangesAsync();
-
-                // Ánh xạ sang FoodResponse để trả về
-                var response = existedFood.Adapt<FoodResponse>();
-
-                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG, response);
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
             }
-            catch (Exception ex)
+
+            request.Adapt(existedFood);
+
+            if (request.Ingredients != null)
             {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Error updating food: {ex.Message}");
+                existedFood.Ingredients.Clear();
+
+                var ingredients = await _unitOfWork.IngredientRepository
+                    .GetByWhere(x => request.Ingredients.Contains(x.IngredientId))
+                    .ToListAsync();
+
+                if (ingredients.Count != request.Ingredients.Count)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "One or more ingredients not found");
+                }
+
+                existedFood.Ingredients = ingredients;
             }
+
+            if (request.FoodImageUrl != null)
+            {
+                var cloudinaryHelper = new CloudinaryHelper();
+                existedFood.ImageUrl = await cloudinaryHelper.UploadImageWithCloudDinary(request.FoodImageUrl);
+            }
+
+            await _unitOfWork.FoodRepository.UpdateAsync(existedFood);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_UPDATE_MSG);
         }
 
         public async Task<IBusinessResult> DeleteFood(int foodId)
