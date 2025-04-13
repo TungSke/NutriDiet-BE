@@ -126,7 +126,7 @@ namespace NutriDiet.API.Controllers
         {
             var result = await _userService.ResetPassword(request);
             return StatusCode(result.StatusCode, result);
-        }
+        } 
 
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken(RefreshTokenRequest request)
