@@ -53,7 +53,6 @@ namespace NutriDiet.Service.Services
             {
                 throw new Exception("User does not exist.");
             }
-            // Chuyển đổi request thành GeneralHealthProfile
             var healthProfile = request.Adapt<GeneralHealthProfile>();
             healthProfile.CreatedAt = DateTime.Now;
             healthProfile.UpdatedAt = DateTime.Now;
@@ -507,7 +506,8 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.ERROR_EXCEPTION, "Error deleting image.", null);
             }
         }
-        public async Task<IBusinessResult> CreateAISuggestion()
+
+        public async Task<IBusinessResult> CreateAISuggestion(CategoryAdvice adviceCategory = CategoryAdvice.All)
         {
             var userId = int.Parse(_userIdClaim);
             var isPremiumResult = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
@@ -530,12 +530,6 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
             }
 
-            var allergyNames = userInfo.Allergies?.Select(x => x.AllergyName).ToList() ?? new List<string>();
-            var diseaseNames = userInfo.Diseases?.Select(x => x.DiseaseName).ToList() ?? new List<string>();
-
-            var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
-            var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
-
             var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
             var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
 
@@ -544,7 +538,17 @@ namespace NutriDiet.Service.Services
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
             var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
 
-            var input = $@"Bạn là một chuyên gia dinh dưỡng và sức khỏe. Nhiệm vụ của bạn là đưa ra lời khuyên chi tiết giúp cải thiện sức khỏe cho người dùng dựa trên hồ sơ sức khỏe và mục tiêu cá nhân của họ.
+            var categoryAdviceText = adviceCategory == CategoryAdvice.All
+                                        ? "dinh dưỡng, luyện tập và lối sống"
+                                        : adviceCategory switch
+                                        {
+                                            CategoryAdvice.DinhDuong => "dinh dưỡng",
+                                            CategoryAdvice.LuyenTap => "luyện tập",
+                                            CategoryAdvice.LoiSong => "lối sống",
+                                            _ => "dinh dưỡng, luyện tập và lối sống"
+                                        };
+
+            var input = $@"Bạn là một chuyên gia {categoryAdviceText}. Nhiệm vụ của bạn là đưa ra lời khuyên chi tiết về {categoryAdviceText} giúp cải thiện sức khỏe cho người dùng dựa trên hồ sơ sức khỏe và mục tiêu cá nhân của họ.
 
 Thông tin người dùng:
 - Họ tên: {userInfo.FullName}
@@ -556,21 +560,15 @@ Thông tin người dùng:
 - Mục tiêu: {goalType}
 
 Yêu cầu:
-- Cung cấp lời khuyên chi tiết để cải thiện sức khỏe, bao gồm các khuyến nghị về dinh dưỡng, luyện tập và lối sống.
-- Lưu ý các dị ứng thực phẩm: {formattedAllergies}
-- Lưu ý các bệnh lý: {formattedDiseases}
+- Lời khuyên từ **200 - 300 từ**
+- Cung cấp lời khuyên, khuyến nghị chi tiết về vấn đề **{categoryAdviceText}**.
 
 Lưu ý:
 - Chỉ trả về **text thuần túy**, không dưới dạng JSON và không kèm theo giải thích thêm.
 ";
 
-            // Gọi dịch vụ AI để nhận phản hồi dạng text (giả sử bạn có phương thức AIResponseText)
             var airesponse = await _aiGeneratorService.AIResponseText(input);
 
-            // Nếu bạn không có phương thức AIResponseText, bạn có thể sử dụng AIResponseJson nhưng cần thay đổi prompt như trên
-            // var airesponse = await _aiGeneratorService.AIResponseJson(input, "");
-
-            // Tìm bản ghi GeneralHealthProfile gần nhất của người dùng
             var healthProfileRecord = await _unitOfWork.HealthProfileRepository
                                           .GetByWhere(hp => hp.UserId == userId)
                                           .OrderByDescending(hp => hp.CreatedAt)
@@ -578,7 +576,6 @@ Lưu ý:
 
             if (healthProfileRecord == null)
             {
-                // Nếu không tồn tại, tạo mới bản ghi với Aisuggestion
                 healthProfileRecord = new GeneralHealthProfile
                 {
                     UserId = userId,
@@ -591,7 +588,6 @@ Lưu ý:
             }
             else
             {
-                // Cập nhật trường Aisuggestion của bản ghi hiện có
                 healthProfileRecord.Aisuggestion = airesponse;
                 healthProfileRecord.UpdatedAt = DateTime.Now;
                 await _unitOfWork.HealthProfileRepository.UpdateAsync(healthProfileRecord);
@@ -601,6 +597,7 @@ Lưu ý:
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Lời khuyên tư vấn đã được tạo và lưu thành công", airesponse);
         }
+
         public double CalculateGlobalWeightPercentile(double weight)
         {
             double GlobalMeanWeight = 62.0;

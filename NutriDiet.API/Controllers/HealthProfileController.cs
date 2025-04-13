@@ -48,9 +48,9 @@ namespace NutriDiet.API.Controllers
         }
         [HttpPost("ai-suggestion")]
         [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> CreateAISuggestion()
+        public async Task<IActionResult> CreateAISuggestion(CategoryAdvice cate)
         {
-            var result = await _healthprofileService.CreateAISuggestion();
+            var result = await _healthprofileService.CreateAISuggestion(cate);
             return StatusCode(result.StatusCode, result);
         }
 
