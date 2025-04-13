@@ -294,6 +294,7 @@ CREATE TABLE MealLogDetail (
     DetailID INT IDENTITY(1,1) PRIMARY KEY,
     MealLogID INT NOT NULL,
     FoodID INT,
+	FoodName NVARCHAR(100) NOT NULL,
 	MealType NVARCHAR(50),  -- Bữa ăn(Breakfast, lunch, dinner)
     Quantity FLOAT CHECK (Quantity > 0),
 	ImageUrl NVARCHAR(MAX) NULL,

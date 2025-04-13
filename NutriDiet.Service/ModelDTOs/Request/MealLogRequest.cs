@@ -13,6 +13,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
     {
         [JsonPropertyName("logDate")]
         public DateTime? LogDate { get; set; }
+        public string FoodName { get; set; } = null!;
 
         [JsonPropertyName("mealType")]
         [JsonConverter(typeof(JsonStringEnumConverter))]
