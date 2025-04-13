@@ -106,6 +106,7 @@ namespace NutriDiet.Service.Services
                 {
                     FoodId = request.FoodId,
                     MealType = request.MealType.ToString(),
+                    FoodName = food.FoodName,
                     ServingSize = food.ServingSize,
                     Quantity = quantity,
                     Calories = quantity * food.Calories,
@@ -274,7 +275,7 @@ namespace NutriDiet.Service.Services
                 MealLogDetails = mealLog.MealLogDetails.Select(d => new MealLogDetailResponse
                 {
                     DetailId = d.DetailId,
-                    FoodName = d.Food?.FoodName ?? "Quick Add",
+                    FoodName = d.FoodName,
                     MealType = d.MealType,
                     ServingSize = d.ServingSize,
                     Quantity = d.Quantity,
@@ -326,6 +327,7 @@ namespace NutriDiet.Service.Services
             {
                 FoodId = null,
                 MealType = request.MealType.ToString(),
+                FoodName = request.FoodName ?? "Thêm nhanh",
                 Quantity = 1,
                 Calories = request.Calories ?? 0,
                 Protein = request.Protein ?? 0,
@@ -412,6 +414,7 @@ namespace NutriDiet.Service.Services
                 {
                     MealLogId = targetMealLog.MealLogId,
                     FoodId = detail.FoodId,
+                    FoodName = detail.FoodName,
                     MealType = detail.MealType,  
                     ServingSize = detail.ServingSize,
                     Quantity = detail.Quantity,
@@ -490,8 +493,8 @@ namespace NutriDiet.Service.Services
             var formattedAllergies = allergyNames.Any() ? string.Join(", ", allergyNames) : "không có";
             var formattedDiseases = diseaseNames.Any() ? string.Join(", ", diseaseNames) : "không có";
 
-            var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
-            var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
+            var userProfile = userInfo.GeneralHealthProfiles.OrderByDescending(h => h.CreatedAt).FirstOrDefault();
+            var personalGoal = userInfo.PersonalGoals.OrderByDescending(h => h.CreatedAt).FirstOrDefault();
 
             var height = userProfile?.Height ?? 0;
             var weight = userProfile?.Weight ?? 0;
@@ -516,38 +519,17 @@ namespace NutriDiet.Service.Services
                 ? string.Join(", ", userIngredientsReference.Select(x => $"{x.IngredientName} ({x.Level})"))
                 : "không có";
 
-            // Lấy dữ liệu Meal Log 7 ngày gần nhất
-            var mealLogs = await GetMealLogsByDateRange(null, DateTime.Now.AddDays(-7), DateTime.Now);
+            var mealLogs = await GetMealLogsByDateRange(null, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(-1));
             var formattedMealLogs = JsonSerializer.Serialize(mealLogs.Data);
 
             var mealLogsList = mealLogs.Data as List<MealLog> ?? new List<MealLog>();
 
-            // Sử dụng helper để tính toán các chỉ số dinh dưỡng cho hôm nay dựa vào dữ liệu các ngày có meal log
             double recommendedTodayCalories = CalculateRecommendedValue(
                 mealLogsList,
                 targetDailyCalories,
                 m => (double)m.TotalCalories,
                 -500, 500);
 
-            double recommendedTodayProtein = CalculateRecommendedValue(
-                mealLogsList,
-                dailyProtein,
-                m => (double)m.TotalProtein,
-                -20, 20);
-
-            double recommendedTodayCarb = CalculateRecommendedValue(
-                mealLogsList,
-                dailyCarb,
-                m => (double)m.TotalCarbs,
-                -50, 50);
-
-            double recommendedTodayFat = CalculateRecommendedValue(
-                mealLogsList,
-                dailyFat,
-                m => (double)m.TotalFat,
-                -20, 20);
-
-            // Lấy danh sách thực phẩm có thể ăn
             var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
             var foodResponse = foods.Adapt<List<FoodResponse>>();
             var foodListText = JsonSerializer.Serialize(foodResponse);
@@ -592,7 +574,6 @@ namespace NutriDiet.Service.Services
 
             // Cập nhật chuỗi prompt cho AI, thay các giá trị mục tiêu ban đầu bởi giá trị đã điều chỉnh
             var input = $@"Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là tạo một Meal Log phù hợp với mục tiêu và điều kiện sức khỏe của người dùng cho ngày hôm nay {today}.
-
 Thông tin người dùng:
 - **Họ tên:** {userInfo.FullName}
 - **Giới tính:** {userInfo.Gender}
@@ -603,27 +584,18 @@ Thông tin người dùng:
 - **Mục tiêu:** {goalType}
 - Lưu ý quan trọng Phong cách ăn uống : **{dietStyle}**
 
-Dữ liệu Meal Log 7 ngày gần nhất:
-{formattedMealLogs}
-
 Yêu cầu cho Meal Log ngày hôm nay:
-- **Meal Log 1 ngày** với 3 bữa chính (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có 1-2 món.
+- **Meal Log 1 ngày với 3 bữa chính (Breakfast, Lunch, Dinner) và 1 bữa phụ (Snacks). Mỗi bữa có từ 1 đến 2 món**.
 - **Chỉ chọn thực phẩm từ danh sách:** {foodListText}
 - **Dị ứng thực phẩm:** {formattedAllergies}
 - **Bệnh lý cần lưu ý:** {formattedDiseases}
 
 Giá trị dinh dưỡng đề xuất cho user nạp đủ trong ngày hôm nay:
 - **Calories:** {recommendedTodayCalories}
-- **Carb:** {recommendedTodayCarb}g
-- **Fat:** {recommendedTodayFat}g
-- **Protein:** {recommendedTodayProtein}g
 
 Yêu cầu bắt buộc:
-- Tổng giá trị dinh dưỡng của các món ăn trong ngày **phải đạt tối thiểu**:
+- Tổng giá trị dinh dưỡng của các món ăn trong ngày **phải đủ lượng Calories {recommendedTodayCalories}**:
     - Calories >= {recommendedTodayCalories}
-    - Carbs >= {recommendedTodayCarb}g
-    - Fat >= {recommendedTodayFat}g
-    - Protein >= {recommendedTodayProtein}g
 - Nếu không thể đạt đúng, hãy chọn món khác từ danh sách để đảm bảo đủ chỉ tiêu.
 - Không được gửi kết quả nếu tổng Calories dưới {recommendedTodayCalories}.
 
@@ -964,7 +936,6 @@ Quy định phản hồi:
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Nutrition summary retrieved successfully.", response);
         }
-
         public async Task<IBusinessResult> AddImageToMealLogDetail(int detailId, AddImageRequest request)
         {
             if (request.Image == null || request.Image.Length == 0)
@@ -1031,7 +1002,6 @@ Quy định phản hồi:
             };
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail retrieved successfully.", response);
         }
-
         public async Task<IBusinessResult> UpdateMealLogDetailNutrition(int detailId, UpdateMealLogNutritionRequest request)
         {
             int userId = int.Parse(_userIdClaim);
@@ -1065,7 +1035,6 @@ Quy định phản hồi:
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Meal log detail and nutrition values updated successfully.");
         }
-
         public async Task<IBusinessResult> AnalyzeAndPredictMealImprovements(DateTime logDate)
         {
             var userId = int.Parse(_userIdClaim);

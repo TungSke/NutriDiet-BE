@@ -10,6 +10,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
     public class QuickMealLogRequest
     {
         public DateTime? LogDate { get; set; }
+        public string FoodName { get; set; } = null!;
         public MealType MealType { get; set; }
         public double? Calories { get; set; }
         public double? Carbohydrates { get; set; }
