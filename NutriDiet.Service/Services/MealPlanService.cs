@@ -700,6 +700,7 @@ Lưu ý:
                     var mealLogDetails = dayGroup.Select(detail => new MealLogDetail
                     {
                         FoodId = detail.FoodId,
+                        FoodName = detail.FoodName,
                         Quantity = detail.Quantity,
                         MealType = detail.MealType,
                         ServingSize = detail.Food.ServingSize,
