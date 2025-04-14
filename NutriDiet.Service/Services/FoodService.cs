@@ -220,7 +220,11 @@ namespace NutriDiet.Service.Services
 
             string rejectionReason = existingRecipe?.RejectionReason ?? "";
 
-            string input = @$"Tôi là người ăn theo phong cách {dietStyle}
+            string input = @$"
+Bạn là một đầu bếp chuyên nghiệp và chuyên gia dinh dưỡng được chứng nhận quốc tế.
+Hãy thiết kế một công thức món ăn phù hợp với tôi, đảm bảo tính cá nhân hóa và cân bằng dinh dưỡng.
+
+Tôi là người ăn theo phong cách {dietStyle}.
 Tôi có các bệnh sau: {formattedDiseases}.
 Tôi bị dị ứng với các thành phần sau: {formattedAllergies}.
 Mức độ yêu thích là -1(ghét) 0(bình thường) 1(thích)
@@ -232,8 +236,14 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
                 input += $"\nLưu ý: Trước đó tôi đã không thích một công thức vì lý do: '{rejectionReason}'. Hãy điều chỉnh lại công thức sao cho phù hợp.";
             }
 
-            input += "\nTrả lời ví dụ: Công thức cho người dị ứng thịt bò và ghét hành, ớt... của bạn là... ";
-
+            input += @"
+Trình bày công thức theo cấu trúc sau:
+1. Nguồn cảm hứng / truyền thống / tài liệu tham khảo (nêu rõ trước tiên)
+2. Tên món ăn
+3. Nguyên liệu (với số lượng rõ ràng)
+4. Cách chế biến từng bước
+5. Lý do chọn nguyên liệu phù hợp với tôi
+6. Lưu ý quan trọng (nếu có)";
 
             var airesponse = await _aIGeneratorService.AIResponseText(input);
 
