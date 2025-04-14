@@ -143,5 +143,13 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpPost("scan-image")]
+        [Authorize]
+        public async Task<IActionResult> GetFoodInfoScanImage(IFormFile file)
+        {
+            var result = await _foodService.GetFoodInfoScanImage(file);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }

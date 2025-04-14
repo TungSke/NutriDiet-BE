@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Json;
@@ -90,6 +91,67 @@ namespace NutriDiet.Service.Utilities
             
             return ExtractJsonFromText(resultText);
         }
+
+        public async Task<string> AIResponseJsonFromImage(string input, IFormFile image, string jsonOutput)
+        {
+            // ✅ 1. Convert ảnh thành Base64 string
+            byte[] imageBytes;
+            using (var ms = new MemoryStream())
+            {
+                await image.CopyToAsync(ms);
+                imageBytes = ms.ToArray();
+            }
+            string base64Image = Convert.ToBase64String(imageBytes);
+
+            var requestBody = new
+            {
+                contents = new[]
+                {
+            new
+            {
+                role = "user",
+                parts = new object[]
+                {
+                    new
+                    {
+                        inlineData = new
+                        {
+                            data = base64Image,
+                            mimeType = image.ContentType
+                        }
+                    },
+                    new
+                    {
+                        text = $"Bạn là chuyên gia dinh dưỡng hãy phân tích hình ảnh và trả ra cho tôi output như này: {jsonOutput}\nĐây là ảnh của tôi"
+                    }
+                }
+            }
+        },
+                generationConfig = new
+                {
+                    temperature = 1,
+                    topK = 40,
+                    topP = 0.95,
+                    maxOutputTokens = 8192,
+                    responseMimeType = "text/plain"
+                }
+            };
+
+            // ✅ 3. Gửi request đến AI API
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{aiApiUrl}?key={aiApiKey}")
+            {
+                Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
+            };
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadAsStringAsync();
+            var resultText = ExtractTextFromAIResponse(result);
+
+            return ExtractJsonFromText(resultText);
+        }
+
 
         private static string ExtractTextFromAIResponse(string jsonResponse)
         {

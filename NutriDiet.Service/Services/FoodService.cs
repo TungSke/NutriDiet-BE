@@ -15,6 +15,7 @@ using OfficeOpenXml;
 using System.IO;
 using System.Text;
 using Microsoft.Data.SqlClient;
+using System.Text.Json;
 
 namespace NutriDiet.Service.Services
 {
@@ -843,6 +844,27 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi import: {ex.Message}");
             }
+        }
+
+        public async Task<IBusinessResult> GetFoodInfoScanImage(IFormFile file)
+        {
+            var foodresponse = new FoodResponse
+            {
+                FoodName = "Phở",
+                Calories = 350,
+                Protein = 20,
+                Carbs = 50,
+                Fat = 10,
+                Glucid = 5,
+                Fiber = 2,
+                Description = "Phở là một món ăn truyền thống của Việt Nam, thường được làm từ bột gạo và nước dùng thịt bò hoặc gà.",
+            };
+            var jsonoutput = JsonSerializer.Serialize(foodresponse);
+            var input = @$"Bạn là chuyên gia dinh dưỡng hãy phân tích hình ảnh và trả ra cho tôi output ví dụ như này {jsonoutput}
+- Đây là ảnh của tôi {file}";
+
+            var airesponse = await _aIGeneratorService.AIResponseJsonFromImage(input, file, jsonoutput);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, airesponse);
         }
 
     }

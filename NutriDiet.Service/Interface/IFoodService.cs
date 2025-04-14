@@ -27,5 +27,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> AnalyzeFoodImport(IFormFile excelFile);
         Task<IBusinessResult> ImportFoodFromExcel(IFormFile excelFile);
         Task<IBusinessResult> ImportAndUpdateFoodFromExcel(IFormFile excelFile);
+        Task<IBusinessResult> GetFoodInfoScanImage(IFormFile file);
     }
 }
