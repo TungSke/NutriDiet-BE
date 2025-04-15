@@ -96,6 +96,9 @@ namespace NutriDiet.Service.Services
                     if(oldestRecord != null && oldestRecord.ProfileId == existingRecord?.ProfileId)
                     {
                         await UpdateGoalProgress(request.Weight, userId, true);
+                    }else
+                    {
+                        await UpdateGoalProgress(request.Weight, userId, false);
                     }
                     if (existingRecord != null)
                     {
