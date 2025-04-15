@@ -1169,8 +1169,8 @@ Nếu không nhận diện được, trả về JSON với tất cả giá trị
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found", null);
             }
 
-            var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
-            var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
+            var userProfile = userInfo.GeneralHealthProfiles.OrderByDescending(hp => hp.CreatedAt).FirstOrDefault();
+            var personalGoal = userInfo.PersonalGoals.OrderByDescending(hp => hp.CreatedAt).FirstOrDefault();
 
             var height = userProfile?.Height ?? 0;
             var weight = userProfile?.Weight ?? 0;
