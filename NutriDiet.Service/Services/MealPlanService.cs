@@ -702,6 +702,7 @@ Lưu ý:
                         FoodId = detail.FoodId,
                         Quantity = detail.Quantity,
                         MealType = detail.MealType,
+                        FoodName = detail.FoodName,
                         ServingSize = detail.Food.ServingSize,
                         Calories = detail.TotalCalories,
                         Carbs = detail.TotalCarbs,

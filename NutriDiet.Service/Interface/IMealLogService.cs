@@ -28,5 +28,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> UpdateMealLogDetailNutrition(int detailId, UpdateMealLogNutritionRequest request);
         Task<bool> IsDailyCaloriesExceeded(DateTime? logDate, double additionalCalories);
         Task<IBusinessResult> AnalyzeAndPredictMealImprovements(DateTime logDate);
+        Task<bool> IsMealPlanAppliedAsync(DateTime date);
     }
 }

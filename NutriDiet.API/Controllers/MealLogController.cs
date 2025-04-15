@@ -132,6 +132,15 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.UpdateMealLogDetailNutrition(detailId, request);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpGet("plan-applied")]
+        public async Task<IActionResult> IsMealPlanApplied([FromQuery] DateTime date)
+        {
+            if (date == default)
+                return BadRequest(new { message = "Bạn phải truyền tham số date hợp lệ." });
+
+            bool isApplied = await _mealLogService.IsMealPlanAppliedAsync(date);
+            return Ok(new { isApplied });
+        }
 
         [HttpGet("calorie-estimator")]
         [Authorize(Roles = "Customer")]
