@@ -236,10 +236,10 @@ namespace NutriDiet.Service.Services
             return bmi switch
             {
                 < 18.5 => "Gầy",
-                >= 18.5 and < 24.9 => "Bình thường",
-                >= 25 and < 29.9 => "Thừa cân",
-                >= 30 and < 34.9 => "Béo phì độ 1",
-                >= 35 and < 39.9 => "Béo phì độ 2",
+                >= 18.5 and < 25 => "Bình thường",
+                >= 25 and < 30 => "Thừa cân",
+                >= 30 and < 35 => "Béo phì độ 1",
+                >= 35 and < 40 => "Béo phì độ 2",
                 _ => "Béo phì độ 3"
             };
         }
