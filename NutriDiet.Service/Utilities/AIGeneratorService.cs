@@ -148,7 +148,7 @@ namespace NutriDiet.Service.Utilities
             var result = await response.Content.ReadAsStringAsync();
             var resultText = ExtractTextFromAIResponse(result);
 
-            return resultText;
+            return ExtractJsonFromText(resultText);
         }
 
 
