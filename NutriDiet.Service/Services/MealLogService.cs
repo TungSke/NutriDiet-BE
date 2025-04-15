@@ -962,23 +962,34 @@ Quy định phản hồi:
         }
         public async Task<IBusinessResult> AddImageToMealLogDetail(int detailId, AddImageRequest request)
         {
+            // 1. Validate input
             if (request.Image == null || request.Image.Length == 0)
-            {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Image file is required.", null);
-            }
+
             int userId = int.Parse(_userIdClaim);
 
+            // 2. Lấy MealLog và detail
             var mealLog = await _unitOfWork.MealLogRepository
                 .GetByWhere(m => m.UserId == userId && m.MealLogDetails.Any(d => d.DetailId == detailId))
                 .Include(m => m.MealLogDetails)
                 .FirstOrDefaultAsync();
 
             if (mealLog == null)
-            {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Meal log not found.", null);
+
+            var mealLogDetail = mealLog.MealLogDetails.First(d => d.DetailId == detailId);
+
+            // 3. Gọi AI để phân tích ảnh
+            var aiResult = await GetFoodInfoScanImage(request.Image);
+            if (aiResult.StatusCode != Const.HTTP_STATUS_OK || aiResult.Data == null)
+            {
+                // Nếu AI lỗi hoặc không nhận diện, trả về ngay kết quả đó
+                return aiResult;
             }
 
-            var mealLogDetail = mealLog.MealLogDetails.FirstOrDefault(d => d.DetailId == detailId);
+            var foodInfo = aiResult.Data as FoodResponse;
+
+            // 4. Chỉ upload ảnh khi AI phân tích thành công
             try
             {
                 var cloudinaryHelper = new CloudinaryHelper();
@@ -986,13 +997,93 @@ Quy định phản hồi:
             }
             catch (Exception ex)
             {
-                return new BusinessResult(Const.ERROR_EXCEPTION, "Error uploading image.", null);
+                return new BusinessResult(Const.ERROR_EXCEPTION, "Error uploading image: " + ex.Message, null);
             }
+            mealLogDetail.FoodName = foodInfo.FoodName;
+            mealLogDetail.ServingSize = foodInfo.ServingSize;
+            mealLogDetail.Calories = foodInfo.Calories;
+            mealLogDetail.Quantity = 1;
+            mealLogDetail.Protein = foodInfo.Protein;
+            mealLogDetail.Carbs = foodInfo.Carbs;
+            mealLogDetail.Fat = foodInfo.Fat;
             await _unitOfWork.MealLogRepository.UpdateAsync(mealLog);
             await _unitOfWork.SaveChangesAsync();
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Image added to meal log detail successfully.");
+            var responsePayload = new
+            {
+                foodInfo.FoodName,
+                foodInfo.ServingSize,
+                foodInfo.Calories,
+                foodInfo.Protein,
+                foodInfo.Carbs,
+                foodInfo.Fat,
+                foodInfo.Glucid,
+                foodInfo.Fiber,
+                foodInfo.Description,
+                ImageUrl = mealLogDetail.ImageUrl
+            };
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, responsePayload);
         }
+        public async Task<IBusinessResult> GetFoodInfoScanImage(IFormFile file)
+        {
+            var sample = new
+            {
+                FoodName = "Phở",
+                ServingSize = "1 tô",
+                Calories = 350,
+                Protein = 20,
+                Carbs = 50,
+                Fat = 10,
+                Glucid = 5,
+                Fiber = 2,
+                Description = "Phở là một món ăn truyền thống của Việt Nam..."
+            };
+            string jsonTemplate = JsonSerializer.Serialize(sample);
+            string prompt = $@"
+Bạn là chuyên gia dinh dưỡng, hãy phân tích hình ảnh món ăn và **chỉ** trả về **một** JSON thuần túy (không markdown, không kèm text nào khác), đúng định dạng sau:
+
+{jsonTemplate}
+
+Nếu không nhận diện được, trả về JSON với tất cả giá trị null hoặc ghi rõ ""Không nhận diện được"".
+";
+
+            // 2. Gọi AI
+            string aiRaw;
+            try
+            {
+                aiRaw = await _aiGeneratorService.AIResponseJsonFromImage(prompt, file, jsonTemplate);
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.ERROR_EXCEPTION, "Error calling AI service: " + ex.Message, null);
+            }
+
+            if (string.IsNullOrWhiteSpace(aiRaw))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "AI không trả về dữ liệu", null);
+
+            string trimmed = aiRaw.Trim();
+            int start = trimmed.IndexOf('{');
+            int end = trimmed.LastIndexOf('}');
+            if (start < 0 || end < 0 || end <= start)
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy JSON trong response của AI", null);
+
+            string jsonOnly = trimmed.Substring(start, end - start + 1);
+
+            FoodResponse? response;
+            try
+            {
+                response = JsonSerializer.Deserialize<FoodResponse>(jsonOnly);
+            }
+            catch (JsonException ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi đọc JSON: {ex.Message}", null);
+            }
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
+        }
+
+
         public async Task<IBusinessResult> GetMealLogDetail(int detailId)
         {
             int userId = int.Parse(_userIdClaim);
