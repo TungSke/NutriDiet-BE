@@ -367,7 +367,7 @@ namespace NutriDiet.Service.Services
 
             // Lấy MealLog của ngày nguồn
             var sourceMealLog = await _unitOfWork.MealLogRepository
-                .GetByWhere(m => m.UserId == userId && m.LogDate == sourceDate)
+                .GetByWhere(m => m.UserId == userId && m.LogDate.Value.Date == sourceDate)
                 .Include(m => m.MealLogDetails)
                 .FirstOrDefaultAsync();
 
@@ -661,7 +661,31 @@ Quy định phản hồi:
 
 
 
+        public async Task<bool> IsMealPlanAppliedAsync(DateTime date)
+        {
+            int userId = int.Parse(_userIdClaim);
+            var activePlan = await _unitOfWork.MealPlanRepository.GetAll()
+                .Where(x =>
+                    x.UserId == userId &&
+                    x.Status == MealplanStatus.Active.ToString() &&
+                    x.StartAt != null
+                )
+                .Include(x => x.MealPlanDetails)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
+            if (activePlan == null)
+                return false;
+
+            var startDate = activePlan.StartAt.Value.Date;
+            var targetDate = date.Date;
+            var dayOffset = (targetDate - startDate).Days;
+
+            if (dayOffset < activePlan.Duration && dayOffset >= 0)
+                return true;
+
+            return false;
+        }
 
         private async Task SaveMeallogOneDay(List<MealLogRequest> requests)
         {
