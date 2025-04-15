@@ -137,7 +137,6 @@ namespace NutriDiet.Service.Utilities
                 }
             };
 
-            // ✅ 3. Gửi request đến AI API
             var request = new HttpRequestMessage(HttpMethod.Post, $"{aiApiUrl}?key={aiApiKey}")
             {
                 Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
@@ -149,7 +148,7 @@ namespace NutriDiet.Service.Utilities
             var result = await response.Content.ReadAsStringAsync();
             var resultText = ExtractTextFromAIResponse(result);
 
-            return ExtractJsonFromText(resultText);
+            return resultText;
         }
 
 

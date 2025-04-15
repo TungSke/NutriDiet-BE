@@ -423,8 +423,8 @@ namespace NutriDiet.Service.Services
                         .FirstOrDefaultAsync();
 
             //hồ sơ sức khỏe
-            var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
-            var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
+            var userProfile = userInfo.GeneralHealthProfiles.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+            var personalGoal = userInfo.PersonalGoals.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
             var height = userProfile?.Height ?? 0;
             var weight = userProfile?.Weight ?? 0;
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
