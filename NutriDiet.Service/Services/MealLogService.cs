@@ -1105,7 +1105,7 @@ Nếu không nhận diện được, trả về JSON với tất cả giá trị
             var response = new MealLogDetailResponse
             {
                 DetailId = mealLogDetail.DetailId,
-                FoodName = mealLogDetail.Food?.FoodName ?? "Quick Add",
+                FoodName = mealLogDetail.FoodName ?? mealLogDetail.Food?.FoodName,
                 MealType = mealLogDetail.MealType,
                 ServingSize = mealLogDetail.ServingSize,
                 Quantity = mealLogDetail.Quantity,
