@@ -16,6 +16,7 @@ using System.IO;
 using System.Text;
 using Microsoft.Data.SqlClient;
 using System.Text.Json;
+using Microsoft.Identity.Client;
 
 namespace NutriDiet.Service.Services
 {
@@ -877,6 +878,7 @@ Bạn là chuyên gia dinh dưỡng, hãy phân tích hình ảnh món ăn bên 
 
 **Lưu ý quan trọng**:
 - Chỉ trả về món ăn chính trong ảnh.
+- Chỉ trả JSON thuần túy, không kèm theo giải thích và trả theo output tôi gửi Calories, Protein, Carb, Fat là kiểu Float.
 - Không được thêm bất kỳ trường nào ngoài mẫu JSON trên, **đặc biệt KHÔNG bao gồm `Ingredients` hoặc danh sách nguyên liệu**.
 - Nếu không thể nhận diện món ăn thì trả về null tất cả các trường hoặc ghi rõ 'Không nhận diện được'.
 
@@ -884,10 +886,26 @@ Dưới đây là ảnh món ăn của tôi: {file}
 ";
             var airesponse = await _aIGeneratorService.AIResponseJsonFromImage(input, file, jsonoutput);
             Console.WriteLine(airesponse);
-            if (string.IsNullOrWhiteSpace(airesponse))
+            string aiRaw;
+            try
             {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "AI không trả về dữ liệu hợp lệ", null);
+                //aiRaw = await _aiGeneratorService.AIResponseJsonFromImage(prompt, file, jsonTemplate);
             }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.ERROR_EXCEPTION, "Error calling AI service: " + ex.Message, null);
+            }
+
+            if (string.IsNullOrWhiteSpace(airesponse))
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "AI không trả về dữ liệu", null);
+
+            string trimmed = airesponse.Trim();
+            int start = trimmed.IndexOf('{');
+            int end = trimmed.LastIndexOf('}');
+            if (start < 0 || end < 0 || end <= start)
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy JSON trong response của AI", null);
+
+            string jsonOnly = trimmed.Substring(start, end - start + 1);
 
             FoodResponse? response = null;
             try
