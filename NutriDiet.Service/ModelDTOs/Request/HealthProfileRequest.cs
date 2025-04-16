@@ -10,12 +10,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
 {
     public class HealthProfileRequest
     {
-        [Range(100, 220,
-            ErrorMessage = "Height must be between 100 and 220 cm")]
         public double? Height { get; set; }
-
-        [Range(30, 250,
-            ErrorMessage = "Weight must be between 30 and 250 kg")]
         public double? Weight { get; set; }
 
         public DietStyleEnum? DietStyle { get; set; }
