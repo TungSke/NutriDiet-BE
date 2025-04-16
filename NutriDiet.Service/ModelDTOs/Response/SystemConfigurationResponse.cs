@@ -17,10 +17,6 @@ public class SystemConfigurationResponse
 
     public bool? IsActive { get; set; }
 
-    public DateTime EffectedDateFrom { get; set; }
-
-    public DateTime? EffectedDateTo { get; set; }
-
     public string? Description { get; set; }
 
     public DateTime? CreatedAt { get; set; }

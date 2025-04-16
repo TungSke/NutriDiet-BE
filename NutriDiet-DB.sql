@@ -385,8 +385,6 @@ CREATE TABLE SystemConfiguration (
     MaxValue FLOAT NULL,                          -- Giá trị tối đa
     Unit NVARCHAR(50) NULL,                       -- Đơn vị (ví dụ: "years", "items")
     IsActive BIT DEFAULT 1,                       -- Trạng thái hoạt động
-    EffectedDateFrom DATETIME NOT NULL DEFAULT GETDATE(), -- Ngày bắt đầu hiệu lực
-    EffectedDateTo DATETIME NULL,                 -- Ngày hết hiệu lực
     Description NVARCHAR(255) NULL,               -- Mô tả tham số
     CreatedAt DATETIME DEFAULT GETDATE(),         -- Thời gian tạo
     UpdatedAt DATETIME DEFAULT GETDATE()          -- Thời gian cập nhật
