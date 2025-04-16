@@ -9,6 +9,7 @@ namespace NutriDiet.Service.Enums
     public enum RoleEnum
     {
         Admin = 1,
-        Customer = 2
+        Customer = 2,
+        Nutritionist = 3,
     }
 }

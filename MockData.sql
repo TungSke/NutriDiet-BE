@@ -249,7 +249,8 @@ GO
 -- Insert Roles with explicit IDs
 INSERT INTO Role (RoleID, RoleName) VALUES
 (1, 'Admin'),
-(2, 'Customer');
+(2, 'Customer'),
+(3, 'Nutritionist');
 
 SET IDENTITY_INSERT [dbo].[User] ON 
 GO
@@ -263,7 +264,8 @@ INSERT [dbo].[User] ([UserID], [FullName], [Email], [Password], [Phone], [Age], 
 (7, N'Dinh Hoang Nam', N'namdh@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '22', 'Male', 'VietNam', N'', NULL, N'Active', 2),
 (8, N'Tran Thi Thao', N'thaotran@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '25', 'Female', 'VietNam', N'', NULL, N'Active', 2),
 (9, N'Nguyen Thanh Phat', N'phat123@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '21', 'Male', 'VietNam', N'', NULL, N'Active', 2),
-(10, N'Chau Nhuan Phat', N'chaunhuanphat@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '33', 'Male', 'VietNam', N'', NULL, N'Active', 2);
+(10, N'Chau Nhuan Phat', N'chaunhuanphat@gmail.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '33', 'Male', 'VietNam', N'', NULL, N'Active', 2),
+(11, N'Nutritionist', N'nutritionist@example.com', N'AQAAAAIAAYagAAAAEJC6r2LMSMDB1nSfXeYadVFihZL+PHOrpKK4g6s0kDy9LRR4sYRlbYbjDh3pF95RZg==', NULL, '35', 'Male', 'VietNam', N'', NULL, N'Active', 3);
 
 GO
 SET IDENTITY_INSERT [dbo].[User] OFF
@@ -1696,7 +1698,5 @@ VALUES
 ('UserAge', 13, 100, 'years', 1, GETDATE(), N'Độ tuổi đăng ký tài khoản sử dụng hệ thống'),
 ('UserHeight', 100, 220, 'cm', 1, GETDATE(), N'Mức chiều cao cho phép của người dùng'),
 ('UserWeight', 30, 250, 'kg', 1, GETDATE(), N'Mức cân nặng cho phép của người dùng'),
-('UserWeightLoseRate', 0.25, 1, 'kg', 1, GETDATE(), N'Mức độ giảm cân cho phép trong 1 tuần đối với người dùng có mục tiêu sức khỏe là giảm cân'),
-('UserWeightGainRate', 0.25, 0.5, 'kg', 1, GETDATE(), N'Mức độ tăng cân cho phép trong 1 tuần đối với người dùng có mục tiêu sức khỏe là tăng cân'),
-('PremiumAccount', null, null, null, 1, GETDATE(), N'Tài khoản phải đăng ký premium để dùng các tính năng AI: Nhận lời khuyên từ AI, Nhận công thức món ăn từ AI, Nhận thức đơn từ AI, Nhận cảnh báo thực đơn từ AI');
+('TargetWeight', 30, 250, 'kg', 1, GETDATE(), N'Mục tiêu cân nặng cho phép của người dùng')
 ;

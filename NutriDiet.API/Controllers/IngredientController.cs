@@ -34,7 +34,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> AddIngredient(IngredientRequest request)
         {
             var result = await _ingredientService.AddIngredient(request);
@@ -42,7 +42,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPut("{ingredientId}")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> UpdateIngredient(IngredientRequest request, int ingredientId)
         {
             var result = await _ingredientService.UpdateIngredient(ingredientId, request);
@@ -50,7 +50,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpDelete("{ingredientId}")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> DeleteIngredient(int ingredientId)
         {
             var result = await _ingredientService.DeleteIngredient(ingredientId);
@@ -74,7 +74,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("excel-analyze")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> AnalyzeIngredientImport(IFormFile excelFile)
         {
             var result = await _ingredientService.AnalyzeIngredientImport(excelFile);
@@ -82,7 +82,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("excel")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> ImportIngredientsFromExcel(IFormFile excelFile)
         {
             var result = await _ingredientService.ImportIngredientsFromExcel(excelFile);
@@ -90,7 +90,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("excel-duplicate")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> ImportAndUpdateIngredientsFromExcel(IFormFile excelFile)
         {
             var result = await _ingredientService.ImportAndUpdateIngredientsFromExcel(excelFile);

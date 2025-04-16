@@ -48,7 +48,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> CreateFood([FromForm] FoodRequest request)
         {
             var result = await _foodService.CreateFood(request);
@@ -56,7 +56,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPut("{foodId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> UpdateFood(int foodId, [FromForm] FoodRequest request)
         {
             var result = await _foodService.UpdateFood(foodId, request);
@@ -64,7 +64,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpDelete("{foodId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> DeleteFood(int foodId)
         {
             var result = await _foodService.DeleteFood(foodId);

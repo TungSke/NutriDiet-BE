@@ -19,9 +19,16 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSystemConfig(int pageIndex = 1, int pageSize = 10, SystemConfigEnum? search = null)
+        public async Task<IActionResult> GetSystemConfig(int pageIndex = 1, int pageSize = 10, string? search = null)
         {
-            var result = await _systemConfigurationService.GetSystemConfig(pageIndex, pageSize, search.ToString());
+            var result = await _systemConfigurationService.GetSystemConfig(pageIndex, pageSize, search);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("{configId}")]
+        public async Task<IActionResult> GetSystemConfigById([Required] int configId)
+        {
+            var result = await _systemConfigurationService.GetSystemConfigById(configId);
             return StatusCode(result.StatusCode, result);
         }
 
@@ -48,14 +55,5 @@ namespace NutriDiet.API.Controllers
             var result = await _systemConfigurationService.DeleteSystemConfig(configId);
             return StatusCode(result.StatusCode, result);
         }
-
-        [HttpGet("checkme")]
-        [Authorize]
-        public async Task<IActionResult> CheckMySystemConfig([Required] SystemConfigEnum systemConfig)
-        {
-            var result = await _systemConfigurationService.CheckMySystemConfig(systemConfig);
-            return StatusCode(result.StatusCode, result);
-        }
-
     }
 }
