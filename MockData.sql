@@ -1693,10 +1693,13 @@ VALUES
 
 GO
 
-INSERT INTO SystemConfiguration (Name, MinValue, MaxValue, Unit, IsActive, Description)
+SET IDENTITY_INSERT SystemConfiguration ON;
+
+INSERT INTO SystemConfiguration (ConfigID, Name, MinValue, MaxValue, Unit, IsActive, Description)
 VALUES 
-('UserAge', 13, 100, 'years', 1, N'Độ tuổi đăng ký tài khoản sử dụng hệ thống'),
-('UserHeight', 100, 220, 'cm', 1, N'Mức chiều cao cho phép của người dùng'),
-('UserWeight', 30, 250, 'kg', 1, N'Mức cân nặng cho phép của người dùng'),
-('TargetWeight', 30, 250, 'kg', 1, N'Mục tiêu cân nặng cho phép của người dùng')
-;
+(1, 'UserAge', 13, 100, 'years', 1, N'Độ tuổi đăng ký tài khoản sử dụng hệ thống'),
+(2, 'UserHeight', 100, 220, 'cm', 1, N'Mức chiều cao cho phép của người dùng'),
+(3, 'UserWeight', 30, 250, 'kg', 1, N'Mức cân nặng cho phép của người dùng'),
+(4, 'TargetWeight', 30, 250, 'kg', 1, N'Mục tiêu cân nặng cho phép của người dùng');
+
+SET IDENTITY_INSERT SystemConfiguration OFF;
