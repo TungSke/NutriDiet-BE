@@ -1693,4 +1693,10 @@ GO
 
 INSERT INTO SystemConfiguration (Name, MinValue, MaxValue, Unit, IsActive, EffectedDateFrom, Description)
 VALUES 
-('MinAge', 13, NULL, 'years', 1, GETDATE(), N'Tuổi tối thiểu để đăng ký tài khoản');
+('UserAge', 13, 100, 'years', 1, GETDATE(), N'Độ tuổi đăng ký tài khoản sử dụng hệ thống'),
+('UserHeight', 100, 220, 'cm', 1, GETDATE(), N'Mức chiều cao cho phép của người dùng'),
+('UserWeight', 30, 250, 'kg', 1, GETDATE(), N'Mức cân nặng cho phép của người dùng'),
+('UserWeightLoseRate', 0.25, 1, 'kg', 1, GETDATE(), N'Mức độ giảm cân cho phép trong 1 tuần đối với người dùng có mục tiêu sức khỏe là giảm cân'),
+('UserWeightGainRate', 0.25, 0.5, 'kg', 1, GETDATE(), N'Mức độ tăng cân cho phép trong 1 tuần đối với người dùng có mục tiêu sức khỏe là tăng cân'),
+('PremiumAccount', null, null, null, 1, GETDATE(), N'Tài khoản phải đăng ký premium để dùng các tính năng AI: Nhận lời khuyên từ AI, Nhận công thức món ăn từ AI, Nhận thức đơn từ AI, Nhận cảnh báo thực đơn từ AI');
+;

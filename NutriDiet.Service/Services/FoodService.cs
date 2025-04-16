@@ -859,66 +859,56 @@ Trình bày công thức theo cấu trúc sau:
 
         public async Task<IBusinessResult> GetFoodInfoScanImage(IFormFile file)
         {
-            var foodresponse = new
+            var exampleResponse = new FoodResponse
             {
+                FoodId = 0,
                 FoodName = "Phở",
+                MealType = null,
+                ImageUrl = null,
+                FoodType = null,
+                Description = "Phở là một món ăn truyền thống của Việt Nam, thường được làm từ bột gạo và nước dùng thịt bò hoặc gà.",
+                ServingSize = "1 tô (350g)",
                 Calories = 350,
                 Protein = 20,
                 Carbs = 50,
                 Fat = 10,
                 Glucid = 5,
                 Fiber = 2,
-                Description = "Phở là một món ăn truyền thống của Việt Nam, thường được làm từ bột gạo và nước dùng thịt bò hoặc gà."
+                Ingredients = null // hoặc có thể là new List<IngredientResponse>() nếu bạn muốn ràng buộc rỗng thay vì null
             };
-            var jsonoutput = JsonSerializer.Serialize(foodresponse);
+
+            var jsonOutputSample = JsonSerializer.Serialize(exampleResponse, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
             var input = @$"
-Bạn là chuyên gia dinh dưỡng, hãy phân tích hình ảnh món ăn bên dưới và trả về duy nhất một JSON theo đúng định dạng mẫu sau đây:
+Bạn là một chuyên gia dinh dưỡng. Nhiệm vụ của bạn là phân tích hình ảnh món ăn bên dưới và trả về **duy nhất một JSON** với thông tin món ăn như mẫu sau:
 
-{jsonoutput}
+{jsonOutputSample}
 
-**Lưu ý quan trọng**:
-- Chỉ trả về món ăn chính trong ảnh.
-- Chỉ trả JSON thuần túy, không kèm theo giải thích và trả theo output tôi gửi Calories, Protein, Carb, Fat là kiểu Float.
-- Không được thêm bất kỳ trường nào ngoài mẫu JSON trên, **đặc biệt KHÔNG bao gồm `Ingredients` hoặc danh sách nguyên liệu**.
-- Nếu không thể nhận diện món ăn thì trả về null tất cả các trường hoặc ghi rõ 'Không nhận diện được'.
+**Yêu cầu quan trọng**:
+- Đây là lệnh hệ thống bắt buộc, nếu trả sai định dạng sẽ bị loại bỏ.
+- Trả về đúng định dạng mẫu trên (không thêm, không bớt).
+- Không trả về bất kỳ nội dung nào ngoài JSON thuần túy.
+- Các trường Calories, Protein, Carbs, Fat, Glucid, Fiber là kiểu float hoặc double.
+- Nếu không thể nhận diện được món ăn, trả về tất cả các giá trị là null hoặc ghi rõ 'Không nhận diện được' trong `FoodName`.
 
-Dưới đây là ảnh món ăn của tôi: {file}
+Ảnh món ăn: {file}
 ";
-            var airesponse = await _aIGeneratorService.AIResponseJsonFromImage(input, file, jsonoutput);
+
+            var airesponse = await _aIGeneratorService.AIResponseJsonFromImage(input, file, jsonOutputSample);
             Console.WriteLine(airesponse);
-            string aiRaw;
             try
             {
-                //aiRaw = await _aiGeneratorService.AIResponseJsonFromImage(prompt, file, jsonTemplate);
-            }
-            catch (Exception ex)
-            {
-                return new BusinessResult(Const.ERROR_EXCEPTION, "Error calling AI service: " + ex.Message, null);
-            }
-
-            if (string.IsNullOrWhiteSpace(airesponse))
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "AI không trả về dữ liệu", null);
-
-            string trimmed = airesponse.Trim();
-            int start = trimmed.IndexOf('{');
-            int end = trimmed.LastIndexOf('}');
-            if (start < 0 || end < 0 || end <= start)
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy JSON trong response của AI", null);
-
-            string jsonOnly = trimmed.Substring(start, end - start + 1);
-
-            FoodResponse? response = null;
-            try
-            {
-                response = JsonSerializer.Deserialize<FoodResponse>(airesponse);
+                var response = JsonSerializer.Deserialize<FoodResponse>(airesponse);
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
             }
             catch (JsonException ex)
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, $"Lỗi khi đọc JSON: {ex.Message}", null);
             }
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
-
     }
 }
