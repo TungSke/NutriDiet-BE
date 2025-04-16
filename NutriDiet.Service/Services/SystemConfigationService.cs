@@ -57,6 +57,11 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "config not found");
             }
+
+            if(config.MinValue > config.MaxValue)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "MinValue must be less than MaxValue");
+            }
             request.Adapt(config);
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_UPDATE_MSG);
