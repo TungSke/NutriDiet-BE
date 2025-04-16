@@ -270,7 +270,7 @@ SET IDENTITY_INSERT [dbo].[User] OFF
 GO
 
 SET IDENTITY_INSERT [dbo].[Package] ON 
-INSERT Package (PackageID, PackageName, Price, Duration, Description) VALUES (1, 'Premium 1 Tháng', 99.00, 30, N'Truy cập đầy đủ tính năng AI trong 1 tháng');
+INSERT Package (PackageID, PackageName, Price, Duration, Description) VALUES (1, 'Premium 1 Tháng', 99000.00, 30, N'Truy cập đầy đủ tính năng AI trong 1 tháng');
 SET IDENTITY_INSERT [dbo].[Package] OFF
 
 SET IDENTITY_INSERT [dbo].[UserPackage] ON 
