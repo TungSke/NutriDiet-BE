@@ -62,6 +62,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "MinValue must be less than MaxValue");
             }
+            config.UpdatedAt = DateTime.Now;
             request.Adapt(config);
             await _unitOfWork.SaveChangesAsync();
             return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_UPDATE_MSG);

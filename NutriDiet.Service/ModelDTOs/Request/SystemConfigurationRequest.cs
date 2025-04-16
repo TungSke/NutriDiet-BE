@@ -15,9 +15,5 @@ public class SystemConfigurationRequest
 
     public bool? IsActive { get; set; }
 
-    public DateTime EffectedDateFrom { get; set; }
-
-    public DateTime? EffectedDateTo { get; set; }
-
     public string? Description { get; set; }
 }

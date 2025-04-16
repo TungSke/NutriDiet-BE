@@ -1693,10 +1693,10 @@ VALUES
 
 GO
 
-INSERT INTO SystemConfiguration (Name, MinValue, MaxValue, Unit, IsActive, EffectedDateFrom, Description)
+INSERT INTO SystemConfiguration (Name, MinValue, MaxValue, Unit, IsActive, Description)
 VALUES 
-('UserAge', 13, 100, 'years', 1, GETDATE(), N'Độ tuổi đăng ký tài khoản sử dụng hệ thống'),
-('UserHeight', 100, 220, 'cm', 1, GETDATE(), N'Mức chiều cao cho phép của người dùng'),
-('UserWeight', 30, 250, 'kg', 1, GETDATE(), N'Mức cân nặng cho phép của người dùng'),
-('TargetWeight', 30, 250, 'kg', 1, GETDATE(), N'Mục tiêu cân nặng cho phép của người dùng')
+('UserAge', 13, 100, 'years', 1, N'Độ tuổi đăng ký tài khoản sử dụng hệ thống'),
+('UserHeight', 100, 220, 'cm', 1, N'Mức chiều cao cho phép của người dùng'),
+('UserWeight', 30, 250, 'kg', 1, N'Mức cân nặng cho phép của người dùng'),
+('TargetWeight', 30, 250, 'kg', 1, N'Mục tiêu cân nặng cho phép của người dùng')
 ;
