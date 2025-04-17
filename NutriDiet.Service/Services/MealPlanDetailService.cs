@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using Azure.Core;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
@@ -317,6 +318,107 @@ namespace NutriDiet.Service.Services
                 };
                 await _unitOfWork.MealLogRepository.AddAsync(mealLog);
             }
+        }
+
+        public async Task<IBusinessResult> CopyMealPlanDetail(int mealPlanId, CopyMealPlanDetailRequest request)
+        {
+            await _unitOfWork.BeginTransaction();
+            try
+            {
+
+                var mealPlan = await _unitOfWork.MealPlanRepository
+                    .GetByWhere(x => x.MealPlanId == mealPlanId)
+                    .Include(x => x.MealPlanDetails)
+                    .FirstOrDefaultAsync();
+
+                if (mealPlan == null)
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "MealPlan not found");
+                }
+
+
+                var sourceDetails = mealPlan.MealPlanDetails
+                    .Where(x => x.DayNumber == request.dayNumberFrom)
+                    .ToList();
+
+                if (!sourceDetails.Any())
+                {
+                    return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"No MealPlanDetails found for day {request.dayNumberFrom}");
+                }
+
+
+                var existingDetails = mealPlan.MealPlanDetails
+                    .Where(x => x.DayNumber == request.dayNumberTo)
+                    .ToList();
+
+                foreach (var detail in existingDetails)
+                {
+                    await _unitOfWork.MealPlanDetailRepository.DeleteAsync(detail);
+                }
+
+                foreach (var sourceDetail in sourceDetails)
+                {
+                    var newDetail = new MealPlanDetail
+                    {
+                        MealPlanId = mealPlanId,
+                        FoodId = sourceDetail.FoodId,
+                        FoodName = sourceDetail.FoodName,
+                        Quantity = sourceDetail.Quantity,
+                        MealType = sourceDetail.MealType,
+                        DayNumber = request.dayNumberTo,
+                        TotalCalories = sourceDetail.TotalCalories,
+                        TotalCarbs = sourceDetail.TotalCarbs,
+                        TotalFat = sourceDetail.TotalFat,
+                        TotalProtein = sourceDetail.TotalProtein
+                    };
+
+                    await _unitOfWork.MealPlanDetailRepository.AddAsync(newDetail);
+                }
+
+                // Cập nhật Duration của MealPlan
+                var uniqueDays = mealPlan.MealPlanDetails
+                    .Select(x => x.DayNumber)
+                    .ToHashSet();
+
+                uniqueDays.Add(request.dayNumberTo);
+                mealPlan.Duration = uniqueDays.Count;
+                await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
+
+                await SyncActiveMealPlanWithMealLog(mealPlanId);
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransaction();
+
+                return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_CREATE_MSG);
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransaction();
+                return new BusinessResult(Const.HTTP_STATUS_INTERNAL_ERROR, $"Error: {ex.Message}");
+            }
+        }
+
+        public async Task<IBusinessResult> GetMealPlanDetailByDayNumber(int mealPlanId, int dayNumber)
+        {
+            var mealPlan = await _unitOfWork.MealPlanRepository
+                .GetByWhere(x=>x.MealPlanId == mealPlanId)
+                .Include(x=>x.MealPlanDetails)
+                .FirstOrDefaultAsync();
+
+            if (mealPlan == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "MealPlan not found");
+
+            }
+            var mealPlanDetails = mealPlan.MealPlanDetails.Where(x=>x.DayNumber == dayNumber).ToList();
+
+            if (!mealPlanDetails.Any())
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, $"No MealPlanDetails found for day {dayNumber}");
+            }
+
+            var response = mealPlanDetails.Adapt<List<MealPlanDetailResponse>>();
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
     }
 }

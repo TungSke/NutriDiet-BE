@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.Services;
+using Sprache;
 using System.ComponentModel.DataAnnotations;
 
 namespace NutriDiet.API.Controllers
@@ -17,7 +18,16 @@ namespace NutriDiet.API.Controllers
             _mealPlanDetailService = mealPlanDetailService;
         }
 
+        [HttpGet("{mealPlanId}/{dayNumber}")]
+        [Authorize]
+        public async Task<IActionResult> GetMealPlanTotals(int mealPlanId, int dayNumber)
+        {
+            var result = await _mealPlanDetailService.GetMealPlanDetailByDayNumber(mealPlanId, dayNumber);
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpGet("meal-plan-detail-total/{mealPlanId}")]
+        [Authorize]
         public async Task<IActionResult> GetMealPlanTotals(int mealPlanId)
         {
             var mealPlan = await _mealPlanDetailService.GetMealPlanDetailTotals(mealPlanId);
@@ -46,6 +56,14 @@ namespace NutriDiet.API.Controllers
         {
             await _mealPlanDetailService.UpdateMealPlanDetail(mealPlanDetailRequest);
             return Ok("Cập nhật thành công");
+        }
+
+        [HttpPost("copy/{mealPlanId}")]
+        [Authorize]
+        public async Task<IActionResult> CopyMealPlanDetail(int mealPlanId, CopyMealPlanDetailRequest request)
+        {
+            var result = await _mealPlanDetailService.CopyMealPlanDetail(mealPlanId, request);
+            return StatusCode(result.StatusCode, result);
         }
     }
 }

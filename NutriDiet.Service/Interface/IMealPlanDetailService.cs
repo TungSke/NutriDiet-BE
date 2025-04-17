@@ -14,5 +14,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> CreateMealPlanDetail(int mealPlanId, MealPlanDetailRequest mealPlanDetailRequest);
         Task<IBusinessResult> UpdateMealPlanDetail(UpdateMealPlanDetailRequest updateRequest);
         Task<IBusinessResult> GetMealPlanDetailTotals(int mealPlanId);
+        Task<IBusinessResult> CopyMealPlanDetail(int mealPlanId, CopyMealPlanDetailRequest request);
+        Task<IBusinessResult> GetMealPlanDetailByDayNumber(int mealPlanId, int dayNumber);
     }
 }
