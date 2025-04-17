@@ -18,7 +18,7 @@ namespace NutriDiet.API.Controllers
             _dashboardService = dashboardService;
         }
         [HttpGet]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> Dashboard()
         {
             var result = await _dashboardService.Dashboard();
@@ -26,7 +26,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet("revenue")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> Revenue()
         {
             var result = await _dashboardService.Revenue();
@@ -34,7 +34,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpGet("transaction")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> Transaction(int pageIndex, int pageSize, string? search)
         {
             var result = await _dashboardService.Transaction(pageIndex, pageSize, search);
