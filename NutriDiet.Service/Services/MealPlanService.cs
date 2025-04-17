@@ -8,6 +8,7 @@ using NutriDiet.Common.Enums;
 using NutriDiet.Repository;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Repository.Models;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.ModelDTOs.Response;
@@ -738,12 +739,19 @@ Lưu ý:
 
         public async Task<IBusinessResult> GetSampleMealPlan(int pageIndex, int pageSize, string? search)
         {
+
+            var adminAndNutritionistId = _unitOfWork.UserRepository
+                .GetAll()
+                .Where(x => x.RoleId == (int)RoleEnum.Admin || x.RoleId == (int)RoleEnum.Nutritionist)
+                .Select(x => x.UserId)
+                .ToList();
+
             search = search?.ToLower() ?? string.Empty;
 
             var mealPlans = await _unitOfWork.MealPlanRepository.GetPagedAsync(
                 pageIndex,
             pageSize,
-            x => x.UserId == 2 && x.CreatedBy.ToLower() == "admin" &&
+            x => adminAndNutritionistId.Contains(x.UserId) &&
                       (string.IsNullOrEmpty(search) || x.PlanName.ToLower().Contains(search)
                                                    || x.HealthGoal.ToLower().Contains(search)),
             q => q.OrderByDescending(x => x.CreatedAt));

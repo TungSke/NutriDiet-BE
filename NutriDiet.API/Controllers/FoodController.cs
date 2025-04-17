@@ -120,7 +120,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("excel-analyze")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> AnalyzeFoodImport(IFormFile excelFile)
         {
             var result = await _foodService.AnalyzeFoodImport(excelFile);
@@ -128,7 +128,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("excel")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> ImportFoodFromExcel(IFormFile excelFile)
         {
             var result = await _foodService.ImportFoodFromExcel(excelFile);
@@ -136,7 +136,7 @@ namespace NutriDiet.API.Controllers
         }
 
         [HttpPost("excel-duplicate")]
-        [Authorize(Roles = nameof(RoleEnum.Admin))]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
         public async Task<IActionResult> ImportAndUpdateFoodFromExcel(IFormFile excelFile)
         {
             var result = await _foodService.ImportAndUpdateFoodFromExcel(excelFile);
