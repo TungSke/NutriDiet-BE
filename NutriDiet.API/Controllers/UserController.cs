@@ -166,5 +166,14 @@ namespace NutriDiet.API.Controllers
             var result = await _userService.UpgradePackage(packageId);
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpPut("change-role/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ChangeRole(int userId,[FromForm] RoleEnum role)
+        {
+            var result = await _userService.ChangeRole(userId, role);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }
