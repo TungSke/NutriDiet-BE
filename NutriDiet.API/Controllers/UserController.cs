@@ -167,9 +167,9 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPut("change-role/{userId}")]
+        [HttpPut("role/{userId}/{role}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ChangeRole(int userId,[FromForm] RoleEnum role)
+        public async Task<IActionResult> ChangeRole(int userId, RoleEnum role)
         {
             var result = await _userService.ChangeRole(userId, role);
             return StatusCode(result.StatusCode, result);
