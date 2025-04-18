@@ -524,6 +524,7 @@ Lưu ý:
 - **Hãy trả về theo kiểu dữ liệu JSON tôi đã gửi**: {jsonOutputSample}
 - Mức độ yêu thích của thực phẩm là -1(ghét), 0(bình thường), 1(thích).
 - Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
+- Dữ liệu Mục tiêu từ thông tin người dùng bạn nhận được từ hệ thống sẽ có 3 loại personalgoal là GainWeight, LoseWeight, Maintain nhưng khi trả về phản hồi hãy phản hồi tiếng Việt: Tăng cân(GainWeight), Giảm cân(LoseWeight), Duy trì cân nặng(Maintain)
 - Trước đó tôi đã từ chối một Meal Plan với lý do: {rejectionText}";
 
 
