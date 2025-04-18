@@ -343,15 +343,16 @@ namespace NutriDiet.Service.Services
                                                    || x.Email.ToLower().Contains(search)
                                                    || x.Phone.ToLower().Contains(search)) &&
                                                    x.RoleId != 1,
-                include: i=>i.Include(x=>x.UserPackages).ThenInclude(x=>x.Package)
+                include: i=>i.Include(x=>x.Role).Include(x=>x.UserPackages).ThenInclude(x=>x.Package)
             );
 
             if (users == null || !users.Any())
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
             }
-
+            
             var response = users.Adapt<List<UserResponse>>().ToList();
+            
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
@@ -511,5 +512,25 @@ namespace NutriDiet.Service.Services
 
         }
 
+        public async Task<IBusinessResult> ChangeRole(int userId, RoleEnum role)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, Const.FAIL_READ_MSG);
+            }
+
+            if(role != RoleEnum.Customer && role != RoleEnum.Nutritionist)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid role");
+            }
+
+            user.RoleId = (int)role;
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "User role updated successfully");
+        }
     }
 }

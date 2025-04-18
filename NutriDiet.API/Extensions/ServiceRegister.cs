@@ -173,6 +173,11 @@ namespace NutriDiet.API.Extensions
 
         private static void AddMapster()
         {
+            TypeAdapterConfig<User, UserResponse>
+                .NewConfig()
+                .Map(dest => dest.Role, src => src.Role.RoleName)
+                .Map(dest => dest.UserPackages, src => src.UserPackages);
+
             TypeAdapterConfig.GlobalSettings.NewConfig<UserPackage, UserPackagesResponse>()
                 .Map(dest => dest.PackageName, src => src.Package.PackageName);
         }
