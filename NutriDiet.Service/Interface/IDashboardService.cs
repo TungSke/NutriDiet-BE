@@ -10,5 +10,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> Transaction(int pageIndex, int pageSize, string? search);
         Task<GoalChartResponse> GetGoalProgressChartData();
         Task<IBusinessResult> GetTopSelectedFoods(int top = 10);
+        Task<IBusinessResult> GetActivityLevelDistributionAsync();
+        Task<IBusinessResult> GetNutritionSummaryGlobalAsync(DateTime date);
     }
 }

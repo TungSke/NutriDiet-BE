@@ -272,6 +272,95 @@ namespace NutriDiet.Service.Services
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result);
         }
 
+        public async Task<IBusinessResult> GetActivityLevelDistributionAsync()
+        {
+            var query = _unitOfWork.HealthProfileRepository
+                .GetByWhere(hp => !string.IsNullOrEmpty(hp.ActivityLevel));
+
+            var total = await query.CountAsync();
+
+            var grouped = await query
+                .GroupBy(hp => hp.ActivityLevel)
+                .Select(g => new { LevelName = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var distribution = Enum.GetNames(typeof(ActivityLevel))
+                .Select(name =>
+                {
+                    var entry = grouped.FirstOrDefault(g => g.LevelName == name);
+                    var cnt = entry?.Count ?? 0;
+                    var pct = total > 0
+                                  ? Math.Round(cnt * 100.0 / total, 2)
+                                  : 0.0;
+
+                    return new ActivityLevelDistribution
+                    {
+                        ActivityLevel = name,
+                        Count = cnt,
+                        Percentage = pct
+                    };
+                })
+                .ToList();
+
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Thống kê phân bố ActivityLevel",
+                distribution
+            );
+        }
+        public async Task<IBusinessResult> GetNutritionSummaryGlobalAsync(DateTime date)
+        {
+            var details = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.LogDate.HasValue && m.LogDate.Value.Date == date.Date)
+                .SelectMany(m => m.MealLogDetails)
+                .ToListAsync();
+
+            if (!details.Any())
+            {
+                var empty = new NutritionGlobalSummaryResponse
+                {
+                    TotalCalories = 0,
+                    TotalCarbs = 0,
+                    TotalProtein = 0,
+                    TotalFat = 0,
+                    CarbsPercentage = 0,
+                    ProteinPercentage = 0,
+                    FatPercentage = 0
+                };
+                return new BusinessResult(Const.HTTP_STATUS_OK, "No nutrition data for this date.", empty);
+            }
+
+            double totalCarbs = details.Sum(d => d.Carbs ?? 0);
+            double totalProtein = details.Sum(d => d.Protein ?? 0);
+            double totalFat = details.Sum(d => d.Fat ?? 0);
+
+            double carbCal = totalCarbs * 4;
+            double proteinCal = totalProtein * 4;
+            double fatCal = totalFat * 9;
+
+            double totalCalories = carbCal + proteinCal + fatCal;
+
+            double carbsPct = Math.Round(carbCal / totalCalories * 100, 2);
+            double proteinPct = Math.Round(proteinCal / totalCalories * 100, 2);
+            double fatPct = Math.Round(fatCal / totalCalories * 100, 2);
+
+            var resp = new NutritionGlobalSummaryResponse
+            {
+                TotalCalories = Math.Round(totalCalories, 2),
+                TotalCarbs = Math.Round(totalCarbs, 2),
+                TotalProtein = Math.Round(totalProtein, 2),
+                TotalFat = Math.Round(totalFat, 2),
+                CarbsPercentage = carbsPct,
+                ProteinPercentage = proteinPct,
+                FatPercentage = fatPct
+            };
+
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Global nutrition summary retrieved successfully.",
+                resp
+            );
+        }
 
 
     }
