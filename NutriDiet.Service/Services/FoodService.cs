@@ -244,7 +244,7 @@ Hãy gợi ý cho tôi một công thức để nấu món {food.FoodName}, theo
 
             input += @"
 Trình bày công thức theo cấu trúc sau:
-1. Nguồn cảm hứng / truyền thống / tài liệu tham khảo (nêu rõ trước tiên)
+1. Nguồn cảm hứng: Hãy nêu rõ món ăn này lấy cảm hứng từ đâu (ví dụ: vùng miền, đầu bếp nổi tiếng, trang web, video YouTube, sách dạy nấu ăn...), và nếu có thể, hãy ghi cụ thể tên đầu bếp, nguồn video, hoặc website bạn tham khảo.
 2. Tên món ăn
 3. Nguyên liệu (với số lượng rõ ràng)
 4. Cách chế biến từng bước
