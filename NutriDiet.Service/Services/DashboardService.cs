@@ -8,11 +8,7 @@ using NutriDiet.Repository.Interface;
 using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Response;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Services
 {
@@ -227,6 +223,56 @@ namespace NutriDiet.Service.Services
                 ProgressPercentages = progressPercs
             };
         }
+        public async Task<IBusinessResult> GetTopSelectedFoods(int top = 10)
+        {
+            var mealLogCounts = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.MealLogDetails.Any())
+                .Include(m => m.MealLogDetails)
+                .AsNoTracking()
+                .SelectMany(m => m.MealLogDetails)
+                .GroupBy(d => d.FoodId)
+                .Select(g => new { FoodId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var mealPlanCounts = await _unitOfWork.MealPlanDetailRepository
+                .GetAll()
+                .AsNoTracking()
+                .GroupBy(d => d.FoodId)
+                .Select(g => new { FoodId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var allFoodIds = mealLogCounts
+                .Select(x => x.FoodId)
+                .Concat(mealPlanCounts.Select(x => x.FoodId))
+                .Distinct()
+                .ToList();
+
+            var foods = await _unitOfWork.FoodRepository
+                .GetByWhere(f => allFoodIds.Contains(f.FoodId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var result = allFoodIds
+                .Select(id =>
+                {
+                    var ml = mealLogCounts.FirstOrDefault(x => x.FoodId == id)?.Count ?? 0;
+                    var mp = mealPlanCounts.FirstOrDefault(x => x.FoodId == id)?.Count ?? 0;
+                    return new TopFoodResponse
+                    {
+                        FoodName = foods.First(f => f.FoodId == id).FoodName,
+                        MealLogCount = ml,
+                        MealPlanCount = mp,
+                        TotalCount = ml + mp
+                    };
+                })
+                .OrderByDescending(x => x.TotalCount)
+                .Take(top)
+                .ToList();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result);
+        }
+
+
 
     }
 }
