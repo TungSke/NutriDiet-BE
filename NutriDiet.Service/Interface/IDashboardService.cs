@@ -1,4 +1,5 @@
 ﻿using NutriDiet.Common.BusinessResult;
+using NutriDiet.Service.ModelDTOs.Response;
 
 namespace NutriDiet.Service.Interface
 {
@@ -7,5 +8,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> Dashboard();
         Task<IBusinessResult> Revenue();
         Task<IBusinessResult> Transaction(int pageIndex, int pageSize, string? search);
+        Task<GoalChartResponse> GetGoalProgressChartData();
     }
 }

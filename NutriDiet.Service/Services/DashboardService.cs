@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
@@ -173,5 +174,59 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+        public async Task<GoalChartResponse> GetGoalProgressChartData()
+        {
+            // 1. Lấy tất cả personal goals chỉ của 2 loại GoalType.GainWeight & GoalType.LoseWeight
+            var goals = await _unitOfWork.PersonalGoalRepository
+                .GetByWhere(pg =>
+                    pg.GoalType == GoalType.GainWeight.ToString() ||
+                    pg.GoalType == GoalType.LoseWeight.ToString())
+                .AsNoTracking()
+                .ToListAsync();
+
+            // 2. Nhóm theo GoalType và tính tổng + đạt
+            var grouped = goals
+                .GroupBy(pg => pg.GoalType)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        Total = g.Count(),
+                        Achieved = g.Count(pg => pg.ProgressPercentage >= 100)
+                    }
+                );
+
+            // 3. Chuẩn bị mảng kết quả với thứ tự cố định: [Tăng cân, Giảm cân]
+            var labels = new[] { "Tăng cân", "Giảm cân" };
+            var achieved = new int[2];
+            var notAchieved = new int[2];
+            var progressPercs = new double[2];
+
+            // 4. Điền dữ liệu Tăng cân
+            if (grouped.TryGetValue(GoalType.GainWeight.ToString(), out var gain))
+            {
+                achieved[0] = gain.Achieved;
+                notAchieved[0] = gain.Total - gain.Achieved;
+                progressPercs[0] = Math.Round(gain.Achieved * 100.0 / gain.Total, 2);
+            }
+
+            // 5. Điền dữ liệu Giảm cân
+            if (grouped.TryGetValue(GoalType.LoseWeight.ToString(), out var lose))
+            {
+                achieved[1] = lose.Achieved;
+                notAchieved[1] = lose.Total - lose.Achieved;
+                progressPercs[1] = Math.Round(lose.Achieved * 100.0 / lose.Total, 2);
+            }
+
+            // 6. Trả về response
+            return new GoalChartResponse
+            {
+                Labels = labels,
+                Achieved = achieved,
+                NotAchieved = notAchieved,
+                ProgressPercentages = progressPercs
+            };
+        }
+
     }
 }

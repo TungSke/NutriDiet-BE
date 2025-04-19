@@ -40,5 +40,12 @@ namespace NutriDiet.API.Controllers
             var result = await _dashboardService.Transaction(pageIndex, pageSize, search);
             return StatusCode(result.StatusCode, result);
         }
+        [HttpGet("goal")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
+        public async Task<IActionResult> GoalChart()
+        {
+            var result = await _dashboardService.GetGoalProgressChartData();
+            return Ok(result);
+        }
     }
 }
