@@ -20,7 +20,7 @@ namespace NutriDiet.API.Controllers
 
         [HttpGet("{mealPlanId}/{dayNumber}")]
         [Authorize]
-        public async Task<IActionResult> GetMealPlanTotals(int mealPlanId, int dayNumber)
+        public async Task<IActionResult> GetMealPlanDetailByDayNumber(int mealPlanId, int dayNumber)
         {
             var result = await _mealPlanDetailService.GetMealPlanDetailByDayNumber(mealPlanId, dayNumber);
             return StatusCode(result.StatusCode, result);
