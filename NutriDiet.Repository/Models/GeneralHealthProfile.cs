@@ -15,8 +15,6 @@ public partial class GeneralHealthProfile
 
     public string? ActivityLevel { get; set; }
 
-    public string? Aisuggestion { get; set; }
-
     public string? Evaluate { get; set; }
 
     public string? DietStyle { get; set; }
@@ -31,6 +29,7 @@ public partial class GeneralHealthProfile
 
     public DateTime? UpdatedAt { get; set; }
 
+    public virtual ICollection<Aisuggestion> Aisuggestions { get; set; } = new List<Aisuggestion>();
     public virtual ICollection<HealthcareIndicator> HealthcareIndicators { get; set; } = new List<HealthcareIndicator>();
 
     public virtual User User { get; set; } = null!;

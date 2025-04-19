@@ -6,7 +6,7 @@
         public string? Message { get; set; }
         public object? Data { get; set; }
 
-        public BusinessResult()
+        public BusinessResult(int eRROR_EXCEPTION)
         {
             StatusCode = -1;
             Message = "Action fail";

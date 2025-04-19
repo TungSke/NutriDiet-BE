@@ -82,7 +82,6 @@ CREATE TABLE GeneralHealthProfile (
     Height FLOAT CHECK (Height > 0),
     Weight FLOAT CHECK (Weight > 0),
     ActivityLevel NVARCHAR(50),
-	AISuggestion NVARCHAR(MAX),
 	Evaluate NVARCHAR (200),
 	DietStyle NVARCHAR(50),
 	Status NVARCHAR(50) CHECK (Status IN ('Active', 'Expired')), 
@@ -91,6 +90,16 @@ CREATE TABLE GeneralHealthProfile (
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE
+);
+
+CREATE TABLE AISuggestion (
+    AISuggestionID INT IDENTITY(1,1) PRIMARY KEY,
+    ProfileID      INT NOT NULL,
+    Content        NVARCHAR(MAX) NOT NULL,
+    Type           NVARCHAR(50) NOT NULL,
+    CreatedAt      DATETIME DEFAULT GETDATE(),
+    UpdatedAt      DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (ProfileID) REFERENCES GeneralHealthProfile(ProfileID) ON DELETE CASCADE
 );
 
 -- Bảng Allergy (danh mục các loại dị ứng)
