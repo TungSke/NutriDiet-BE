@@ -262,6 +262,7 @@ namespace NutriDiet.Service.Services
             var healthProfile = await _unitOfWork.HealthProfileRepository
                 .GetByWhere(hp => hp.UserId == userId)
                 .Include(hp => hp.HealthcareIndicators) // giả sử có navigation property
+                .Include(hp => hp.Aisuggestions)
                 .OrderByDescending(hp => hp.CreatedAt)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -277,7 +278,11 @@ namespace NutriDiet.Service.Services
                 .OrderByDescending(hi => hi.CreatedAt)
                 .Take(2)
                 .ToList();
-
+            healthProfile.Aisuggestions = healthProfile.Aisuggestions
+                .Where(hi => hi.Type == "DinhDuong" || hi.Type == "LuyenTap" || hi.Type == "LoiSong" || hi.Type == "All")
+                .OrderByDescending(hi => hi.CreatedAt)
+                .Take(4)
+                .ToList();
             // Lấy thông tin user để mapping sang response
             var user = await _unitOfWork.UserRepository
                 .GetByWhere(u => u.UserId == userId)
@@ -364,6 +369,7 @@ namespace NutriDiet.Service.Services
             var profiles = await _unitOfWork.HealthProfileRepository
                                 .GetByWhere(hp => hp.UserId == userId)
                                 .Include(hp => hp.HealthcareIndicators)
+                                .Include(hp => hp.Aisuggestions)
                                 .OrderByDescending(hp => hp.CreatedAt)
                                 .AsNoTracking()
                                 .ToListAsync();
@@ -515,91 +521,78 @@ namespace NutriDiet.Service.Services
             var userId = int.Parse(_userIdClaim);
             var isPremiumResult = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
             if (!isPremiumResult)
-            {
                 return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Premium mới sử dụng được tính năng này");
-            }
 
             var userInfo = await _unitOfWork.UserRepository.GetByWhere(x => x.UserId == userId)
-                                       .Include(x => x.GeneralHealthProfiles)
-                                       .Include(x => x.UserFoodPreferences)
-                                       .Include(x => x.UserIngreDientPreferences).ThenInclude(x => x.Ingredient)
-                                       .Include(x => x.PersonalGoals)
-                                       .Include(x => x.Allergies)
-                                       .Include(x => x.Diseases)
-                                       .FirstOrDefaultAsync();
+                .Include(x => x.GeneralHealthProfiles)
+                /* ... các Include khác ... */
+                .FirstOrDefaultAsync();
 
             if (userInfo == null)
-            {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User not found");
-            }
 
-            var userProfile = userInfo.GeneralHealthProfiles.FirstOrDefault();
-            var personalGoal = userInfo.PersonalGoals.FirstOrDefault();
+            var userProfile = userInfo.GeneralHealthProfiles.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
+            var personalGoal = userInfo.PersonalGoals.OrderByDescending(g => g.CreatedAt).FirstOrDefault();
 
             var height = userProfile?.Height ?? 0;
             var weight = userProfile?.Weight ?? 0;
             var activityLevel = userProfile?.ActivityLevel ?? "Không xác định";
             var goalType = personalGoal?.GoalType ?? "Không có mục tiêu";
 
+            // Chuẩn bị prompt cho AI
             var categoryAdviceText = adviceCategory == CategoryAdvice.All
-                                        ? "dinh dưỡng, luyện tập và lối sống"
-                                        : adviceCategory switch
-                                        {
-                                            CategoryAdvice.DinhDuong => "dinh dưỡng",
-                                            CategoryAdvice.LuyenTap => "luyện tập",
-                                            CategoryAdvice.LoiSong => "lối sống",
-                                            _ => "dinh dưỡng, luyện tập và lối sống"
-                                        };
+                ? "dinh dưỡng, luyện tập và lối sống"
+                : adviceCategory switch
+                {
+                    CategoryAdvice.DinhDuong => "dinh dưỡng",
+                    CategoryAdvice.LuyenTap => "luyện tập",
+                    CategoryAdvice.LoiSong => "lối sống",
+                    _ => "dinh dưỡng, luyện tập và lối sống"
+                };
 
-            var input = $@"Bạn là một chuyên gia {categoryAdviceText}. Nhiệm vụ của bạn là đưa ra lời khuyên chi tiết về {categoryAdviceText} giúp cải thiện sức khỏe cho người dùng dựa trên hồ sơ sức khỏe và mục tiêu cá nhân của họ.
-
-Thông tin người dùng:
-- Họ tên: {userInfo.FullName}
-- Giới tính: {userInfo.Gender}
-- Tuổi: {userInfo.Age}
+            var input = $@"
+Bạn là một chuyên gia {categoryAdviceText}...
 - Chiều cao: {height} cm
 - Cân nặng: {weight} kg
 - Mức độ vận động: {activityLevel}
 - Mục tiêu: {goalType}
 
-Yêu cầu:
-- Lời khuyên từ **200 - 300 từ**
-- Cung cấp lời khuyên, khuyến nghị chi tiết về vấn đề **{categoryAdviceText}**.
-
-Lưu ý:
-- Chỉ trả về **text thuần túy**, không dưới dạng JSON và không kèm theo giải thích thêm.
+Yêu cầu: 200–300 từ, chỉ text thuần.
 ";
-
             var airesponse = await _aiGeneratorService.AIResponseText(input);
 
             var healthProfileRecord = await _unitOfWork.HealthProfileRepository
-                                          .GetByWhere(hp => hp.UserId == userId)
-                                          .OrderByDescending(hp => hp.CreatedAt)
-                                          .FirstOrDefaultAsync();
+                .GetByWhere(hp => hp.UserId == userId)
+                .Include(hp => hp.Aisuggestions)
+                .OrderByDescending(hp => hp.CreatedAt)
+                .FirstOrDefaultAsync();
 
             if (healthProfileRecord == null)
             {
-                healthProfileRecord = new GeneralHealthProfile
-                {
-                    UserId = userId,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    Aisuggestion = airesponse
-                };
-
-                await _unitOfWork.HealthProfileRepository.AddAsync(healthProfileRecord);
+                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Profile not found");
             }
             else
             {
-                healthProfileRecord.Aisuggestion = airesponse;
                 healthProfileRecord.UpdatedAt = DateTime.Now;
                 await _unitOfWork.HealthProfileRepository.UpdateAsync(healthProfileRecord);
             }
-
+            var aiSuggestion = new Aisuggestion
+            {
+                ProfileId = healthProfileRecord.ProfileId,
+                Content = airesponse,
+                Type = adviceCategory.ToString(),
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+            healthProfileRecord.Aisuggestions.Add(aiSuggestion);
             await _unitOfWork.SaveChangesAsync();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, "Lời khuyên tư vấn đã được tạo và lưu thành công", airesponse);
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Lời khuyên tư vấn đã được tạo và lưu thành công",
+                airesponse
+            );
         }
+
 
         public double CalculateGlobalWeightPercentile(double weight)
         {

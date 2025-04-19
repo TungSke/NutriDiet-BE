@@ -19,6 +19,8 @@ public partial class NutriDietContext : DbContext
 
     public virtual DbSet<AirecommendMealPlan> AirecommendMealPlans { get; set; }
 
+    public virtual DbSet<Aisuggestion> Aisuggestions { get; set; }
+
     public virtual DbSet<Allergy> Allergies { get; set; }
 
     public virtual DbSet<CuisineType> CuisineTypes { get; set; }
@@ -69,7 +71,7 @@ public partial class NutriDietContext : DbContext
     {
         modelBuilder.Entity<AirecommendMealLog>(entity =>
         {
-            entity.HasKey(e => e.AirecommendMealLogId).HasName("PK__AIRecomm__9CD3D5F834C54426");
+            entity.HasKey(e => e.AirecommendMealLogId).HasName("PK__AIRecomm__9CD3D5F89B39D870");
 
             entity.ToTable("AIRecommendMealLog");
 
@@ -88,16 +90,16 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.MealLog).WithMany(p => p.AirecommendMealLogs)
                 .HasForeignKey(d => d.MealLogId)
-                .HasConstraintName("FK__AIRecomme__MealL__569F9A3F");
+                .HasConstraintName("FK__AIRecomme__MealL__41EDCAC5");
 
             entity.HasOne(d => d.User).WithMany(p => p.AirecommendMealLogs)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__AIRecomme__UserI__5793BE78");
+                .HasConstraintName("FK__AIRecomme__UserI__42E1EEFE");
         });
 
         modelBuilder.Entity<AirecommendMealPlan>(entity =>
         {
-            entity.HasKey(e => e.AirecommendMealPlanId).HasName("PK__AIRecomm__CF019A6289AC90F0");
+            entity.HasKey(e => e.AirecommendMealPlanId).HasName("PK__AIRecomm__CF019A622483620F");
 
             entity.ToTable("AIRecommendMealPlan");
 
@@ -116,16 +118,37 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.MealPlan).WithMany(p => p.AirecommendMealPlans)
                 .HasForeignKey(d => d.MealPlanId)
-                .HasConstraintName("FK__AIRecomme__MealP__3DD3EC75");
+                .HasConstraintName("FK__AIRecomme__MealP__29221CFB");
 
             entity.HasOne(d => d.User).WithMany(p => p.AirecommendMealPlans)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__AIRecomme__UserI__3EC810AE");
+                .HasConstraintName("FK__AIRecomme__UserI__2A164134");
+        });
+
+        modelBuilder.Entity<Aisuggestion>(entity =>
+        {
+            entity.HasKey(e => e.AisuggestionId).HasName("PK__AISugges__A11B2CDDE5956DC0");
+
+            entity.ToTable("AISuggestion");
+
+            entity.Property(e => e.AisuggestionId).HasColumnName("AISuggestionID");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.ProfileId).HasColumnName("ProfileID");
+            entity.Property(e => e.Type).HasMaxLength(50);
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Profile).WithMany(p => p.Aisuggestions)
+                .HasForeignKey(d => d.ProfileId)
+                .HasConstraintName("FK__AISuggest__Profi__571DF1D5");
         });
 
         modelBuilder.Entity<Allergy>(entity =>
         {
-            entity.HasKey(e => e.AllergyId).HasName("PK__Allergy__A49EBE6201D3135A");
+            entity.HasKey(e => e.AllergyId).HasName("PK__Allergy__A49EBE622F78EB16");
 
             entity.ToTable("Allergy");
 
@@ -144,13 +167,13 @@ public partial class NutriDietContext : DbContext
                     "AllergyIngredient",
                     r => r.HasOne<Ingredient>().WithMany()
                         .HasForeignKey("IngredientId")
-                        .HasConstraintName("FK__AllergyIn__Ingre__7CC54327"),
+                        .HasConstraintName("FK__AllergyIn__Ingre__681373AD"),
                     l => l.HasOne<Allergy>().WithMany()
                         .HasForeignKey("AllergyId")
-                        .HasConstraintName("FK__AllergyIn__Aller__7BD11EEE"),
+                        .HasConstraintName("FK__AllergyIn__Aller__671F4F74"),
                     j =>
                     {
-                        j.HasKey("AllergyId", "IngredientId").HasName("PK__AllergyI__1F745545395A6BA3");
+                        j.HasKey("AllergyId", "IngredientId").HasName("PK__AllergyI__1F745545C5F52A9B");
                         j.ToTable("AllergyIngredient");
                         j.IndexerProperty<int>("AllergyId").HasColumnName("AllergyID");
                         j.IndexerProperty<int>("IngredientId").HasColumnName("IngredientID");
@@ -159,11 +182,11 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<CuisineType>(entity =>
         {
-            entity.HasKey(e => e.CuisineId).HasName("PK__CuisineT__B1C3E7AB4A440566");
+            entity.HasKey(e => e.CuisineId).HasName("PK__CuisineT__B1C3E7ABB6AD5932");
 
             entity.ToTable("CuisineType");
 
-            entity.HasIndex(e => e.CuisineName, "UQ__CuisineT__2C77DCC80913F9CA").IsUnique();
+            entity.HasIndex(e => e.CuisineName, "UQ__CuisineT__2C77DCC88318FB9B").IsUnique();
 
             entity.Property(e => e.CuisineId).HasColumnName("CuisineID");
             entity.Property(e => e.CuisineName).HasMaxLength(50);
@@ -171,7 +194,7 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<Disease>(entity =>
         {
-            entity.HasKey(e => e.DiseaseId).HasName("PK__Disease__69B533A97503C58B");
+            entity.HasKey(e => e.DiseaseId).HasName("PK__Disease__69B533A98452D70D");
 
             entity.ToTable("Disease");
 
@@ -190,13 +213,13 @@ public partial class NutriDietContext : DbContext
                     "DiseaseIngredient",
                     r => r.HasOne<Ingredient>().WithMany()
                         .HasForeignKey("IngredientId")
-                        .HasConstraintName("FK__DiseaseIn__Ingre__0095D40B"),
+                        .HasConstraintName("FK__DiseaseIn__Ingre__6BE40491"),
                     l => l.HasOne<Disease>().WithMany()
                         .HasForeignKey("DiseaseId")
-                        .HasConstraintName("FK__DiseaseIn__Disea__7FA1AFD2"),
+                        .HasConstraintName("FK__DiseaseIn__Disea__6AEFE058"),
                     j =>
                     {
-                        j.HasKey("DiseaseId", "IngredientId").HasName("PK__DiseaseI__D25FD88EE1D642BC");
+                        j.HasKey("DiseaseId", "IngredientId").HasName("PK__DiseaseI__D25FD88E5A8B8B6A");
                         j.ToTable("DiseaseIngredient");
                         j.IndexerProperty<int>("DiseaseId").HasColumnName("DiseaseID");
                         j.IndexerProperty<int>("IngredientId").HasColumnName("IngredientID");
@@ -205,11 +228,11 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<Food>(entity =>
         {
-            entity.HasKey(e => e.FoodId).HasName("PK__Food__856DB3CB3F91649F");
+            entity.HasKey(e => e.FoodId).HasName("PK__Food__856DB3CBADFB7391");
 
             entity.ToTable("Food");
 
-            entity.HasIndex(e => e.FoodName, "UQ__Food__81B4FC251B8D266E").IsUnique();
+            entity.HasIndex(e => e.FoodName, "UQ__Food__81B4FC251C0AA031").IsUnique();
 
             entity.Property(e => e.FoodId).HasColumnName("FoodID");
             entity.Property(e => e.Description).HasMaxLength(255);
@@ -223,13 +246,13 @@ public partial class NutriDietContext : DbContext
                     "FoodIngredient",
                     r => r.HasOne<Ingredient>().WithMany()
                         .HasForeignKey("IngredientId")
-                        .HasConstraintName("FK__FoodIngre__Ingre__0B486CA8"),
+                        .HasConstraintName("FK__FoodIngre__Ingre__76969D2E"),
                     l => l.HasOne<Food>().WithMany()
                         .HasForeignKey("FoodId")
-                        .HasConstraintName("FK__FoodIngre__FoodI__0A54486F"),
+                        .HasConstraintName("FK__FoodIngre__FoodI__75A278F5"),
                     j =>
                     {
-                        j.HasKey("FoodId", "IngredientId").HasName("PK__FoodIngr__3E8758ECAF57216B");
+                        j.HasKey("FoodId", "IngredientId").HasName("PK__FoodIngr__3E8758EC761823EF");
                         j.ToTable("FoodIngredient");
                         j.IndexerProperty<int>("FoodId").HasColumnName("FoodID");
                         j.IndexerProperty<int>("IngredientId").HasColumnName("IngredientID");
@@ -238,7 +261,7 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<FoodSubstitution>(entity =>
         {
-            entity.HasKey(e => e.SubstitutionId).HasName("PK__FoodSubs__95BE7DE451AD05DC");
+            entity.HasKey(e => e.SubstitutionId).HasName("PK__FoodSubs__95BE7DE484A34857");
 
             entity.ToTable("FoodSubstitution");
 
@@ -250,23 +273,22 @@ public partial class NutriDietContext : DbContext
             entity.HasOne(d => d.OriginalFood).WithMany(p => p.FoodSubstitutionOriginalFoods)
                 .HasForeignKey(d => d.OriginalFoodId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__FoodSubst__Origi__2E91A8E5");
+                .HasConstraintName("FK__FoodSubst__Origi__19DFD96B");
 
             entity.HasOne(d => d.SubstituteFood).WithMany(p => p.FoodSubstitutionSubstituteFoods)
                 .HasForeignKey(d => d.SubstituteFoodId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__FoodSubst__Subst__2F85CD1E");
+                .HasConstraintName("FK__FoodSubst__Subst__1AD3FDA4");
         });
 
         modelBuilder.Entity<GeneralHealthProfile>(entity =>
         {
-            entity.HasKey(e => e.ProfileId).HasName("PK__GeneralH__290C888450E4A97A");
+            entity.HasKey(e => e.ProfileId).HasName("PK__GeneralH__290C8884B0E11994");
 
             entity.ToTable("GeneralHealthProfile");
 
             entity.Property(e => e.ProfileId).HasColumnName("ProfileID");
             entity.Property(e => e.ActivityLevel).HasMaxLength(50);
-            entity.Property(e => e.Aisuggestion).HasColumnName("AISuggestion");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -280,12 +302,12 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.GeneralHealthProfiles)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__GeneralHe__UserI__6BCFC14F");
+                .HasConstraintName("FK__GeneralHe__UserI__52593CB8");
         });
 
         modelBuilder.Entity<HealthcareIndicator>(entity =>
         {
-            entity.HasKey(e => e.HealthcareIndicatorId).HasName("PK__Healthca__B6218104634B39BE");
+            entity.HasKey(e => e.HealthcareIndicatorId).HasName("PK__Healthca__B62181049EE5A1D9");
 
             entity.ToTable("HealthcareIndicator");
 
@@ -307,16 +329,16 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.Profile).WithMany(p => p.HealthcareIndicators)
                 .HasForeignKey(d => d.ProfileId)
-                .HasConstraintName("FK__Healthcar__Profi__390F3758");
+                .HasConstraintName("FK__Healthcar__Profi__245D67DE");
         });
 
         modelBuilder.Entity<Ingredient>(entity =>
         {
-            entity.HasKey(e => e.IngredientId).HasName("PK__Ingredie__BEAEB27AD0A69CB8");
+            entity.HasKey(e => e.IngredientId).HasName("PK__Ingredie__BEAEB27A59828907");
 
             entity.ToTable("Ingredient");
 
-            entity.HasIndex(e => e.IngredientName, "UQ__Ingredie__A1B2F1CC8014B30B").IsUnique();
+            entity.HasIndex(e => e.IngredientName, "UQ__Ingredie__A1B2F1CCFBA6E3F2").IsUnique();
 
             entity.Property(e => e.IngredientId).HasColumnName("IngredientID");
             entity.Property(e => e.CreatedAt)
@@ -330,7 +352,7 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<MealLog>(entity =>
         {
-            entity.HasKey(e => e.MealLogId).HasName("PK__MealLog__0ED21C5215DDDF73");
+            entity.HasKey(e => e.MealLogId).HasName("PK__MealLog__0ED21C5219301990");
 
             entity.ToTable("MealLog");
 
@@ -345,12 +367,12 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.MealLogs)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__MealLog__UserID__49459F21");
+                .HasConstraintName("FK__MealLog__UserID__3493CFA7");
         });
 
         modelBuilder.Entity<MealLogDetail>(entity =>
         {
-            entity.HasKey(e => e.DetailId).HasName("PK__MealLogD__135C314DA9DE3BF3");
+            entity.HasKey(e => e.DetailId).HasName("PK__MealLogD__135C314DFBC75627");
 
             entity.ToTable("MealLogDetail");
 
@@ -364,16 +386,16 @@ public partial class NutriDietContext : DbContext
             entity.HasOne(d => d.Food).WithMany(p => p.MealLogDetails)
                 .HasForeignKey(d => d.FoodId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__MealLogDe__FoodI__51DAE522");
+                .HasConstraintName("FK__MealLogDe__FoodI__3D2915A8");
 
             entity.HasOne(d => d.MealLog).WithMany(p => p.MealLogDetails)
                 .HasForeignKey(d => d.MealLogId)
-                .HasConstraintName("FK__MealLogDe__MealL__50E6C0E9");
+                .HasConstraintName("FK__MealLogDe__MealL__3C34F16F");
         });
 
         modelBuilder.Entity<MealPlan>(entity =>
         {
-            entity.HasKey(e => e.MealPlanId).HasName("PK__MealPlan__0620DB56E8DDD594");
+            entity.HasKey(e => e.MealPlanId).HasName("PK__MealPlan__0620DB56BC324DB3");
 
             entity.ToTable("MealPlan");
 
@@ -397,12 +419,12 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.MealPlans)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__MealPlan__UserID__1F4F6555");
+                .HasConstraintName("FK__MealPlan__UserID__0A9D95DB");
         });
 
         modelBuilder.Entity<MealPlanDetail>(entity =>
         {
-            entity.HasKey(e => e.MealPlanDetailId).HasName("PK__MealPlan__37DC012B84309F44");
+            entity.HasKey(e => e.MealPlanDetailId).HasName("PK__MealPlan__37DC012B8101BA7A");
 
             entity.ToTable("MealPlanDetail");
 
@@ -419,16 +441,16 @@ public partial class NutriDietContext : DbContext
             entity.HasOne(d => d.Food).WithMany(p => p.MealPlanDetails)
                 .HasForeignKey(d => d.FoodId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__MealPlanD__FoodI__2BB53C3A");
+                .HasConstraintName("FK__MealPlanD__FoodI__17036CC0");
 
             entity.HasOne(d => d.MealPlan).WithMany(p => p.MealPlanDetails)
                 .HasForeignKey(d => d.MealPlanId)
-                .HasConstraintName("FK__MealPlanD__MealP__2AC11801");
+                .HasConstraintName("FK__MealPlanD__MealP__160F4887");
         });
 
         modelBuilder.Entity<MyFood>(entity =>
         {
-            entity.HasKey(e => e.MyFoodId).HasName("PK__MyFood__4A24393579E0C814");
+            entity.HasKey(e => e.MyFoodId).HasName("PK__MyFood__4A243935BE29F122");
 
             entity.ToTable("MyFood");
 
@@ -445,12 +467,12 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.MyFoods)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__MyFood__UserID__733BD8ED");
+                .HasConstraintName("FK__MyFood__UserID__5E8A0973");
         });
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E1293426BC1");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E1232AA9173");
 
             entity.ToTable("Notification");
 
@@ -463,16 +485,16 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Notifications)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__Notificat__UserI__33565E02");
+                .HasConstraintName("FK__Notificat__UserI__1EA48E88");
         });
 
         modelBuilder.Entity<Package>(entity =>
         {
-            entity.HasKey(e => e.PackageId).HasName("PK__Package__322035EC1A0EB64E");
+            entity.HasKey(e => e.PackageId).HasName("PK__Package__322035EC165B0323");
 
             entity.ToTable("Package");
 
-            entity.HasIndex(e => e.PackageName, "UQ__Package__73856F7AFF115451").IsUnique();
+            entity.HasIndex(e => e.PackageName, "UQ__Package__73856F7A13533AC2").IsUnique();
 
             entity.Property(e => e.PackageId).HasColumnName("PackageID");
             entity.Property(e => e.CreatedAt)
@@ -487,7 +509,7 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<PersonalGoal>(entity =>
         {
-            entity.HasKey(e => e.GoalId).HasName("PK__Personal__8A4FFF31F4E79472");
+            entity.HasKey(e => e.GoalId).HasName("PK__Personal__8A4FFF3107941B17");
 
             entity.ToTable("PersonalGoal");
 
@@ -513,12 +535,12 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.PersonalGoals)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__PersonalG__UserI__63057124");
+                .HasConstraintName("FK__PersonalG__UserI__4E53A1AA");
         });
 
         modelBuilder.Entity<RecipeSuggestion>(entity =>
         {
-            entity.HasKey(e => e.RecipeId).HasName("PK__RecipeSu__FDD988D0F2203DE6");
+            entity.HasKey(e => e.RecipeId).HasName("PK__RecipeSu__FDD988D04DAA6919");
 
             entity.ToTable("RecipeSuggestion");
 
@@ -537,24 +559,24 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.Cuisine).WithMany(p => p.RecipeSuggestions)
                 .HasForeignKey(d => d.CuisineId)
-                .HasConstraintName("FK__RecipeSug__Cuisi__110145FE");
+                .HasConstraintName("FK__RecipeSug__Cuisi__7C4F7684");
 
             entity.HasOne(d => d.Food).WithMany(p => p.RecipeSuggestions)
                 .HasForeignKey(d => d.FoodId)
-                .HasConstraintName("FK__RecipeSug__FoodI__0F18FD8C");
+                .HasConstraintName("FK__RecipeSug__FoodI__7A672E12");
 
             entity.HasOne(d => d.User).WithMany(p => p.RecipeSuggestions)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__RecipeSug__UserI__100D21C5");
+                .HasConstraintName("FK__RecipeSug__UserI__7B5B524B");
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3AC855F2FC");
+            entity.HasKey(e => e.RoleId).HasName("PK__Role__8AFACE3A73045B8C");
 
             entity.ToTable("Role");
 
-            entity.HasIndex(e => e.RoleName, "UQ__Role__8A2B61607BC2937A").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__Role__8A2B6160033286C8").IsUnique();
 
             entity.Property(e => e.RoleId)
                 .ValueGeneratedNever()
@@ -564,11 +586,11 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<SystemConfiguration>(entity =>
         {
-            entity.HasKey(e => e.ConfigId).HasName("PK__SystemCo__C3BC333C3A5DA708");
+            entity.HasKey(e => e.ConfigId).HasName("PK__SystemCo__C3BC333C541A4853");
 
             entity.ToTable("SystemConfiguration");
 
-            entity.HasIndex(e => e.Name, "UQ__SystemCo__737584F65A415DF7").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__SystemCo__737584F6C3F0E2BF").IsUnique();
 
             entity.Property(e => e.ConfigId).HasColumnName("ConfigID");
             entity.Property(e => e.CreatedAt)
@@ -585,11 +607,11 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCACC59E55AF");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC7D06BF40");
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.Email, "UQ__User__A9D1053451A66F10").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__User__A9D1053443611EAA").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Email).HasMaxLength(255);
@@ -610,20 +632,20 @@ public partial class NutriDietContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__User__RoleID__58BCECDB");
+                .HasConstraintName("FK__User__RoleID__3F466844");
 
             entity.HasMany(d => d.Allergies).WithMany(p => p.Users)
                 .UsingEntity<Dictionary<string, object>>(
                     "UserAllergy",
                     r => r.HasOne<Allergy>().WithMany()
                         .HasForeignKey("AllergyId")
-                        .HasConstraintName("FK__UserAller__Aller__7370E317"),
+                        .HasConstraintName("FK__UserAller__Aller__5EBF139D"),
                     l => l.HasOne<User>().WithMany()
                         .HasForeignKey("UserId")
-                        .HasConstraintName("FK__UserAller__UserI__727CBEDE"),
+                        .HasConstraintName("FK__UserAller__UserI__5DCAEF64"),
                     j =>
                     {
-                        j.HasKey("UserId", "AllergyId").HasName("PK__UserAlle__2DC1274A6436CD42");
+                        j.HasKey("UserId", "AllergyId").HasName("PK__UserAlle__2DC1274A9171EA4A");
                         j.ToTable("UserAllergy");
                         j.IndexerProperty<int>("UserId").HasColumnName("UserID");
                         j.IndexerProperty<int>("AllergyId").HasColumnName("AllergyID");
@@ -634,13 +656,13 @@ public partial class NutriDietContext : DbContext
                     "UserDisease",
                     r => r.HasOne<Disease>().WithMany()
                         .HasForeignKey("DiseaseId")
-                        .HasConstraintName("FK__UserDisea__Disea__6AA692EC"),
+                        .HasConstraintName("FK__UserDisea__Disea__55F4C372"),
                     l => l.HasOne<User>().WithMany()
                         .HasForeignKey("UserId")
-                        .HasConstraintName("FK__UserDisea__UserI__69B26EB3"),
+                        .HasConstraintName("FK__UserDisea__UserI__55009F39"),
                     j =>
                     {
-                        j.HasKey("UserId", "DiseaseId").HasName("PK__UserDise__91139F96A06D8D7E");
+                        j.HasKey("UserId", "DiseaseId").HasName("PK__UserDise__91139F96C03F7142");
                         j.ToTable("UserDisease");
                         j.IndexerProperty<int>("UserId").HasColumnName("UserID");
                         j.IndexerProperty<int>("DiseaseId").HasColumnName("DiseaseID");
@@ -649,7 +671,7 @@ public partial class NutriDietContext : DbContext
 
         modelBuilder.Entity<UserFoodPreference>(entity =>
         {
-            entity.HasKey(e => e.UserFoodPreferenceId).HasName("PK__UserFood__997D6AD7CCD3742D");
+            entity.HasKey(e => e.UserFoodPreferenceId).HasName("PK__UserFood__997D6AD799841195");
 
             entity.ToTable("UserFoodPreference");
 
@@ -660,16 +682,16 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.Food).WithMany(p => p.UserFoodPreferences)
                 .HasForeignKey(d => d.FoodId)
-                .HasConstraintName("FK__UserFoodP__FoodI__14D1D6E2");
+                .HasConstraintName("FK__UserFoodP__FoodI__00200768");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserFoodPreferences)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__UserFoodP__UserI__13DDB2A9");
+                .HasConstraintName("FK__UserFoodP__UserI__7F2BE32F");
         });
 
         modelBuilder.Entity<UserIngreDientPreference>(entity =>
         {
-            entity.HasKey(e => e.UserIngreDientPreferenceId).HasName("PK__UserIngr__27A229AF9DF47E49");
+            entity.HasKey(e => e.UserIngreDientPreferenceId).HasName("PK__UserIngr__27A229AFC6635BB0");
 
             entity.ToTable("UserIngreDientPreference");
 
@@ -679,16 +701,16 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.Ingredient).WithMany(p => p.UserIngreDientPreferences)
                 .HasForeignKey(d => d.IngredientId)
-                .HasConstraintName("FK__UserIngre__Ingre__18A267C6");
+                .HasConstraintName("FK__UserIngre__Ingre__03F0984C");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserIngreDientPreferences)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__UserIngre__UserI__17AE438D");
+                .HasConstraintName("FK__UserIngre__UserI__02FC7413");
         });
 
         modelBuilder.Entity<UserPackage>(entity =>
         {
-            entity.HasKey(e => e.UserPackageId).HasName("PK__UserPack__AE9B91FAB8453F65");
+            entity.HasKey(e => e.UserPackageId).HasName("PK__UserPack__AE9B91FA453755CC");
 
             entity.ToTable("UserPackage");
 
@@ -703,11 +725,11 @@ public partial class NutriDietContext : DbContext
 
             entity.HasOne(d => d.Package).WithMany(p => p.UserPackages)
                 .HasForeignKey(d => d.PackageId)
-                .HasConstraintName("FK__UserPacka__Packa__642E9F87");
+                .HasConstraintName("FK__UserPacka__Packa__4AB81AF0");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserPackages)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__UserPacka__UserI__633A7B4E");
+                .HasConstraintName("FK__UserPacka__UserI__49C3F6B7");
         });
 
         OnModelCreatingPartial(modelBuilder);
