@@ -244,7 +244,7 @@ namespace NutriDiet.Service.Services
                 if (userPackage.StartDate.HasValue && userPackage.Package?.Duration.HasValue == true)
                 {
                     userPackage.Status = "Active";
-                    userPackage.ExpiryDate = userPackage.StartDate.Value.AddMonths(userPackage.Package.Duration.Value);
+                    userPackage.ExpiryDate = userPackage.StartDate.Value.AddDays(userPackage.Package.Duration.Value);
                     await _unitOfWork.UserPackageRepository.UpdateAsync(userPackage);
                     await _unitOfWork.SaveChangesAsync();
                 }

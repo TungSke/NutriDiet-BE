@@ -489,7 +489,6 @@ namespace NutriDiet.Service.Services
                 }
             };
 
-
             // Sample JSON output
             string jsonOutputSample = JsonSerializer.Serialize(mealPlanRequesttest);
 
@@ -609,6 +608,7 @@ Lưu ý:
             recommendResponse.Status = AIRecommendStatus.Accepted.ToString();
             recommendResponse.RejectionReason = null;
             recommendResponse.Feedback = feedback;
+
             await _unitOfWork.SaveChangesAsync();
 
             var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(recommendResponse.AirecommendMealPlanResponse.ToString());
@@ -741,11 +741,10 @@ Lưu ý:
         public async Task<IBusinessResult> GetSampleMealPlan(int pageIndex, int pageSize, string? search)
         {
 
-            var adminAndNutritionistId = _unitOfWork.UserRepository
-                .GetAll()
-                .Where(x => x.RoleId == (int)RoleEnum.Admin || x.RoleId == (int)RoleEnum.Nutritionist)
+            var adminAndNutritionistId = await _unitOfWork.UserRepository
+                .GetByWhere(x => x.RoleId == (int)RoleEnum.Admin || x.RoleId == (int)RoleEnum.Nutritionist)
                 .Select(x => x.UserId)
-                .ToList();
+                .ToListAsync();
 
             search = search?.ToLower() ?? string.Empty;
 
