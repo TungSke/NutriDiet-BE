@@ -576,6 +576,12 @@ Yêu cầu: 200–300 từ, chỉ text thuần.
                 healthProfileRecord.UpdatedAt = DateTime.Now;
                 await _unitOfWork.HealthProfileRepository.UpdateAsync(healthProfileRecord);
             }
+            var typeString = adviceCategory.ToString();
+            var old = healthProfileRecord.Aisuggestions.FirstOrDefault(s => s.Type == typeString);
+            if (old != null)
+            {
+                healthProfileRecord.Aisuggestions.Remove(old);
+            }
             var aiSuggestion = new Aisuggestion
             {
                 ProfileId = healthProfileRecord.ProfileId,

@@ -3,15 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NutriDiet.Common;
 using NutriDiet.Common.BusinessResult;
+using NutriDiet.Common.Enums;
 using NutriDiet.Repository.Interface;
 using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Response;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NutriDiet.Service.Services
 {
@@ -173,5 +170,198 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
         }
+        public async Task<GoalChartResponse> GetGoalProgressChartData()
+        {
+            // 1. Lấy tất cả personal goals chỉ của 2 loại GoalType.GainWeight & GoalType.LoseWeight
+            var goals = await _unitOfWork.PersonalGoalRepository
+                .GetByWhere(pg =>
+                    pg.GoalType == GoalType.GainWeight.ToString() ||
+                    pg.GoalType == GoalType.LoseWeight.ToString())
+                .AsNoTracking()
+                .ToListAsync();
+
+            // 2. Nhóm theo GoalType và tính tổng + đạt
+            var grouped = goals
+                .GroupBy(pg => pg.GoalType)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new
+                    {
+                        Total = g.Count(),
+                        Achieved = g.Count(pg => pg.ProgressPercentage >= 100)
+                    }
+                );
+
+            // 3. Chuẩn bị mảng kết quả với thứ tự cố định: [Tăng cân, Giảm cân]
+            var labels = new[] { "Tăng cân", "Giảm cân" };
+            var achieved = new int[2];
+            var notAchieved = new int[2];
+            var progressPercs = new double[2];
+
+            // 4. Điền dữ liệu Tăng cân
+            if (grouped.TryGetValue(GoalType.GainWeight.ToString(), out var gain))
+            {
+                achieved[0] = gain.Achieved;
+                notAchieved[0] = gain.Total - gain.Achieved;
+                progressPercs[0] = Math.Round(gain.Achieved * 100.0 / gain.Total, 2);
+            }
+
+            // 5. Điền dữ liệu Giảm cân
+            if (grouped.TryGetValue(GoalType.LoseWeight.ToString(), out var lose))
+            {
+                achieved[1] = lose.Achieved;
+                notAchieved[1] = lose.Total - lose.Achieved;
+                progressPercs[1] = Math.Round(lose.Achieved * 100.0 / lose.Total, 2);
+            }
+
+            // 6. Trả về response
+            return new GoalChartResponse
+            {
+                Labels = labels,
+                Achieved = achieved,
+                NotAchieved = notAchieved,
+                ProgressPercentages = progressPercs
+            };
+        }
+        public async Task<IBusinessResult> GetTopSelectedFoods(int top = 10)
+        {
+            var mealLogCounts = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.MealLogDetails.Any())
+                .Include(m => m.MealLogDetails)
+                .AsNoTracking()
+                .SelectMany(m => m.MealLogDetails)
+                .GroupBy(d => d.FoodId)
+                .Select(g => new { FoodId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var mealPlanCounts = await _unitOfWork.MealPlanDetailRepository
+                .GetAll()
+                .AsNoTracking()
+                .GroupBy(d => d.FoodId)
+                .Select(g => new { FoodId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var allFoodIds = mealLogCounts
+                .Select(x => x.FoodId)
+                .Concat(mealPlanCounts.Select(x => x.FoodId))
+                .Distinct()
+                .ToList();
+
+            var foods = await _unitOfWork.FoodRepository
+                .GetByWhere(f => allFoodIds.Contains(f.FoodId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var result = allFoodIds
+                .Select(id =>
+                {
+                    var ml = mealLogCounts.FirstOrDefault(x => x.FoodId == id)?.Count ?? 0;
+                    var mp = mealPlanCounts.FirstOrDefault(x => x.FoodId == id)?.Count ?? 0;
+                    return new TopFoodResponse
+                    {
+                        FoodName = foods.First(f => f.FoodId == id).FoodName,
+                        MealLogCount = ml,
+                        MealPlanCount = mp,
+                        TotalCount = ml + mp
+                    };
+                })
+                .OrderByDescending(x => x.TotalCount)
+                .Take(top)
+                .ToList();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result);
+        }
+
+        public async Task<IBusinessResult> GetActivityLevelDistributionAsync()
+        {
+            var query = _unitOfWork.HealthProfileRepository
+                .GetByWhere(hp => !string.IsNullOrEmpty(hp.ActivityLevel));
+
+            var total = await query.CountAsync();
+
+            var grouped = await query
+                .GroupBy(hp => hp.ActivityLevel)
+                .Select(g => new { LevelName = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var distribution = Enum.GetNames(typeof(ActivityLevel))
+                .Select(name =>
+                {
+                    var entry = grouped.FirstOrDefault(g => g.LevelName == name);
+                    var cnt = entry?.Count ?? 0;
+                    var pct = total > 0
+                                  ? Math.Round(cnt * 100.0 / total, 2)
+                                  : 0.0;
+
+                    return new ActivityLevelDistribution
+                    {
+                        ActivityLevel = name,
+                        Count = cnt,
+                        Percentage = pct
+                    };
+                })
+                .ToList();
+
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Thống kê phân bố ActivityLevel",
+                distribution
+            );
+        }
+        public async Task<IBusinessResult> GetNutritionSummaryGlobalAsync(DateTime date)
+        {
+            var details = await _unitOfWork.MealLogRepository
+                .GetByWhere(m => m.LogDate.HasValue && m.LogDate.Value.Date == date.Date)
+                .SelectMany(m => m.MealLogDetails)
+                .ToListAsync();
+
+            if (!details.Any())
+            {
+                var empty = new NutritionGlobalSummaryResponse
+                {
+                    TotalCalories = 0,
+                    TotalCarbs = 0,
+                    TotalProtein = 0,
+                    TotalFat = 0,
+                    CarbsPercentage = 0,
+                    ProteinPercentage = 0,
+                    FatPercentage = 0
+                };
+                return new BusinessResult(Const.HTTP_STATUS_OK, "No nutrition data for this date.", empty);
+            }
+
+            double totalCarbs = details.Sum(d => d.Carbs ?? 0);
+            double totalProtein = details.Sum(d => d.Protein ?? 0);
+            double totalFat = details.Sum(d => d.Fat ?? 0);
+
+            double carbCal = totalCarbs * 4;
+            double proteinCal = totalProtein * 4;
+            double fatCal = totalFat * 9;
+
+            double totalCalories = carbCal + proteinCal + fatCal;
+
+            double carbsPct = Math.Round(carbCal / totalCalories * 100, 2);
+            double proteinPct = Math.Round(proteinCal / totalCalories * 100, 2);
+            double fatPct = Math.Round(fatCal / totalCalories * 100, 2);
+
+            var resp = new NutritionGlobalSummaryResponse
+            {
+                TotalCalories = Math.Round(totalCalories, 2),
+                TotalCarbs = Math.Round(totalCarbs, 2),
+                TotalProtein = Math.Round(totalProtein, 2),
+                TotalFat = Math.Round(totalFat, 2),
+                CarbsPercentage = carbsPct,
+                ProteinPercentage = proteinPct,
+                FatPercentage = fatPct
+            };
+
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Global nutrition summary retrieved successfully.",
+                resp
+            );
+        }
+
+
     }
 }
