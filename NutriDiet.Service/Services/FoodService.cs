@@ -122,10 +122,10 @@ namespace NutriDiet.Service.Services
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Food not found");
             }
 
-            if(request.FoodName == existedFood.FoodName)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name already exists");
-            }
+            //if(request.FoodName == existedFood.FoodName)
+            //{
+            //    return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Food name already exists");
+            //}
 
             request.Adapt(existedFood);
 
