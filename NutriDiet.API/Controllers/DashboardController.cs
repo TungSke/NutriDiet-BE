@@ -47,5 +47,12 @@ namespace NutriDiet.API.Controllers
             var result = await _dashboardService.GetGoalProgressChartData();
             return Ok(result);
         }
+        [HttpGet("top-food")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
+        public async Task<IActionResult> TopFood(int top)
+        {
+            var result = await _dashboardService.GetTopSelectedFoods(top);
+            return Ok(result);
+        }
     }
 }
