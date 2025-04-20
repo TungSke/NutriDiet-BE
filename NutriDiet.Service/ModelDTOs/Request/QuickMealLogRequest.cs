@@ -1,4 +1,5 @@
-﻿using NutriDiet.Common.Enums;
+﻿using Microsoft.AspNetCore.Http;
+using NutriDiet.Common.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace NutriDiet.Service.ModelDTOs.Request
     {
         public DateTime? LogDate { get; set; }
         public string FoodName { get; set; } = null!;
+        public IFormFile Image { get; set; }
         public MealType MealType { get; set; }
         public double? Calories { get; set; }
         public double? Carbohydrates { get; set; }

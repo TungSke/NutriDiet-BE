@@ -362,6 +362,41 @@ namespace NutriDiet.Service.Services
             );
         }
 
+        public async Task<IBusinessResult> GetDietStyleDistributionAsync()
+        {
+            var query = _unitOfWork.HealthProfileRepository
+                .GetByWhere(hp => !string.IsNullOrEmpty(hp.DietStyle));
 
+            var total = await query.CountAsync();
+
+            var grouped = await query
+                .GroupBy(hp => hp.DietStyle)
+                .Select(g => new { StyleName = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var distribution = Enum.GetNames(typeof(DietStyleEnum))
+                .Select(name =>
+                {
+                    var entry = grouped.FirstOrDefault(g => g.StyleName == name);
+                    var cnt = entry?.Count ?? 0;
+                    var pct = total > 0
+                                  ? Math.Round(cnt * 100.0 / total, 2)
+                                  : 0.0;
+
+                    return new DietStyleDistribution
+                    {
+                        DietStyle = name,
+                        Count = cnt,
+                        Percentage = pct
+                    };
+                })
+                .ToList();
+
+            return new BusinessResult(
+                Const.HTTP_STATUS_OK,
+                "Thống kê phân bố DietStyle",
+                distribution
+            );
+        }
     }
 }

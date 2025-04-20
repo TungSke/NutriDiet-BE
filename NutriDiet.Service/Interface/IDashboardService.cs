@@ -12,5 +12,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetTopSelectedFoods(int top = 10);
         Task<IBusinessResult> GetActivityLevelDistributionAsync();
         Task<IBusinessResult> GetNutritionSummaryGlobalAsync(DateTime date);
+        Task<IBusinessResult> GetDietStyleDistributionAsync();
     }
 }
