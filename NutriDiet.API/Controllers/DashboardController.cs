@@ -71,6 +71,12 @@ namespace NutriDiet.API.Controllers
                 return StatusCode(result.StatusCode, result.Message);
             return Ok(result.Data);
         }
-
+        [HttpGet("diet-style")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.Nutritionist)}")]
+        public async Task<IActionResult> DietStyle()
+        {
+            var result = await _dashboardService.GetDietStyleDistributionAsync();
+            return Ok(result);
+        }
     }
 }
