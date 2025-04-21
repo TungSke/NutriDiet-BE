@@ -88,7 +88,7 @@ namespace NutriDiet.Service.Services
             double quantity = request.Quantity ?? 1;
 
             // Kiểm tra xem món ăn đã tồn tại trong MealLogDetail chưa
-            var existingMealDetail = existingMealLog.MealLogDetails.FirstOrDefault(d => d.FoodId == request.FoodId);
+            var existingMealDetail = existingMealLog.MealLogDetails.FirstOrDefault(d => d.FoodId == request.FoodId && d.MealType == request.MealType.ToString());
 
             if (existingMealDetail != null)
             {
@@ -995,8 +995,9 @@ Quy định phản hồi:
             {
                 return new BusinessResult(Const.ERROR_EXCEPTION, "Error uploading image: " + ex.Message, null);
             }
+            await _unitOfWork.SaveChangesAsync();
 
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, mealLogDetail);
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG);
         }
 
 
@@ -1110,10 +1111,10 @@ Quy định phản hồi:
             }
 
             double totalCalories = mealLogsList.Sum(m => m.TotalCalories);
-            const double MIN_DAILY_CALORIES = 1200;
+            const double MIN_DAILY_CALORIES = 1000;
             if (totalCalories < MIN_DAILY_CALORIES)
             {
-                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Lượng calories tối thiểu 1 ngày cho 1 người trưởng thành không được thấp hơn chuẩn quốc tế quy định" + MIN_DAILY_CALORIES, null);
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Lượng calories tối thiểu 1 ngày cho 1 người trưởng thành không được thấp hơn chuẩn quốc tế quy định" + MIN_DAILY_CALORIES +"kcal", null);
             }
 
             var serializedMealLogs = JsonSerializer.Serialize(mealLogsList);
@@ -1138,7 +1139,7 @@ Thông tin người dùng:
 Nhật ký ăn uống ngày {logDate:dd/MM/yyyy}:
 {serializedMealLogs}
 
-Hãy phân tích những điểm cần cải thiện trong chế độ ăn uống của người dùng trong ngày này, đưa ra các khuyến nghị cụ thể về cải thiện dinh dưỡng, luyện tập và thay đổi lối sống nếu cần. Đồng thời, hãy dự đoán khoảng thời gian cần thiết để người dùng đạt được mục tiêu sức khỏe của mình. Vui lòng trả lời chỉ dưới dạng văn bản thuần túy, không kèm theo bất kỳ giải thích thêm nào, và giới hạn kết quả trong khoảng 250 đến 300 từ.";
+Hãy phân tích những điểm cần cải thiện trong chế độ ăn uống của người dùng trong ngày này, đưa ra các khuyến nghị cụ thể về cải thiện dinh dưỡng, luyện tập và thay đổi lối sống nếu cần. Đồng thời, hãy dự đoán khoảng thời gian Chính xác 1 tháng nữa người dùng có cân nặng là bao nhiêu nếu ngày nào cũng ăn như vậy. Vui lòng trả lời chỉ dưới dạng văn bản thuần túy, không kèm theo bất kỳ giải thích thêm nào, và giới hạn kết quả trong khoảng 250 đến 300 từ.";
 
             var aiResponse = await _aiGeneratorService.AIResponseText(prompt);
             return new BusinessResult(Const.HTTP_STATUS_OK, "Phân tích và dự đoán thành công.", aiResponse);
