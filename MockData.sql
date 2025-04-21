@@ -101,7 +101,7 @@ VALUES
     (17, N'Bột ca cao', 414, 19.6, 53, 13.7),
     (18, N'Pho mát', 380, 25.5, 0, 30.9),
     (19, N'Sữa đặc có đường', 336, 8.1, 56, 8.8),
-    (20, N'Sữa chua vinalmilk có đường', 97.7, 3.5, 15.3, 2.5),
+    (20, N'Sữa chua có đường', 97.7, 3.5, 15.3, 2.5),
     (21, N'Sữa bò tươi', 74, 3.9, 4.8, 4.4),
     (22, N'Bột trứng', 563, 44, 1.8, 42.2),
     (23, N'Trứng vịt lộn', 182, 13.6, 4, 12.4),
@@ -671,19 +671,19 @@ SET IDENTITY_INSERT MealPlan ON;
 -- Thêm 10 thực đơn mẫu
 INSERT INTO MealPlan (MealPlanID, UserID, PlanName, HealthGoal, Duration, CreatedBy, UpdatedBy, Status)
 VALUES
-    (1, 2, N'Thực đơn tăng cân - Cao năng lượng', N'Tăng cân', 7, N'Admin', N'Admin', 'Active'),
-    (2, 2, N'Thực đơn tăng cân - Tăng cơ', N'Tăng cân', 7, N'Admin', N'Admin', 'Active'),
+    (1, 2, N'Thực đơn tăng cân - Cao năng lượng', N'Tăng cân', 7, N'Nutritionist', N'Nutritionist', 'Active'),
+    (2, 2, N'Thực đơn tăng cân - Tăng cơ', N'Tăng cân', 7, N'Nutritionist', N'Nutritionist', 'Active'),
 
-    (3, 2, N'Thực đơn giảm cân - Thấp năng lượng', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
-    (4, 2, N'Thực đơn giảm cân - Ít tinh bột', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
+    (3, 2, N'Thực đơn giảm cân - Thấp năng lượng', N'Giảm cân', 7, N'Nutritionist', N'Nutritionist', 'Active'),
+    (4, 2, N'Thực đơn giảm cân - Ít tinh bột', N'Giảm cân', 7, N'Nutritionist', N'Nutritionist', 'Active'),
 
-    (5, 2, N'Thực đơn duy trì cân nặng - Cân bằng', N'Duy trì cân nặng', 7, N'Admin', N'Admin', 'Active'),
-    (6, 2, N'Thực đơn duy trì cân nặng - Đủ chất', N'Duy trì cân nặng', 7, N'Admin', N'Admin', 'Active'),
+    (5, 2, N'Thực đơn duy trì cân nặng - Cân bằng', N'Duy trì cân nặng', 7, N'Nutritionist', N'Nutritionist', 'Active'),
+    (6, 2, N'Thực đơn duy trì cân nặng - Đủ chất', N'Duy trì cân nặng', 7, N'Nutritionist', N'Nutritionist', 'Active'),
 
-    (7, 2, N'Thực đơn duy trì cân cho người tiểu đường', N'Duy trì cân nặng', 7, N'Admin', N'Admin', 'Active'),
-    (8, 2, N'Thực đơn giảm cân cho béo phì cấp 1', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
-    (9, 2, N'Thực đơn giảm cân cho béo phì cấp 2', N'Giảm cân', 7, N'Admin', N'Admin', 'Active'),
-    (10, 2, N'Thực đơn tăng cân cho người tim mạch', N'Tăng cân', 7, N'Admin', N'Admin', 'Active');
+    (7, 2, N'Thực đơn duy trì cân cho người tiểu đường', N'Duy trì cân nặng', 7, N'Nutritionist', N'Nutritionist', 'Active'),
+    (8, 2, N'Thực đơn giảm cân cho béo phì cấp 1', N'Giảm cân', 7, N'Nutritionist', N'Nutritionist', 'Active'),
+    (9, 2, N'Thực đơn giảm cân cho béo phì cấp 2', N'Giảm cân', 7, N'Nutritionist', N'Nutritionist', 'Active'),
+    (10, 2, N'Thực đơn tăng cân cho người tim mạch', N'Tăng cân', 7, N'Nutritionist', N'Nutritionist', 'Active');
 
 SET IDENTITY_INSERT MealPlan OFF;
 

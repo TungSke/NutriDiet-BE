@@ -161,18 +161,24 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> PayforPackage(string cancelUrl, string returnUrl, int packageId)
         {
             var userId = await _tokenHandlerHelper.GetUserId();
+
             var userPackagecheck = await _unitOfWork.UserPackageRepository
                 .GetByWhere(x => x.UserId == userId && x.PackageId == packageId)
                 .FirstOrDefaultAsync();
 
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
 
-            // Nếu gói đã tồn tại nhưng trạng thái là "InActive", cập nhật và thực hiện lại
+            var now = DateTime.UtcNow;
+
+            // Nếu gói đã tồn tại và:
+            // - trạng thái InActive
+            // - hoặc trạng thái Active nhưng đã hết hạn
             if (userPackagecheck != null)
             {
-                if (userPackagecheck.Status == "InActive")
+                var isExpired = userPackagecheck.ExpiryDate < now;
+
+                if (userPackagecheck.Status == "InActive" || isExpired)
                 {
-                    
                     var package = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
                     if (package == null)
                     {
@@ -181,43 +187,45 @@ namespace NutriDiet.Service.Services
 
                     // Tạo yêu cầu thanh toán mới
                     List<ItemData> itemData = new List<ItemData>
-                                            {
-                                                new ItemData(package.PackageName, 1, Convert.ToInt32(package.Price.Value))
-                                            };
+            {
+                new ItemData(package.PackageName, 1, Convert.ToInt32(package.Price.Value))
+            };
                     var result = await CreatePaymentRequestAsync(package, user, cancelUrl, returnUrl, itemData);
 
                     return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result.Data);
                 }
 
+                // Nếu vẫn còn hiệu lực và đang hoạt động
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Gói đã tồn tại và đang hoạt động");
             }
+
             // Nếu gói chưa tồn tại, tạo mới
             var newUserPackage = new UserPackage
             {
                 UserId = userId,
                 PackageId = packageId,
-                StartDate = DateTime.UtcNow,
-                ExpiryDate = DateTime.UtcNow,
+                StartDate = now,
+                ExpiryDate = now, // Sẽ cập nhật sau khi thanh toán thành công
                 Status = "InActive"
             };
             await _unitOfWork.UserPackageRepository.AddAsync(newUserPackage);
             await _unitOfWork.SaveChangesAsync();
 
             var packageNew = await _unitOfWork.PackageRepository.GetByIdAsync(packageId);
-
             if (packageNew == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "Gói không tồn tại");
             }
 
             List<ItemData> newItemData = new List<ItemData>
-            {
-                new ItemData(packageNew.PackageName, 1, Convert.ToInt32(packageNew.Price.Value))
-            };
+    {
+        new ItemData(packageNew.PackageName, 1, Convert.ToInt32(packageNew.Price.Value))
+    };
             var newResult = await CreatePaymentRequestAsync(packageNew, user, cancelUrl, returnUrl, newItemData);
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, newResult.Data);
         }
+
 
 
         public async Task<IBusinessResult> PAYOSCallback(string status)
