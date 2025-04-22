@@ -40,6 +40,14 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpGet("my-package")]
+        [Authorize]
+        public async Task<IActionResult> GetMyUserPackage()
+        {
+            var result = await _packageService.GetMyUserPackage();
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] PackageRequest request)
@@ -69,6 +77,14 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> PayforPackage(string cancelUrl, string returnUrl, int packageId)
         {
             var result = await _packageService.PayforPackage(cancelUrl, returnUrl, packageId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpPost("payment-upgrade")]
+        [Authorize]
+        public async Task<IActionResult> UpgradePackage(string cancelUrl, string returnUrl, int packageId)
+        {
+            var result = await _packageService.UpgradePackage(cancelUrl, returnUrl, packageId);
             return StatusCode(result.StatusCode, result);
         }
 

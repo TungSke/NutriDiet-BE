@@ -57,6 +57,7 @@ CREATE TABLE [User] (
 CREATE TABLE Package (
     PackageID INT IDENTITY(1,1) PRIMARY KEY,
     PackageName NVARCHAR(100) UNIQUE NOT NULL,
+	PackageType NVARCHAR(50),
     Price FLOAT CHECK (Price >= 0),
     Duration INT CHECK (Duration > 0),
     Description NVARCHAR(255),
@@ -71,8 +72,11 @@ CREATE TABLE UserPackage (
     StartDate DATETIME DEFAULT GETDATE(),
     ExpiryDate DATETIME NOT NULL,
     Status NVARCHAR(50),
+	IsUpgraded BIT DEFAULT 0,
+    PreviousPackageID INT NULL,
     FOREIGN KEY (UserID) REFERENCES [User](UserID) ON DELETE CASCADE,
-    FOREIGN KEY (PackageID) REFERENCES Package(PackageID) ON DELETE CASCADE
+    FOREIGN KEY (PackageID) REFERENCES Package(PackageID) ON DELETE CASCADE,
+	FOREIGN KEY (PreviousPackageID) REFERENCES Package(PackageID)
 );
 
 -- Bảng HealthProfile

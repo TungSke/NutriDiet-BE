@@ -9,6 +9,8 @@ public partial class Package
 
     public string PackageName { get; set; } = null!;
 
+    public string? PackageType { get; set; }
+
     public double? Price { get; set; }
 
     public int? Duration { get; set; }
@@ -19,5 +21,7 @@ public partial class Package
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<UserPackage> UserPackages { get; set; } = new List<UserPackage>();
+    public virtual ICollection<UserPackage> UserPackagePackages { get; set; } = new List<UserPackage>();
+
+    public virtual ICollection<UserPackage> UserPackagePreviousPackages { get; set; } = new List<UserPackage>();
 }

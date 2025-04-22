@@ -19,6 +19,14 @@ namespace NutriDiet.Repository.Repositories
                 .FirstOrDefaultAsync();
             return activePackage != null;
         }
+
+        public async Task<bool> IsUserAdvancedPremiumAsync(int userId)
+        {
+            var activePackage = await GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate > DateTime.UtcNow)
+                .Include(up => up.Package)
+                .FirstOrDefaultAsync();
+            return activePackage != null && activePackage.Package.PackageType == "Advanced";
+        }
     }
 
 }

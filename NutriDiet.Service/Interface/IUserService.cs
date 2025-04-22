@@ -31,6 +31,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> UpdateUser(UpdateUserRequest request);
         Task<IBusinessResult> UpgradePackage(int packageId);
         Task<IBusinessResult> IsPremium();
+        Task<IBusinessResult> IsAdvancedPremium();
         Task<IBusinessResult> UpdateStatusUser(int userId, UserStatus status);
         Task<IBusinessResult> ChangeRole(int userId, RoleEnum role);
     }

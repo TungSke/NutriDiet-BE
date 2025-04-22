@@ -18,5 +18,7 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetUserPackage(int pageIndex, int pageSize, string? status, string? search);
         Task<IBusinessResult> PayforPackage(string cancelUrl, string returnUrl, int packageId);
         Task<IBusinessResult> PAYOSCallback(string status);
+        Task<IBusinessResult> UpgradePackage(string cancelUrl, string returnUrl, int newPackageId);
+        Task<IBusinessResult> GetMyUserPackage();
     }
 }

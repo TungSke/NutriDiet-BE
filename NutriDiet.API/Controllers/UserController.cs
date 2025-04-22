@@ -159,6 +159,14 @@ namespace NutriDiet.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
+        [HttpGet("is-advanced-premium")]
+        [Authorize]
+        public async Task<IActionResult> IsAdvancedPremium()
+        {
+            var result = await _userService.IsAdvancedPremium();
+            return StatusCode(result.StatusCode, result);
+        }
+
         [HttpPost("upgrade-package/{packageId}")]
         [Authorize]
         public async Task<IActionResult> UpgradePackage(int packageId)
