@@ -30,6 +30,7 @@ public partial class GeneralHealthProfile
     public DateTime? UpdatedAt { get; set; }
 
     public virtual ICollection<Aisuggestion> Aisuggestions { get; set; } = new List<Aisuggestion>();
+
     public virtual ICollection<HealthcareIndicator> HealthcareIndicators { get; set; } = new List<HealthcareIndicator>();
 
     public virtual User User { get; set; } = null!;

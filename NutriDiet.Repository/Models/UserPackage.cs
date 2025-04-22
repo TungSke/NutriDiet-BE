@@ -17,7 +17,13 @@ public partial class UserPackage
 
     public string? Status { get; set; }
 
+    public bool? IsUpgraded { get; set; }
+
+    public int? PreviousPackageId { get; set; }
+
     public virtual Package Package { get; set; } = null!;
+
+    public virtual Package? PreviousPackage { get; set; }
 
     public virtual User User { get; set; } = null!;
 }

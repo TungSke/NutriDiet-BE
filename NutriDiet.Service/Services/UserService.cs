@@ -478,6 +478,19 @@ namespace NutriDiet.Service.Services
 
             var isPremium = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
 
+            var isAdvancedPremium = await _unitOfWork.UserPackageRepository.IsUserAdvancedPremiumAsync(userId);
+
+            // Xác định loại gói
+            string packageType = "None";
+            if (isAdvancedPremium)
+            {
+                packageType = "Advanced";
+            }
+            else if (isPremium)
+            {
+                packageType = "Basic";
+            }
+
             // Cập nhật trạng thái gói hết hạn
             var expiredPackages = await _unitOfWork.UserPackageRepository
                 .GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate <= DateTime.UtcNow)
@@ -493,6 +506,51 @@ namespace NutriDiet.Service.Services
             }
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, isPremium);
+        }
+        public async Task<IBusinessResult> IsAdvancedPremium()
+        {
+            int userId = int.Parse(_userIdClaim);
+
+            // Kiểm tra trạng thái Premium
+            var isPremium = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+            var isAdvancedPremium = await _unitOfWork.UserPackageRepository.IsUserAdvancedPremiumAsync(userId);
+
+            // Xác định loại gói
+            string packageType = "None";
+            if (isAdvancedPremium)
+            {
+                packageType = "Advanced";
+            }
+            else if (isPremium)
+            {
+                packageType = "Basic";
+            }
+
+            // Cập nhật trạng thái gói hết hạn
+            var expiredPackages = await _unitOfWork.UserPackageRepository
+                .GetByWhere(up => up.UserId == userId && up.Status == "Active" && up.ExpiryDate <= DateTime.UtcNow)
+                .ToListAsync();
+            if (expiredPackages.Any())
+            {
+                foreach (var package in expiredPackages)
+                {
+                    package.Status = "Inactive";
+                    await _unitOfWork.UserPackageRepository.UpdateAsync(package);
+                }
+                await _unitOfWork.SaveChangesAsync();
+                // Cập nhật lại trạng thái sau khi gói hết hạn
+                isPremium = await _unitOfWork.UserPackageRepository.IsUserPremiumAsync(userId);
+                isAdvancedPremium = await _unitOfWork.UserPackageRepository.IsUserAdvancedPremiumAsync(userId);
+                packageType = isAdvancedPremium ? "Advanced" : (isPremium ? "Basic" : "None");
+            }
+
+            var result = new
+            {
+                IsPremium = isPremium,
+                PackageType = packageType
+            };
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result);
         }
 
         public async Task<IBusinessResult> UpdateStatusUser(int userId, UserStatus status)

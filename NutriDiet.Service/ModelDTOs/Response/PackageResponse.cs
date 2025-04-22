@@ -9,6 +9,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
     public class PackageResponse
     {
         public int PackageId { get; set; }
+        public string PackageType { get; set; }
 
         public string PackageName { get; set; } = null!;
 

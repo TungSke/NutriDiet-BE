@@ -864,6 +864,13 @@ Trình bày công thức theo cấu trúc sau:
 
         public async Task<IBusinessResult> GetFoodInfoScanImage(IFormFile file)
         {
+            // Kiểm tra tài khoản Advanced Premium
+            int userId = int.Parse(_userIdClaim);
+            var isAdvancedPremium = await _unitOfWork.UserPackageRepository.IsUserAdvancedPremiumAsync(userId);
+            if (!isAdvancedPremium)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_FORBIDDEN, "Chỉ tài khoản Advanced Premium mới sử dụng được tính năng này.");
+            }
             var exampleResponse = new FoodResponse
             {
                 FoodId = 0,
