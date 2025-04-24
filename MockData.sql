@@ -1702,6 +1702,8 @@ VALUES
 (1, 'UserAge', 13, 100, 'years', 1, N'Độ tuổi đăng ký tài khoản sử dụng hệ thống'),
 (2, 'UserHeight', 100, 220, 'cm', 1, N'Mức chiều cao cho phép của người dùng'),
 (3, 'UserWeight', 30, 250, 'kg', 1, N'Mức cân nặng cho phép của người dùng'),
-(4, 'TargetWeight', 30, 250, 'kg', 1, N'Mục tiêu cân nặng cho phép của người dùng');
+(4, 'TargetWeight', 30, 250, 'kg', 1, N'Mục tiêu cân nặng cho phép của người dùng'),
+(5, 'NumberAllergy', 0, 10, N'Dị ứng', 1, N'Số dị ứng có thể chọn'),
+(6, 'NumberDisease', 0, 5, N'Bệnh', 1, N'Số bệnh có thể chọn');
 
 SET IDENTITY_INSERT SystemConfiguration OFF;
