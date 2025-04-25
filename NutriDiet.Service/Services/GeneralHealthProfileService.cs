@@ -173,10 +173,9 @@ namespace NutriDiet.Service.Services
             }
             var newrate = weight - existgoal.TargetWeight.Value;
             var percentage = 100 - (int)((newrate / existgoal.ProgressRate) * 100);
-            if(percentage < 0)
+            if(percentage <= 0)
             {
                 percentage = 0;
-                return;
             }else if(percentage > 100)
             {
                 percentage = 100;
@@ -299,19 +298,6 @@ namespace NutriDiet.Service.Services
             healthProfile.Adapt(response);
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, response);
-        }
-        public async Task<IBusinessResult> DeleteHealthProfile(int userId)
-        {
-            var profile = _unitOfWork.HealthProfileRepository.GetByWhere(p => p.UserId == userId);
-            if (profile == null)
-            {
-                return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "profile not found");
-            }
-
-            await _unitOfWork.HealthProfileRepository.RemoveRange(profile);
-            await _unitOfWork.SaveChangesAsync();
-
-            return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_DELETE_MSG);
         }
         public async Task<IBusinessResult> TrackingHealthProfile(HealProfileFields field)
         {
