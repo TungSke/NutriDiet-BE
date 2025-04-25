@@ -13,7 +13,6 @@ namespace NutriDiet.Service.Interface
     {
         Task CreateHealthProfileRecord(HealthProfileRequest request);
         Task<IBusinessResult> GetHealthProfile();
-        Task<IBusinessResult> DeleteHealthProfile(int userId);
         Task<IBusinessResult> TrackingHealthProfile(HealProfileFields field);
         Task<IBusinessResult> GetSuggestionImproveFromAI();
         Task<IBusinessResult> CreateAISuggestion(CategoryAdvice adviceCategory = CategoryAdvice.All);
