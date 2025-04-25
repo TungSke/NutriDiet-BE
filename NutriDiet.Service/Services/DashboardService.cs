@@ -253,21 +253,27 @@ namespace NutriDiet.Service.Services
                 .ToListAsync();
 
             var result = allFoodIds
-                .Select(id =>
-                {
-                    var ml = mealLogCounts.FirstOrDefault(x => x.FoodId == id)?.Count ?? 0;
-                    var mp = mealPlanCounts.FirstOrDefault(x => x.FoodId == id)?.Count ?? 0;
-                    return new TopFoodResponse
+                    .Select(id =>
                     {
-                        FoodName = foods.First(f => f.FoodId == id).FoodName,
-                        MealLogCount = ml,
-                        MealPlanCount = mp,
-                        TotalCount = ml + mp
-                    };
-                })
-                .OrderByDescending(x => x.TotalCount)
-                .Take(top)
-                .ToList();
+                        var food = foods.FirstOrDefault(f => f.FoodId == id);
+                        var ml = mealLogCounts.FirstOrDefault(x => x.FoodId == id)?.Count ?? 0;
+                        var mp = mealPlanCounts.FirstOrDefault(x => x.FoodId == id)?.Count ?? 0;
+
+                        if (food == null) return null;
+
+                        return new TopFoodResponse
+                        {
+                            FoodName = food.FoodName,
+                            MealLogCount = ml,
+                            MealPlanCount = mp,
+                            TotalCount = ml + mp
+                        };
+                    })
+                    .Where(x => x != null) // Bỏ qua các item bị null (do không tìm thấy food)
+                    .OrderByDescending(x => x.TotalCount)
+                    .Take(top)
+                    .ToList();
+
 
             return new BusinessResult(Const.HTTP_STATUS_OK, Const.SUCCESS_READ_MSG, result);
         }
