@@ -66,6 +66,11 @@ namespace NutriDiet.Service.Services
             var checkUser = await findUserByEmail(request.Email);
             if (checkUser != null)
             {
+                if (checkUser.Status == UserStatus.Inactive.ToString())
+                {
+                    await _googleService.SendEmailWithOTP(request.Email, "Mã OTP xác thực tài khoản NutriDiet");
+                    return new BusinessResult(Const.HTTP_STATUS_OK, "Tài khoản đã tồn tại nhưng chưa xác thực. OTP mới đã được gửi.");
+                }
                 return new BusinessResult(Const.HTTP_STATUS_CONFLICT, "Email Existed");
             }
             request.Password = HashPassword(request.Password);
