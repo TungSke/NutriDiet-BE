@@ -1,4 +1,5 @@
 ﻿using NutriDiet.Common.BusinessResult;
+using NutriDiet.Repository.Models;
 using NutriDiet.Service.ModelDTOs.Request;
 using System;
 using System.Collections.Generic;
@@ -14,5 +15,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> GetPersonalGoal();
         Task<IBusinessResult> GetAllPersonalGoals();
         Task<IBusinessResult> UpdateDailyMacronutrients(EditDailyMacronutrientsRequest request);
+        Task<IBusinessResult> ValidateBMIBasedGoal(PersonalGoalRequest request);
     }
 }
