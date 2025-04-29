@@ -55,5 +55,18 @@ namespace NutriDiet.API.Controllers
             var result = await _personalGoalService.UpdateDailyMacronutrients(request);
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpPost("validate-bmi-goal")]
+        public async Task<IActionResult> ValidateBMIBasedGoal([FromForm] PersonalGoalRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _personalGoalService.ValidateBMIBasedGoal(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }

@@ -256,7 +256,7 @@ namespace NutriDiet.Service.Services
         {
             var userId = int.Parse(_userIdClaim);
             var existingGoal = await _unitOfWork.PersonalGoalRepository
-                .GetByWhere(pg => pg.UserId == userId)
+                .GetByWhere(pg => pg.UserId == userId).OrderByDescending(pg => pg.CreatedAt)
                 .FirstOrDefaultAsync();
 
             if (existingGoal == null)
@@ -277,5 +277,66 @@ namespace NutriDiet.Service.Services
 
             return new BusinessResult(Const.HTTP_STATUS_OK, "Daily macronutrients updated successfully.", response);
         }
+
+        public async Task<IBusinessResult> ValidateBMIBasedGoal(PersonalGoalRequest request)
+        {
+            var userId = int.Parse(_userIdClaim);
+            var existingUser = await _unitOfWork.UserRepository
+                .GetByWhere(u => u.UserId == userId)
+                .Include(u => u.GeneralHealthProfiles)
+                .ThenInclude(u => u.HealthcareIndicators)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (existingUser == null)
+            {
+                throw new Exception("User does not exist.");
+            }
+
+            var latestProfile = existingUser.GeneralHealthProfiles
+                                            .OrderByDescending(h => h.CreatedAt)
+                                            .FirstOrDefault(); var bmiIndicator = latestProfile.HealthcareIndicators
+                .Where(h => h.Code.Equals("BMI"))
+                .OrderByDescending(h => h.CreatedAt)
+                .FirstOrDefault();
+
+            if (bmiIndicator == null || bmiIndicator.CurrentValue == null)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Không tìm thấy dữ liệu BMI.", null);
+            }
+
+            var bmiCategory = bmiIndicator.Type.ToString();
+
+            switch (bmiCategory)
+            {
+                case "Gầy":
+                    if (request.GoalType == GoalType.LoseWeight)
+                    {
+                        return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đang gầy, không nên đặt mục tiêu giảm cân.", null);
+                    }
+                    break;
+
+                case "Thừa cân":
+                case "Béo phì độ 1":
+                case "Béo phì độ 2":
+                case "Béo phì độ 3":
+                    if (request.GoalType == GoalType.GainWeight)
+                    {
+                        return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đang thừa cân hoặc béo phì, không nên đặt mục tiêu tăng cân.", null);
+                    }
+                    break;
+
+                case "Bình thường":
+                    // OK: Không giới hạn.
+                    break;
+
+                default:
+                    return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Phân loại BMI không xác định.", null);
+            }
+
+            return new BusinessResult(Const.HTTP_STATUS_OK,  null);
+        }
+
+
     }
 }
