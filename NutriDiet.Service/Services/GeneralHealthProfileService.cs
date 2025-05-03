@@ -543,7 +543,9 @@ Bạn là một chuyên gia {categoryAdviceText}...
 - Mức độ vận động: {activityLevel}
 - Mục tiêu: {goalType}
 
-Yêu cầu: 200–300 từ, chỉ text thuần.
+Yêu cầu: 200–300 từ, chỉ text thuần,.
+Lưu ý: Chỉ phản hồi về 1 vấn đề được yêu cầu cụ thể bên trên: dinh dưỡng, luyện tập, hay lối sống. Nếu bạn là chuyên gia về dinh dưỡng, hãy cho tôi các lời khuyên về ăn uống. Nếu là về luyện tập, hãy cho lời khuyên về các bài tập hợp lý với người dùng
+. Nếu là về lối sống, hãy cho tôi các gợi ý về lối sống.
 ";
             var airesponse = await _aiGeneratorService.AIResponseText(input);
 
