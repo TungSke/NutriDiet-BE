@@ -312,7 +312,7 @@ namespace NutriDiet.Service.Services
                 case "Gầy":
                     if (request.GoalType == GoalType.LoseWeight)
                     {
-                        return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đang gầy, không nên đặt mục tiêu giảm cân.", null);
+                        return new BusinessResult(Const.HTTP_STATUS_OK, "Bạn đang gầy, không nên đặt mục tiêu giảm cân.", null);
                     }
                     break;
 
@@ -322,19 +322,18 @@ namespace NutriDiet.Service.Services
                 case "Béo phì độ 3":
                     if (request.GoalType == GoalType.GainWeight)
                     {
-                        return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Bạn đang thừa cân hoặc béo phì, không nên đặt mục tiêu tăng cân.", null);
+                        return new BusinessResult(Const.HTTP_STATUS_OK, "Bạn đang thừa cân hoặc béo phì, không nên đặt mục tiêu tăng cân.", null);
                     }
                     break;
 
                 case "Bình thường":
-                    // OK: Không giới hạn.
                     break;
 
                 default:
                     return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Phân loại BMI không xác định.", null);
             }
 
-            return new BusinessResult(Const.HTTP_STATUS_OK,  null);
+            return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST,  null);
         }
 
 
