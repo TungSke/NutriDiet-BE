@@ -122,7 +122,7 @@ namespace NutriDiet.Service.Utilities
                     },
                     new
                     {
-                        text = $"Bạn là chuyên gia dinh dưỡng hãy phân tích hình ảnh và trả ra cho tôi output như này: {jsonOutput}\nĐây là ảnh của tôi"
+                        text = $"Bạn là chuyên gia dinh dưỡng hãy phân tích hình ảnh và trả ra cho tôi output như này: {jsonOutput}\nĐây là ảnh của tôi và làm theo yêu cầu của tôi {input}"
                     }
                 }
             }
