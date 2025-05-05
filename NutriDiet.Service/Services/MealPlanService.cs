@@ -732,6 +732,20 @@ Lưu ý:
             {
                 mealPlan.StartAt = null;
                 mealPlan.Status = MealplanStatus.Inactive.ToString();
+
+                // Xóa các MealLog trong tương lai
+                var currentDate = DateTime.Now.Date;
+                var futureMealLogs = await _unitOfWork.MealLogRepository
+                    .GetByWhere(x => x.UserId == userId && x.LogDate.Value.Date > currentDate)
+                    .ToListAsync();
+
+                if (futureMealLogs.Any())
+                {
+                    foreach (var mealLog in futureMealLogs)
+                    {
+                        await _unitOfWork.MealLogRepository.DeleteAsync(mealLog);
+                    }
+                }
             }
             await _unitOfWork.MealPlanRepository.UpdateAsync(mealPlan);
             await _unitOfWork.SaveChangesAsync();
