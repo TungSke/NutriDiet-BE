@@ -536,17 +536,65 @@ namespace NutriDiet.Service.Services
                     _ => "dinh dưỡng, luyện tập và lối sống"
                 };
 
-            var input = $@"
-Bạn là một chuyên gia {categoryAdviceText}...
+            string input = adviceCategory switch
+            {
+                CategoryAdvice.LuyenTap => $@"
+Bạn là một chuyên gia về luyện tập thể chất. Dựa trên thông tin dưới đây, hãy đưa ra lời khuyên tập luyện phù hợp:
 - Chiều cao: {height} cm
 - Cân nặng: {weight} kg
 - Mức độ vận động: {activityLevel}
-- Mục tiêu: {goalType}
+- Mục tiêu cá nhân: {goalType}
 
-Yêu cầu: 200–300 từ, chỉ text thuần,.
-Lưu ý: Chỉ phản hồi về 1 vấn đề được yêu cầu cụ thể bên trên: dinh dưỡng, luyện tập, hay lối sống. Nếu bạn là chuyên gia về dinh dưỡng, hãy cho tôi các lời khuyên về ăn uống. Nếu là về luyện tập, hãy cho lời khuyên về các bài tập hợp lý với người dùng
-. Nếu là về lối sống, hãy cho tôi các gợi ý về lối sống.
-";
+Hãy đề xuất cụ thể:
+- Nên tập những bài nào (ví dụ: đi bộ nhanh, plank, HIIT...),
+- Mỗi buổi tập nên kéo dài bao nhiêu phút,
+- Nên tập bao nhiêu buổi mỗi tuần.
+
+Giới hạn trong 300–350 từ, chỉ trả lời bằng văn bản thuần.",
+
+                CategoryAdvice.DinhDuong => $@"
+Bạn là một chuyên gia về dinh dưỡng. Dựa trên thông tin dưới đây, hãy đưa ra lời khuyên ăn uống phù hợp:
+- Chiều cao: {height} cm
+- Cân nặng: {weight} kg
+- Mức độ vận động: {activityLevel}
+- Mục tiêu cá nhân: {goalType}
+
+Hãy gợi ý cụ thể:
+- Nên ăn bao nhiêu bữa trong một ngày,
+- Mỗi bữa nên gồm những nhóm thực phẩm nào (ví dụ: tinh bột, protein, rau xanh...),
+- Đưa ra khẩu phần mẫu cho một ngày phù hợp.
+
+Giới hạn trong 300–350 từ, chỉ trả lời bằng văn bản thuần.",
+
+                CategoryAdvice.LoiSong => $@"
+Bạn là một chuyên gia về lối sống lành mạnh. Dựa trên thông tin dưới đây, hãy đưa ra lời khuyên phù hợp:
+- Chiều cao: {height} cm
+- Cân nặng: {weight} kg
+- Mức độ vận động: {activityLevel}
+- Mục tiêu cá nhân: {goalType}
+
+Hãy tư vấn cụ thể:
+- Các thói quen tốt nên duy trì (giấc ngủ, uống nước, giảm stress...),
+- Thời gian biểu khuyến nghị trong ngày,
+- Các hành vi nên tránh hoặc điều chỉnh.
+
+Giới hạn trong 300–350 từ, chỉ trả lời bằng văn bản thuần.",
+
+                _ => $@"
+Bạn là một chuyên gia toàn diện về dinh dưỡng, luyện tập và lối sống. Dựa trên thông tin dưới đây, hãy đưa ra lời khuyên tổng quát phù hợp:
+- Chiều cao: {height} cm
+- Cân nặng: {weight} kg
+- Mức độ vận động: {activityLevel}
+- Mục tiêu cá nhân: {goalType}
+
+Hãy chia thành 3 phần rõ ràng:
+1. Dinh dưỡng: số bữa, loại thực phẩm, khẩu phần mẫu.
+2. Luyện tập: bài tập cụ thể, thời lượng, tần suất/tuần.
+3. Lối sống: thói quen tốt, thời gian biểu, điều chỉnh cần thiết.
+
+Giới hạn trong 300 từ, chỉ trả lời bằng văn bản thuần."
+            };
+
             var airesponse = await _aiGeneratorService.AIResponseText(input);
 
             var healthProfileRecord = await _unitOfWork.HealthProfileRepository
