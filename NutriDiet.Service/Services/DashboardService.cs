@@ -163,7 +163,7 @@ namespace NutriDiet.Service.Services
                 PackageId = x.PackageId,
                 PackageName = x.Package.PackageName,
                 Description = x.Package.Description,
-                Price = x.Package.Price,
+                Price = x.PriceAtPurchase,
                 PaidAt = x.StartDate,
                 ExpiryDate = x.ExpiryDate
             });

@@ -221,7 +221,8 @@ namespace NutriDiet.Service.Services
                 UserId = userId,
                 PackageId = packageId,
                 StartDate = now,
-                ExpiryDate = now, // Sẽ cập nhật sau khi thanh toán thành công
+                ExpiryDate = now,
+                PriceAtPurchase = package.Price,
                 Status = "InActive"
             };
             await _unitOfWork.UserPackageRepository.AddAsync(newUserPackage);
@@ -297,6 +298,7 @@ namespace NutriDiet.Service.Services
                 StartDate = now,
                 ExpiryDate = now, // Sẽ cập nhật sau khi thanh toán
                 Status = "InActive",
+                PriceAtPurchase = upgradeFee,
                 IsUpgraded = true,
                 PreviousPackageId = currentUserPackage.PackageId
             };

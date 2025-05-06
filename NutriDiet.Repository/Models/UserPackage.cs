@@ -11,6 +11,8 @@ public partial class UserPackage
 
     public int PackageId { get; set; }
 
+    public double? PriceAtPurchase { get; set; }
+
     public DateTime? StartDate { get; set; }
 
     public DateTime ExpiryDate { get; set; }

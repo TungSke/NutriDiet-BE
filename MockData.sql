@@ -278,16 +278,16 @@ VALUES (1, 'Premium Basic 1 Tháng', 'Basic', 99000.00, 30, N'Truy cập các t�
 SET IDENTITY_INSERT [dbo].[Package] OFF
 
 SET IDENTITY_INSERT [dbo].[UserPackage] ON 
-INSERT UserPackage (UserPackageID, UserID, PackageID, StartDate, ExpiryDate, Status) VALUES 
-(1, 1, 1, GETDATE(), GETDATE() + 30, 'Active'),
-(2, 3, 1, '2024-06-20', DATEADD(DAY, 30, '2024-06-20'), 'Expired'),
-(3, 4, 1, '2024-02-05', DATEADD(DAY, 30, '2024-02-05'), 'Expired'),
-(4, 5, 1, '2024-12-01', DATEADD(DAY, 30, '2024-12-01'), 'Expired'),
-(5, 6, 1, '2025-01-01', DATEADD(DAY, 30, '2025-01-01'), 'Expired'),
-(6, 7, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
-(7, 8, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
-(8, 9, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired'),
-(9, 10, 1, '2025-03-31', DATEADD(DAY, 30, '2025-03-31'), 'Expired');
+INSERT UserPackage (UserPackageID, UserID, PackageID, StartDate, ExpiryDate, Status, PriceAtPurchase) VALUES 
+(1, 1, 1, GETDATE(), GETDATE() + 30, 'Active',990000),
+(2, 3, 1, '2024-06-20', DATEADD(DAY, 30, '2024-06-20'), 'Expired',99000.00),
+(3, 4, 1, '2024-02-05', DATEADD(DAY, 30, '2024-02-05'), 'Expired',99000.00),
+(4, 5, 1, '2024-12-01', DATEADD(DAY, 30, '2024-12-01'), 'Expired',99000.00),
+(5, 6, 1, '2025-01-01', DATEADD(DAY, 30, '2025-01-01'), 'Expired',99000.00),
+(6, 7, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired',99000.00),
+(7, 8, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired',99000.00),
+(8, 9, 1, '2025-02-14', DATEADD(DAY, 30, '2025-02-14'), 'Expired',99000.00),
+(9, 10, 1, '2025-03-31', DATEADD(DAY, 30, '2025-03-31'), 'Expired',99000.00);
 
 SET IDENTITY_INSERT [dbo].[UserPackage] OFF
 

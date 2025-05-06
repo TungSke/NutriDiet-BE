@@ -69,6 +69,7 @@ CREATE TABLE UserPackage (
     UserPackageID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
     PackageID INT NOT NULL,
+	PriceAtPurchase FLOAT,
     StartDate DATETIME DEFAULT GETDATE(),
     ExpiryDate DATETIME NOT NULL,
     Status NVARCHAR(50),
