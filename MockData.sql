@@ -279,7 +279,7 @@ SET IDENTITY_INSERT [dbo].[Package] OFF
 
 SET IDENTITY_INSERT [dbo].[UserPackage] ON 
 INSERT UserPackage (UserPackageID, UserID, PackageID, StartDate, ExpiryDate, Status, PriceAtPurchase) VALUES 
-(1, 1, 1, GETDATE(), GETDATE() + 30, 'Active',990000),
+(1, 1, 1, GETDATE(), GETDATE() + 30, 'Active',99000.00),
 (2, 3, 1, '2024-06-20', DATEADD(DAY, 30, '2024-06-20'), 'Expired',99000.00),
 (3, 4, 1, '2024-02-05', DATEADD(DAY, 30, '2024-02-05'), 'Expired',99000.00),
 (4, 5, 1, '2024-12-01', DATEADD(DAY, 30, '2024-12-01'), 'Expired',99000.00),
