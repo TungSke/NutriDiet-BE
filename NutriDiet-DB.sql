@@ -296,6 +296,7 @@ CREATE TABLE MealLog (
     MealLogID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT NOT NULL,
     LogDate DATETIME DEFAULT GETDATE(),
+	DailyCalories FLOAT,
     TotalCalories FLOAT CHECK (TotalCalories >= 0),
     TotalProtein FLOAT CHECK (TotalProtein >= 0) DEFAULT 0,
     TotalCarbs FLOAT CHECK (TotalCarbs >= 0) DEFAULT 0,

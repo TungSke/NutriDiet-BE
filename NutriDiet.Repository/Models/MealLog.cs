@@ -11,6 +11,8 @@ public partial class MealLog
 
     public DateTime? LogDate { get; set; }
 
+    public double? DailyCalories { get; set; }
+
     public double? TotalCalories { get; set; }
 
     public double? TotalProtein { get; set; }
