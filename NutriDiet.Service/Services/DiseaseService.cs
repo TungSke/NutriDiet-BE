@@ -106,6 +106,7 @@ namespace NutriDiet.Service.Services
             var diseases = await query
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
+                .OrderByDescending(d => d.CreatedAt)
                 .ToListAsync();
 
             diseases = diseases.Distinct().ToList();

@@ -7,6 +7,7 @@ using NutriDiet.Common.Enums;
 using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
+using NutriDiet.Service.Services;
 using Sprache;
 using System.ComponentModel.DataAnnotations;
 
@@ -143,6 +144,13 @@ namespace NutriDiet.API.Controllers
         public async Task<IActionResult> GetAllFeedback(int pageIndex = 1, int pageSize = 10, string? search = "")
         {
             var result = await _mealPlanService.GetFeedback(pageIndex, pageSize, search);
+            return StatusCode(result.StatusCode, result);
+        }
+        [HttpPost("mealplan-ai-simulation")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Nutritionist)}")]
+        public async Task<IActionResult> CreateMealLogAIMock([FromForm] MealPlanManualInputRequest request)
+        {
+            var result = await _mealPlanService.CreateMealPlanByManualInput(request);
             return StatusCode(result.StatusCode, result);
         }
     }

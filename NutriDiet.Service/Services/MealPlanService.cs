@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using FirebaseAdmin.Auth;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -566,6 +567,95 @@ Lưu ý:
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Failed: " + ex.Message);
             }
         }
+
+        public async Task<IBusinessResult> CreateMealPlanByManualInput(MealPlanManualInputRequest inputData)
+        {
+            var userId = int.Parse(_userIdClaim);
+
+            var foods = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
+            var foodResponse = foods.Adapt<List<FoodResponse>>();
+            var foodListText = JsonSerializer.Serialize(foodResponse);
+
+            var mealPlanRequesttest = new MealPlanRequest
+            {
+                PlanName = $"Mô phỏng kế hoạch ăn",
+                HealthGoal = "Giảm cân",
+                MealPlanDetails = new List<MealPlanDetailRequest>
+                {
+                    new MealPlanDetailRequest
+                    {
+                        FoodId = 1,
+                        Quantity = 1,
+                        MealType = MealType.Breakfast.ToString(),
+                        DayNumber = 1
+                    },
+                    new MealPlanDetailRequest
+                    {
+                        FoodId = 2,
+                        Quantity = 1,
+                        MealType = MealType.Lunch.ToString(),
+                        DayNumber = 1
+                    },
+                    new MealPlanDetailRequest
+                    {
+                        FoodId = 3,
+                        Quantity = 1,
+                        MealType = MealType.Dinner.ToString(),
+                        DayNumber = 1
+                    },
+                    new MealPlanDetailRequest
+                    {
+                        FoodId = 4,
+                        Quantity = 1,
+                        MealType = MealType.Snacks.ToString(),
+                        DayNumber = 1
+                    }
+                }
+            };
+
+            string jsonOutputSample = JsonSerializer.Serialize(mealPlanRequesttest);
+
+            string prompt = $@"
+Bạn là chuyên gia dinh dưỡng, hãy tạo meal plan phù hợp dựa trên thông tin sau:
+
+- Giới tính: {inputData.Gender}
+- Tuổi: {inputData.Age}
+- Chiều cao: {inputData.Height} cm
+- Cân nặng: {inputData.Weight} kg
+- Mức độ vận động: {inputData.ActivityLevel}
+- Mục tiêu: {inputData.HealthGoal}
+- Dị ứng: {inputData.Allergies}
+- Bệnh lý: {inputData.Diseases}
+- Chế độ ăn: {inputData.DietStyle}
+
+Chỉ được chọn món ăn từ danh sách sau: {foodListText}
+
+Yêu cầu:
+- Tạo thực đơn 7 ngày, mỗi ngày gồm 3 bữa chính và 1 bữa phụ
+- Tính toán sao cho đáp ứng nhu cầu: Calories: {inputData.DailyCalories}, Carb: {inputData.DailyCarb}, Fat: {inputData.DailyFat}, Protein: {inputData.DailyProtein}
+- Chỉ trả về JSON thuần theo mẫu sau: {jsonOutputSample}
+- Chỉ trả về **JSON thuần túy**, không kèm theo giải thích.
+";
+
+            var aiResponse = await _aIGeneratorService.AIResponseJson(prompt, jsonOutputSample);
+
+            if (string.IsNullOrEmpty(aiResponse))
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Invalid AI response");
+            }
+
+            try
+            {
+                var mealPlanRequest = JsonSerializer.Deserialize<MealPlanRequest>(aiResponse);
+
+                return new BusinessResult(Const.HTTP_STATUS_CREATED, Const.SUCCESS_CREATE_MSG, mealPlanRequest);
+            }
+            catch (Exception ex)
+            {
+                return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "Failed: " + ex.Message);
+            }
+        }
+
 
         public async Task<IBusinessResult> RejectMealplan(string rejectReason)
         {
