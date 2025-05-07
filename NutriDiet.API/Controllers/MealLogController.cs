@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutriDiet.Common.Enums;
+using NutriDiet.Service.Enums;
 using NutriDiet.Service.Interface;
 using NutriDiet.Service.ModelDTOs.Request;
 using NutriDiet.Service.Services;
@@ -157,5 +158,14 @@ namespace NutriDiet.API.Controllers
             var result = await _mealLogService.AnalyzeAndPredictMealImprovements(logDate);
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpPost("meallog-ai-simulation")]
+        [Authorize(Roles = $"{nameof(RoleEnum.Nutritionist)}")]
+        public async Task<IActionResult> CreateMealLogAIMock([FromForm] CreateMealLogAIRequest request)
+        {
+            var result = await _mealLogService.CreateMealLogAIMock(request);
+            return StatusCode(result.StatusCode, result);
+        }
+
     }
 }

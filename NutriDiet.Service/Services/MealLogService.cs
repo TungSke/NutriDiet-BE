@@ -45,6 +45,7 @@ namespace NutriDiet.Service.Services
         {
             var userId = int.Parse(_userIdClaim);
             var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).OrderByDescending(pg => pg.CreatedAt).FirstOrDefaultAsync();
             if (existingUser == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User does not exist.", null);
@@ -69,6 +70,7 @@ namespace NutriDiet.Service.Services
                 existingMealLog = new MealLog
                 {
                     UserId = userId,
+                    DailyCalories = existgoal.DailyCalories,
                     LogDate = logDate,
                     TotalCalories = 0,
                     TotalCarbs = 0,
@@ -268,6 +270,7 @@ namespace NutriDiet.Service.Services
             {
                 MealLogId = mealLog.MealLogId,
                 LogDate = mealLog.LogDate.Value,
+                DailyCalories = mealLog.DailyCalories,
                 TotalCalories = mealLog.TotalCalories ?? 0,
                 TotalProtein = mealLog.TotalProtein ?? 0,
                 TotalCarbs = mealLog.TotalCarbs ?? 0,
@@ -298,6 +301,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "LogDate is required.", null);
             }
+            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).OrderByDescending(pg => pg.CreatedAt).FirstOrDefaultAsync();
 
             var logDate = request.LogDate.Value.Date;
 
@@ -312,6 +316,7 @@ namespace NutriDiet.Service.Services
                 {
                     UserId = userId,
                     LogDate = logDate,
+                    DailyCalories = existgoal.DailyCalories,
                     TotalCalories = 0,
                     TotalCarbs = 0,
                     TotalFat = 0,
@@ -669,8 +674,86 @@ Quy định phản hồi:
             return new BusinessResult(Const.HTTP_STATUS_OK, "Input đã tạo thành công", mealLogDetails);
         }
 
+        public async Task<IBusinessResult> CreateMealLogAIMock(CreateMealLogAIRequest request)
+        {
+            var userId = int.Parse(_userIdClaim);
 
 
+            var today = DateTime.Today;
+
+            var foodList = await _unitOfWork.FoodRepository.GetAll().ToListAsync();
+            var foodResponses = foodList.Adapt<List<FoodResponse>>();
+            var foodListText = JsonSerializer.Serialize(foodResponses);
+
+            var jsonSample = JsonSerializer.Serialize(new List<MealLogRequest>
+    {
+        new MealLogRequest { LogDate = today, FoodId = 1, MealType = MealType.Breakfast, Quantity = 1, ServingSize = "1 phần" },
+        new MealLogRequest { LogDate = today, FoodId = 2, MealType = MealType.Lunch, Quantity = 1, ServingSize = "1 phần" },
+        new MealLogRequest { LogDate = today, FoodId = 3, MealType = MealType.Dinner, Quantity = 1, ServingSize = "1 phần" },
+        new MealLogRequest { LogDate = today, FoodId = 4, MealType = MealType.Snacks, Quantity = 1, ServingSize = "1 phần" },
+    });
+
+            // Prompt gửi cho AI
+            var prompt = $@"
+Bạn là chuyên gia dinh dưỡng. Hãy tạo meal log 1 ngày cho người dùng dưới đây:
+
+- Họ tên: {request.FullName}
+- Giới tính: {request.Gender}
+- Tuổi: {request.Age}
+- Chiều cao: {request.Height} cm
+- Cân nặng: {request.Weight} kg
+- Mức độ vận động: {request.ActivityLevel}
+- Phong cách ăn uống: {request.DietStyle}
+- Mục tiêu: {request.GoalType}
+- Chỉ tiêu Calories: {request.DailyCalories}
+
+Yêu cầu:
+- Meal log 1 ngày gồm 3 bữa chính và 1 bữa phụ.
+- Chỉ chọn món từ danh sách: {foodListText}
+
+Giá trị dinh dưỡng đề xuất cho user nạp đủ trong ngày hôm nay:
+- **Calories:** {request.DailyCalories}
+
+Yêu cầu bắt buộc:
+- Tổng giá trị dinh dưỡng của các món ăn trong ngày **phải đủ lượng Calories {request.DailyCalories}**:
+    - Calories >= {request.DailyCalories}
+- Nếu không thể đạt đúng, hãy chọn món khác từ danh sách để đảm bảo đủ chỉ tiêu.
+- Không được gửi kết quả nếu tổng Calories dưới {request.DailyCalories}.
+
+Quy định phản hồi:
+- Trả về theo đúng định dạng JSON mẫu như sau: {jsonSample}
+- Chỉ trả về **JSON thuần túy**, không kèm theo giải thích, chú thích, markdown hoặc mô tả.
+";
+
+            var aiResponse = await _aiGeneratorService.AIResponseJson(prompt, jsonSample);
+            var mealLogRequests = JsonSerializer.Deserialize<List<MealLogRequest>>(aiResponse);
+
+            var foodIds = mealLogRequests.Select(m => m.FoodId).Distinct().ToList();
+            var relevantFoods = foodResponses.Where(f => foodIds.Contains(f.FoodId)).ToList();
+
+            var mealLogDetails = mealLogRequests
+                .Select(m =>
+                {
+                    var food = relevantFoods.FirstOrDefault(f => f.FoodId == m.FoodId);
+                    if (food == null) return null;
+
+                    return new MealLogDetailResponse
+                    {
+                        FoodName = food.FoodName,
+                        MealType = m.MealType.ToString(),
+                        ServingSize = m.ServingSize,
+                        Quantity = m.Quantity,
+                        Calories = (m.Quantity ?? 1) * (food.Calories ?? 0),
+                        Protein = (m.Quantity ?? 1) * (food.Protein ?? 0),
+                        Carbs = (m.Quantity ?? 1) * (food.Carbs ?? 0),
+                        Fat = (m.Quantity ?? 1) * (food.Fat ?? 0)
+                    };
+                })
+                .Where(x => x != null)
+                .ToList();
+
+            return new BusinessResult(Const.HTTP_STATUS_OK, "Tạo Meal Log bằng AI thành công", mealLogDetails);
+        }
         public async Task<bool> IsMealPlanAppliedAsync(DateTime date)
         {
             int userId = int.Parse(_userIdClaim);

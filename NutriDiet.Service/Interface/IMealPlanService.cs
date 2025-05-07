@@ -33,5 +33,6 @@ namespace NutriDiet.Service.Interface
         Task<IBusinessResult> UpdateMealPlanMobile(int mealPlanID, string planName, string healthGoal);
         Task<IBusinessResult> GetFeedback(int pageIndex, int pageSize, string? search);
         Task<IBusinessResult> CreateAIWarning(int mealPlanId);
+        Task<IBusinessResult> CreateMealPlanByManualInput(MealPlanManualInputRequest inputData);
     }
 }

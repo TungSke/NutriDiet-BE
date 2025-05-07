@@ -10,6 +10,7 @@ namespace NutriDiet.Service.ModelDTOs.Response
     {
         public int MealLogId { get; set; }
         public DateTime? LogDate { get; set; }
+        public double? DailyCalories { get; set; }
         public double TotalCalories { get; set; }
         public double TotalProtein { get; set; }
         public double TotalCarbs { get; set; }
