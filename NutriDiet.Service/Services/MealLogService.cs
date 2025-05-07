@@ -45,6 +45,7 @@ namespace NutriDiet.Service.Services
         {
             var userId = int.Parse(_userIdClaim);
             var existingUser = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).OrderByDescending(pg => pg.CreatedAt).FirstOrDefaultAsync();
             if (existingUser == null)
             {
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "User does not exist.", null);
@@ -69,6 +70,7 @@ namespace NutriDiet.Service.Services
                 existingMealLog = new MealLog
                 {
                     UserId = userId,
+                    DailyCalories = existgoal.DailyCalories,
                     LogDate = logDate,
                     TotalCalories = 0,
                     TotalCarbs = 0,
@@ -268,6 +270,7 @@ namespace NutriDiet.Service.Services
             {
                 MealLogId = mealLog.MealLogId,
                 LogDate = mealLog.LogDate.Value,
+                DailyCalories = mealLog.DailyCalories,
                 TotalCalories = mealLog.TotalCalories ?? 0,
                 TotalProtein = mealLog.TotalProtein ?? 0,
                 TotalCarbs = mealLog.TotalCarbs ?? 0,
@@ -298,6 +301,7 @@ namespace NutriDiet.Service.Services
             {
                 return new BusinessResult(Const.HTTP_STATUS_BAD_REQUEST, "LogDate is required.", null);
             }
+            var existgoal = await _unitOfWork.PersonalGoalRepository.GetByWhere(pg => pg.UserId == userId).OrderByDescending(pg => pg.CreatedAt).FirstOrDefaultAsync();
 
             var logDate = request.LogDate.Value.Date;
 
@@ -312,6 +316,7 @@ namespace NutriDiet.Service.Services
                 {
                     UserId = userId,
                     LogDate = logDate,
+                    DailyCalories = existgoal.DailyCalories,
                     TotalCalories = 0,
                     TotalCarbs = 0,
                     TotalFat = 0,
