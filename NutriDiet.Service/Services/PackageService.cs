@@ -241,7 +241,8 @@ namespace NutriDiet.Service.Services
         public async Task<IBusinessResult> UpgradePackage(string cancelUrl, string returnUrl, int newPackageId)
         {
             var userId = await _tokenHandlerHelper.GetUserId();
-            var now = DateTime.UtcNow;
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // UTC+7
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
 
             // Kiểm tra gói hiện tại của người dùng
             var currentUserPackage = await _unitOfWork.UserPackageRepository
