@@ -696,7 +696,6 @@ Yêu cầu:
                 return new BusinessResult(Const.HTTP_STATUS_NOT_FOUND, "not found");
             }
             recommendResponse.Status = AIRecommendStatus.Accepted.ToString();
-            recommendResponse.RejectionReason = null;
             recommendResponse.Feedback = feedback;
 
             await _unitOfWork.SaveChangesAsync();
